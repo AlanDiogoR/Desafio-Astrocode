@@ -13,9 +13,9 @@ public class BackendApplication {
 		// Tenta encontrar o arquivo .env em diferentes locais
 		Dotenv dotenv = null;
 		String[] possiblePaths = {
-			"./.env",                    // Diretório atual (quando executado de backend/)
-			"../backend/.env",           // Um nível acima (quando executado da raiz)
-			"./backend/.env"            // Subdiretório backend
+			"./.env",                    
+			"../backend/.env",           
+			"./backend/.env"            
 		};
 		
 		for (String path : possiblePaths) {
@@ -29,12 +29,10 @@ public class BackendApplication {
 					System.out.println("Loaded .env from: " + envFile.getAbsolutePath());
 					break;
 				} catch (Exception e) {
-					// Tenta próximo caminho
 				}
 			}
 		}
 		
-		// Se não encontrou em nenhum lugar, tenta carregar do diretório atual
 		if (dotenv == null) {
 			dotenv = Dotenv.configure()
 					.directory(".")
@@ -43,7 +41,6 @@ public class BackendApplication {
 					.load();
 		}
 		
-		// Define as variáveis como propriedades do sistema ANTES do Spring Boot iniciar
 		if (dotenv != null) {
 			dotenv.entries().forEach(entry -> {
 				String key = entry.getKey();
