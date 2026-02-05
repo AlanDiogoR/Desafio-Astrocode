@@ -1,5 +1,6 @@
 package com.astrocode.backend.domain.entities;
 
+import com.astrocode.backend.domain.model.enums.TransactionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,10 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Entidade que representa uma categoria de transação de um usuário.
- * Mapeia para a tabela 'categories' no banco de dados.
- */
 @Entity
 @Table(name = "categories")
 @Data
@@ -44,6 +41,11 @@ public class Category {
     @Size(max = 50)
     @Column(name = "icon", length = 50)
     private String icon;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
+    private TransactionType type;
 
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)
