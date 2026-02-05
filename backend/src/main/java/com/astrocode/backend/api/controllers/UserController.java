@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -22,12 +21,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    /**
-     * Endpoint para cadastro de novo usuário.
-     * 
-     * @param request DTO com os dados do usuário a ser cadastrado
-     * @return 
-     */
     @PostMapping
     public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRegistrationRequest request) {
         var userResponse = userService.register(request);

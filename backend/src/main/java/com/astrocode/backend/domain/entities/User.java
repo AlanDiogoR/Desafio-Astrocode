@@ -10,16 +10,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Entidade que representa um usuário do sistema.
- * Mapeia para a tabela 'users' no banco de dados.
- */
 @Entity
 @Table(name = "users")
 @Data
@@ -60,18 +57,22 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
     private List<BankAccount> bankAccounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
     private List<Category> categories = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
     private List<Transaction> transactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
     private List<SavingsGoal> savingsGoals = new ArrayList<>();
 
     @PrePersist
