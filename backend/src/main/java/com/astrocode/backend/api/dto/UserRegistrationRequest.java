@@ -4,10 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO de requisição para cadastro de usuário.
- * Usa Record do Java 25 para imutabilidade e concisão.
- */
+
 public record UserRegistrationRequest(
         @NotBlank(message = "Nome é obrigatório")
         @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")

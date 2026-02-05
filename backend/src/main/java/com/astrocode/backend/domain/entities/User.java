@@ -1,5 +1,6 @@
 package com.astrocode.backend.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -46,6 +47,7 @@ public class User {
     @NotBlank
     @Size(max = 255)
     @Column(name = "password", nullable = false, length = 255)
+    @JsonIgnore
     private String password;
 
     @NotNull

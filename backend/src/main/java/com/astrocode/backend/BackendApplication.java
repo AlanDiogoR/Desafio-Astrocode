@@ -29,6 +29,7 @@ public class BackendApplication {
 					System.out.println("Loaded .env from: " + envFile.getAbsolutePath());
 					break;
 				} catch (Exception e) {
+					// Continua tentando outros caminhos
 				}
 			}
 		}
@@ -46,7 +47,6 @@ public class BackendApplication {
 				String key = entry.getKey();
 				String value = entry.getValue();
 				System.setProperty(key, value);
-				// Log para debug
 				if (!key.contains("PASSWORD")) {
 					System.out.println("Loaded: " + key + " = " + value);
 				} else {

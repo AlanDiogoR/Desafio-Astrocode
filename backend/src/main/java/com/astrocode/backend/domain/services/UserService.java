@@ -5,6 +5,7 @@ import com.astrocode.backend.api.dto.UserResponse;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -38,7 +41,7 @@ public class UserService {
         var user = User.builder()
                 .name(request.name())
                 .email(request.email())
-                .password(request.password()) // TODO: implementar hash da senha com BCrypt no futuro
+                .password(passwordEncoder.encode(request.password()))
                 .build();
 
         // Salvar no banco de dados

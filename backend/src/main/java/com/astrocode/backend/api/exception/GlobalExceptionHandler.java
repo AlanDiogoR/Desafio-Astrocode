@@ -12,17 +12,10 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Handler global para tratamento de exceções da aplicação.
- * Centraliza o tratamento de erros e padroniza as respostas HTTP.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Trata exceções de email já cadastrado.
-     * Retorna status 409 CONFLICT.
-     */
+   
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
         var errorResponse = new ErrorResponse(
@@ -33,10 +26,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
-    /**
-     * Trata exceções de validação de dados de entrada.
-     * Retorna status 400 BAD REQUEST com detalhes dos campos inválidos.
-     */
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -55,10 +45,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    /**
-     * Trata exceções genéricas não tratadas.
-     * Retorna status 500 INTERNAL SERVER ERROR.
-     */
+   
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         var errorResponse = new ErrorResponse(
@@ -69,9 +56,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
-    /**
-     * Record para resposta de erro padrão.
-     */
     public record ErrorResponse(
             int status,
             String message,
@@ -79,9 +63,7 @@ public class GlobalExceptionHandler {
     ) {
     }
 
-    /**
-     * Record para resposta de erro de validação com detalhes dos campos.
-     */
+   
     public record ValidationErrorResponse(
             int status,
             String message,
