@@ -16,10 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Entidade que representa uma conta bancária de um usuário.
- * Mapeia para a tabela 'bank_accounts' no banco de dados.
- */
 @Entity
 @Table(name = "bank_accounts")
 @Data

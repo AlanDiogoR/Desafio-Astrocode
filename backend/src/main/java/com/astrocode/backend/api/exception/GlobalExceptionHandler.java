@@ -3,6 +3,8 @@ package com.astrocode.backend.api.exception;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
 import com.astrocode.backend.domain.exceptions.InvalidTokenException;
+import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
+import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,26 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResourceAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleResourceAccessDeniedException(ResourceAccessDeniedException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
