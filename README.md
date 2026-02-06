@@ -1,233 +1,133 @@
-# Sistema de Controle Financeiro (DMF)
+<div align="center">
 
-Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas práticas de segurança.
+# 💰 Grivy Sistema de Controle Financeiro
 
-## Tech Stack
+**Sistema completo de gestão financeira pessoal com controle de contas bancárias, transações, categorias e metas de economia**
 
-- **Spring Boot** 4.0.2
-- **Java** 25
-- **PostgreSQL** - Banco de dados relacional
-- **JPA/Hibernate** - ORM para persistência de dados
-- **Flyway** - Migrações de banco de dados automatizadas
-- **Spring Security** - Segurança e autenticação
-- **BCrypt** - Criptografia de senhas
-- **Lombok** - Redução de boilerplate
-- **Maven** - Gerenciamento de dependências
+[![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-Em%20Breve-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
 
-## Database Schema
+</div>
 
-O banco de dados é gerenciado através de migrações Flyway. O schema inicial inclui as seguintes tabelas:
+---
 
-### Tabela: `users`
-Armazena informações dos usuários do sistema.
-- `id` (UUID) - Identificador único
-- `name` (VARCHAR 100) - Nome do usuário
-- `email` (VARCHAR 150) - Email único do usuário
-- `password` (VARCHAR 255) - Senha criptografada com BCrypt
-- `created_at` (TIMESTAMPTZ) - Data de criação
-- `updated_at` (TIMESTAMPTZ) - Data de última atualização
+## 📋 Descrição
 
-### Tabela: `bank_accounts`
-Armazena contas bancárias dos usuários.
-- `id` (UUID) - Identificador único
-- `user_id` (UUID) - Referência ao usuário (FK)
-- `name` (VARCHAR 100) - Nome da conta
-- `initial_balance` (NUMERIC 15,2) - Saldo inicial
-- `type` (VARCHAR 20) - Tipo da conta: CHECKING, INVESTMENT ou CASH
-- `color` (VARCHAR 30) - Cor para identificação visual
-- `created_at` (TIMESTAMPTZ) - Data de criação
-- `updated_at` (TIMESTAMPTZ) - Data de última atualização
+Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas práticas de segurança. Permite aos usuários gerenciar suas finanças de forma organizada, controlando contas bancárias, categorizando transações, definindo metas de economia e acompanhando o progresso financeiro.
 
-### Tabela: `categories`
-Armazena categorias de transações dos usuários.
-- `id` (UUID) - Identificador único
-- `user_id` (UUID) - Referência ao usuário (FK)
-- `name` (VARCHAR 100) - Nome da categoria
-- `icon` (VARCHAR 50) - Ícone da categoria
-- `created_at` (TIMESTAMPTZ) - Data de criação
-- `updated_at` (TIMESTAMPTZ) - Data de última atualização
+### Funcionalidades Principais
 
-### Tabela: `transactions`
-Armazena transações financeiras dos usuários.
-- `id` (UUID) - Identificador único
-- `user_id` (UUID) - Referência ao usuário (FK)
-- `bank_account_id` (UUID) - Referência à conta bancária (FK)
-- `category_id` (UUID) - Referência à categoria (FK)
-- `name` (VARCHAR 150) - Nome/descrição da transação
-- `amount` (NUMERIC 15,2) - Valor da transação
-- `date` (DATE) - Data da transação
-- `type` (VARCHAR 20) - Tipo: INCOME ou EXPENSE
-- `created_at` (TIMESTAMPTZ) - Data de criação
-- `updated_at` (TIMESTAMPTZ) - Data de última atualização
+- 🔐 **Autenticação Segura**: Cadastro e login com JWT e criptografia BCrypt
+- 💳 **Gestão de Contas**: Múltiplas contas bancárias isoladas por usuário
+- 📊 **Categorização**: Sistema de categorias para receitas e despesas
+- 🎯 **Metas de Economia**: Definição e acompanhamento de objetivos financeiros
+- 📈 **Transações**: Registro completo de movimentações financeiras
 
-### Tabela: `savings_goals`
-Armazena metas de economia dos usuários.
-- `id` (UUID) - Identificador único
-- `user_id` (UUID) - Referência ao usuário (FK)
-- `name` (VARCHAR 120) - Nome da meta
-- `target_amount` (NUMERIC 15,2) - Valor alvo
-- `current_amount` (NUMERIC 15,2) - Valor atual acumulado
-- `start_date` (DATE) - Data de início
-- `end_date` (DATE) - Data de término (opcional)
-- `status` (VARCHAR 20) - Status: ACTIVE, COMPLETED ou CANCELLED
-- `created_at` (TIMESTAMPTZ) - Data de criação
-- `updated_at` (TIMESTAMPTZ) - Data de última atualização
+---
 
-### Relacionamentos
-- Todas as tabelas relacionadas a usuários possuem `ON DELETE CASCADE`, garantindo que ao excluir um usuário, todos os seus dados relacionados sejam removidos automaticamente.
-- Foreign keys garantem integridade referencial entre as entidades.
+## 🚀 Tech Stacks
 
-## Features Implemented
+### Linguagens
 
-### Segurança
-- **Criptografia de Senhas**: Senhas são criptografadas usando BCrypt antes de serem persistidas no banco de dados
-- **Proteção de Dados Sensíveis**: Senhas nunca são retornadas em respostas JSON (usando `@JsonIgnore`)
-- **Spring Security**: Configurado para permitir acesso público ao endpoint de registro
+![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
 
-### Migrações de Banco de Dados
-- **Flyway**: Migrações automatizadas garantem versionamento e controle do schema do banco
-- Migrações são executadas automaticamente na inicialização da aplicação
+### Back-end
 
-### Validação de Dados
-- Validação de entrada usando Bean Validation (JSR-303)
-- Validação de email, tamanho de campos e campos obrigatórios
-- Mensagens de erro padronizadas e informativas
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-brightgreen?style=for-the-badge&logo=spring-security)
+![JWT](https://img.shields.io/badge/JWT-0.13.0-black?style=for-the-badge&logo=jsonwebtokens)
+![Flyway](https://img.shields.io/badge/Flyway-10.x-red?style=for-the-badge&logo=flyway)
 
-### Tratamento de Exceções
-- Handler global de exceções (`GlobalExceptionHandler`)
-- Respostas de erro padronizadas em formato JSON
-- Tratamento específico para conflitos (email duplicado) e erros de validação
+### Front-end
 
-### Arquitetura
-- Arquitetura em camadas (Controllers, Services, Repositories)
-- Separação de responsabilidades
-- Uso de DTOs para transferência de dados
-- Entidades JPA com relacionamentos configurados
+![Vue.js](https://img.shields.io/badge/Vue.js-Em%20Breve-4FC08D?style=for-the-badge&logo=vue.js)
+![Vite](https://img.shields.io/badge/Vite-Em%20Breve-646CFF?style=for-the-badge&logo=vite)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Em%20Breve-38B2AC?style=for-the-badge&logo=tailwind-css)
 
-## How to Run
+### Banco de Dados
+
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
+
+### DevOps & Ferramentas
+
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white)
+
+---
+
+## 📁 Estrutura do Repositório
+
+```
+Desafio-Astrocode/
+├── backend/          # API REST com Spring Boot
+│   ├── src/
+│   ├── pom.xml
+│   └── README.md
+├── frontend/         # Interface web (Em desenvolvimento)
+│   └── README.md
+└── README.md         # Este arquivo
+```
+
+---
+
+## 📚 Documentação
+
+- [📖 README do Backend](backend/README.md) - Documentação completa da API
+- [🎨 README do Frontend](frontend/README.md) - Documentação do frontend (Em breve)
+
+---
+
+## 🏃 Como Começar
 
 ### Pré-requisitos
 
-- **Java 25** ou superior
-- **Maven 3.6+**
-- **PostgreSQL 12+** instalado e rodando
-- Arquivo `.env` configurado (veja `.env.example`)
+- Java 25 ou superior
+- Maven 3.6+
+- PostgreSQL 12+
+- Node.js 18+ (para o frontend, quando disponível)
 
-### Configuração
+### Instalação Rápida
 
 1. Clone o repositório:
 ```bash
 git clone https://github.com/AlanDiogoR/Desafio-Astrocode.git
-cd dmf
+cd Desafio-Astrocode
 ```
 
-2. Configure o banco de dados PostgreSQL criando um banco de dados:
-```sql
-CREATE DATABASE seu_banco_de_dados;
-```
+2. Configure o backend seguindo as instruções em [backend/README.md](backend/README.md)
 
-3. Crie o arquivo `.env` na pasta `backend/` baseado no `.env.example`:
+3. Execute a aplicação backend:
 ```bash
 cd backend
-cp .env.example .env
-```
-
-4. Edite o arquivo `.env` com suas credenciais:
-```properties
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=seu_banco_de_dados
-DB_USERNAME=seu_usuario
-DB_PASSWORD=sua_senha
-```
-
-### Executando a Aplicação
-
-1. Navegue até a pasta `backend/`:
-```bash
-cd backend
-```
-
-2. Execute a aplicação usando Maven:
-```bash
 mvn spring-boot:run
 ```
 
-Ou compile e execute:
-```bash
-mvn clean package
-java -jar target/backend-0.0.1-SNAPSHOT.jar
-```
+---
 
-### Variáveis de Ambiente Necessárias
+## 🔒 Segurança
 
-O projeto utiliza as seguintes variáveis de ambiente (configuradas no arquivo `.env`):
+- ✅ Senhas criptografadas com BCrypt
+- ✅ Autenticação JWT com expiração de 14 dias
+- ✅ Isolamento de dados por usuário
+- ✅ Validação de entrada em todos os endpoints
+- ✅ Tratamento global de exceções
 
-- `DB_HOST` - Host do banco de dados PostgreSQL
-- `DB_PORT` - Porta do banco de dados (padrão: 5432)
-- `DB_NAME` - Nome do banco de dados
-- `DB_USERNAME` - Usuário do banco de dados
-- `DB_PASSWORD` - Senha do banco de dados
+---
 
-### Testando o Endpoint
+## 📝 Licença
 
-Após iniciar a aplicação, você pode testar o endpoint de cadastro de usuários:
+Este projeto está sob a licença especificada no arquivo [LICENSE](LICENSE).
 
-```bash
-curl -X POST http://localhost:8080/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "João Silva",
-    "email": "joao@example.com",
-    "password": "senha123"
-  }'
-```
+---
 
-A resposta será um JSON com os dados do usuário criado (sem a senha):
+<div align="center">
 
-```json
-{
-  "id": "uuid-do-usuario",
-  "name": "João Silva",
-  "email": "joao@example.com",
-  "createdAt": "2026-02-04T10:00:00Z",
-  "updatedAt": "2026-02-04T10:00:00Z"
-}
-```
+**Desenvolvido com ❤️ usando Spring Boot e Vue.js**
 
-## Estrutura do Projeto
-
-```
-backend/
-├── src/
-│   ├── main/
-│   │   ├── java/com/astrocode/backend/
-│   │   │   ├── api/
-│   │   │   │   ├── controllers/     # Controllers REST
-│   │   │   │   ├── dto/             # Data Transfer Objects
-│   │   │   │   └── exception/       # Exception handlers
-│   │   │   ├── config/              # Configurações (Security, etc)
-│   │   │   ├── domain/
-│   │   │   │   ├── entities/        # Entidades JPA
-│   │   │   │   ├── exceptions/      # Exceções de domínio
-│   │   │   │   ├── model/           # Enums e modelos
-│   │   │   │   ├── repositories/    # Repositórios JPA
-│   │   │   │   └── services/        # Lógica de negócio
-│   │   │   └── BackendApplication.java
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── db/migration/        # Migrações Flyway
-│   └── test/                         # Testes unitários e de integração
-└── pom.xml
-```
-
-## Segurança
-
-- Senhas são criptografadas com BCrypt (custo padrão: 10 rounds)
-- Senhas nunca são expostas em respostas JSON
-- Validação de entrada para prevenir ataques de injeção
-- Spring Security configurado para APIs REST
-
-## Licença
-
-Este projeto está sob a licença especificada no arquivo LICENSE.
+</div>
