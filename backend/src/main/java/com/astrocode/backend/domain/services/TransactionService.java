@@ -69,7 +69,20 @@ public class TransactionService {
         return savedTransaction;
     }
 
-    public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month) {
+    public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month, UUID bankAccountId) {
+        if (bankAccountId != null) {
+            var bankAccount = bankAccountRepository.findById(bankAccountId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
+            validateAccountOwnership(bankAccount, userId);
+
+            if (year != null && month != null) {
+                var startDate = LocalDate.of(year, month, 1);
+                var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonth(userId, bankAccountId, startDate, endDate);
+            }
+            return transactionRepository.findByUserIdAndBankAccountId(userId, bankAccountId);
+        }
+
         if (year != null && month != null) {
             var startDate = LocalDate.of(year, month, 1);
             var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());

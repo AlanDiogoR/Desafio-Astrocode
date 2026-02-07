@@ -29,4 +29,18 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId ORDER BY t.date DESC, t.createdAt DESC")
+    List<Transaction> findByUserIdAndBankAccountId(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId
+    );
+
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
+    List<Transaction> findByUserIdAndBankAccountIdAndDateYearAndDateMonth(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

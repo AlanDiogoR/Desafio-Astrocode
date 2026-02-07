@@ -53,10 +53,11 @@ public class TransactionController {
     public ResponseEntity<List<TransactionResponse>> getAll(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) UUID bankAccountId,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
-        var transactions = transactionService.findAllByUserId(user.getId(), year, month);
+        var transactions = transactionService.findAllByUserId(user.getId(), year, month, bankAccountId);
 
         List<TransactionResponse> response = transactions.stream()
                 .map(transaction -> new TransactionResponse(
