@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -44,25 +43,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         var token = authHeader.substring(BEARER_PREFIX.length());
-        System.out.println("[JwtFilter] Token encontrado no header");
 
         try {
             if (jwtService.isTokenValid(token)) {
-                System.out.println("[JwtFilter] Token válido");
-                
                 var email = jwtService.extractEmail(token);
                 var userId = jwtService.extractUserId(token);
-                System.out.println("[JwtFilter] Email extraído: " + email);
-                System.out.println("[JwtFilter] UserId extraído: " + userId);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    System.out.println("[JwtFilter] SecurityContext vazio, buscando usuário...");
-                    
                     var userOpt = userRepository.findById(userId);
 
                     if (userOpt.isPresent()) {
                         var user = userOpt.get();
-                        System.out.println("[JwtFilter] Usuário encontrado: " + user.getEmail());
                         
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 user,
@@ -72,26 +63,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-                        System.out.println("[JwtFilter] Authentication configurado no SecurityContext");
                     } else {
-                        System.out.println("[JwtFilter] Usuário não encontrado no banco");
                         SecurityContextHolder.clearContext();
                     }
                 } else {
                     if (email == null) {
-                        System.out.println("[JwtFilter] Email é nulo, limpando contexto");
                         SecurityContextHolder.clearContext();
-                    } else {
-                        System.out.println("[JwtFilter] Authentication já existe no contexto");
                     }
                 }
             } else {
-                System.out.println("[JwtFilter] Token inválido");
                 SecurityContextHolder.clearContext();
             }
         } catch (Exception e) {
-            System.out.println("[JwtFilter] Erro ao processar token: " + e.getMessage());
-            e.printStackTrace();
             SecurityContextHolder.clearContext();
         }
 

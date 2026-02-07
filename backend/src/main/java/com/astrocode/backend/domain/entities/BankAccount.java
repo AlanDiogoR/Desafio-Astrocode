@@ -44,6 +44,10 @@ public class BankAccount {
     private BigDecimal initialBalance;
 
     @NotNull
+    @Column(name = "current_balance", nullable = false, precision = 15, scale = 2)
+    private BigDecimal currentBalance;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private AccountType type;

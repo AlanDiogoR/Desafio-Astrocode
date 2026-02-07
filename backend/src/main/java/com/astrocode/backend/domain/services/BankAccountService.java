@@ -27,13 +27,14 @@ public class BankAccountService {
 
     @Transactional
     public BankAccount create(BankAccountRequest request, UUID userId) {
-        User user = userRepository.findById(userId)
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         var bankAccount = BankAccount.builder()
                 .user(user)
                 .name(request.name())
                 .initialBalance(request.initialBalance())
+                .currentBalance(request.initialBalance())
                 .type(request.type())
                 .color(request.color())
                 .build();
@@ -47,7 +48,7 @@ public class BankAccountService {
 
     @Transactional
     public BankAccount update(UUID accountId, BankAccountRequest request, User user) {
-        BankAccount account = bankAccountRepository.findById(accountId)
+        var account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
 
         if (!account.getUser().getId().equals(user.getId())) {
@@ -64,7 +65,7 @@ public class BankAccountService {
 
     @Transactional
     public void delete(UUID accountId, User user) {
-        BankAccount account = bankAccountRepository.findById(accountId)
+        var account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
 
         if (!account.getUser().getId().equals(user.getId())) {
