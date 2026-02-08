@@ -5,6 +5,7 @@ import com.astrocode.backend.api.dto.TransactionResponse;
 import com.astrocode.backend.api.dto.TransactionUpdateRequest;
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
+import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.services.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -54,10 +55,11 @@ public class TransactionController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) UUID bankAccountId,
+            @RequestParam(required = false) TransactionType type,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
-        var transactions = transactionService.findAllByUserId(user.getId(), year, month, bankAccountId);
+        var transactions = transactionService.findAllByUserId(user.getId(), year, month, bankAccountId, type);
 
         List<TransactionResponse> response = transactions.stream()
                 .map(transaction -> new TransactionResponse(

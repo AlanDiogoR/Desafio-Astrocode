@@ -69,7 +69,7 @@ public class TransactionService {
         return savedTransaction;
     }
 
-    public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month, UUID bankAccountId) {
+    public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month, UUID bankAccountId, TransactionType type) {
         if (bankAccountId != null) {
             var bankAccount = bankAccountRepository.findById(bankAccountId)
                     .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
@@ -78,7 +78,13 @@ public class TransactionService {
             if (year != null && month != null) {
                 var startDate = LocalDate.of(year, month, 1);
                 var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                if (type != null) {
+                    return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonthAndType(userId, bankAccountId, startDate, endDate, type);
+                }
                 return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonth(userId, bankAccountId, startDate, endDate);
+            }
+            if (type != null) {
+                return transactionRepository.findByUserIdAndBankAccountIdAndType(userId, bankAccountId, type);
             }
             return transactionRepository.findByUserIdAndBankAccountId(userId, bankAccountId);
         }
@@ -86,8 +92,16 @@ public class TransactionService {
         if (year != null && month != null) {
             var startDate = LocalDate.of(year, month, 1);
             var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+            if (type != null) {
+                return transactionRepository.findByUserIdAndDateYearAndDateMonthAndType(userId, startDate, endDate, type);
+            }
             return transactionRepository.findByUserIdAndDateYearAndDateMonth(userId, startDate, endDate);
         }
+
+        if (type != null) {
+            return transactionRepository.findByUserIdAndType(userId, type);
+        }
+
         return transactionRepository.findByUserId(userId);
     }
 
