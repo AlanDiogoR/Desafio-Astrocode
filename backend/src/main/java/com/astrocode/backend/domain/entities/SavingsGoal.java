@@ -63,6 +63,10 @@ public class SavingsGoal {
     @Column(name = "status", nullable = false, length = 20)
     private GoalStatus status;
 
+    @Size(max = 30)
+    @Column(name = "color", length = 30)
+    private String color;
+
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
