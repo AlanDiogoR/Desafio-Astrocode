@@ -1,8 +1,8 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.SavingsGoalAmountRequest;
-import com.astrocode.backend.api.dto.SavingsGoalRequest;
-import com.astrocode.backend.api.dto.SavingsGoalResponse;
+import com.astrocode.backend.api.dto.goal.SavingsGoalAmountRequest;
+import com.astrocode.backend.api.dto.goal.SavingsGoalRequest;
+import com.astrocode.backend.api.dto.goal.SavingsGoalResponse;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.services.SavingsGoalService;

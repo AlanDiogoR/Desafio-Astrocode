@@ -1,6 +1,6 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.DashboardResponse;
+import com.astrocode.backend.api.dto.dashboard.DashboardResponse;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;

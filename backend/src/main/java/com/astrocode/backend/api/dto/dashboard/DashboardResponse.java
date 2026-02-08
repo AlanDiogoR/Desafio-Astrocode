@@ -1,4 +1,4 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.dashboard;
 
 import java.math.BigDecimal;
 

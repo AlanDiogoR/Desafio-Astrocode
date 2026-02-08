@@ -1,4 +1,4 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.account;
 
 import com.astrocode.backend.domain.model.enums.AccountType;
 import jakarta.validation.constraints.NotBlank;

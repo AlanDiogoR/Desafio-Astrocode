@@ -1,15 +1,18 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.transaction;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record BankAccountResponse(
+public record TransactionResponse(
         UUID id,
         String name,
-        BigDecimal initialBalance,
+        BigDecimal amount,
+        LocalDate date,
         String type,
-        String color,
+        UUID bankAccountId,
+        UUID categoryId,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

@@ -1,4 +1,4 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.user;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

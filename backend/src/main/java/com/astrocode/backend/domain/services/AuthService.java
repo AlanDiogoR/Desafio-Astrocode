@@ -1,7 +1,7 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.LoginRequest;
-import com.astrocode.backend.api.dto.LoginResponse;
+import com.astrocode.backend.api.dto.auth.LoginRequest;
+import com.astrocode.backend.api.dto.auth.LoginResponse;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
 import com.astrocode.backend.domain.repositories.UserRepository;

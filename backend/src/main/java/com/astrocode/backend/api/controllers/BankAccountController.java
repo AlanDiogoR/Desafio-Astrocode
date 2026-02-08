@@ -1,7 +1,7 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.BankAccountRequest;
-import com.astrocode.backend.api.dto.BankAccountResponse;
+import com.astrocode.backend.api.dto.account.BankAccountRequest;
+import com.astrocode.backend.api.dto.account.BankAccountResponse;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.services.BankAccountService;
 import jakarta.validation.Valid;

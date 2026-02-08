@@ -1,7 +1,7 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.LoginRequest;
-import com.astrocode.backend.api.dto.LoginResponse;
+import com.astrocode.backend.api.dto.auth.LoginRequest;
+import com.astrocode.backend.api.dto.auth.LoginResponse;
 import com.astrocode.backend.domain.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

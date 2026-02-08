@@ -1,8 +1,8 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.TransactionRequest;
-import com.astrocode.backend.api.dto.TransactionResponse;
-import com.astrocode.backend.api.dto.TransactionUpdateRequest;
+import com.astrocode.backend.api.dto.transaction.TransactionRequest;
+import com.astrocode.backend.api.dto.transaction.TransactionResponse;
+import com.astrocode.backend.api.dto.transaction.TransactionUpdateRequest;
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.model.enums.TransactionType;

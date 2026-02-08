@@ -1,7 +1,7 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.UserRegistrationRequest;
-import com.astrocode.backend.api.dto.UserResponse;
+import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
+import com.astrocode.backend.api.dto.user.UserResponse;
 import com.astrocode.backend.domain.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

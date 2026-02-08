@@ -1,4 +1,4 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.goal;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

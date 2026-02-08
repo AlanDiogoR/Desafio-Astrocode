@@ -13,81 +13,215 @@
 
 ## ✅ Status do Projeto
 
-**Backend Funcional com Autenticação Completa**
+**Backend Funcional com Sistema Financeiro Completo**
 
-O backend está totalmente operacional com sistema de autenticação JWT, gerenciamento de usuários, contas bancárias e categorias. Todas as funcionalidades principais estão implementadas e testadas.
-
----
-
-## 🎯 Funcionalidades Chave
-
-### 🔐 Autenticação e Segurança
-
-- **Cadastro Seguro**: Senhas criptografadas com BCrypt antes de serem persistidas
-- **Autenticação JWT**: Tokens com expiração de 14 dias para sessões seguras
-- **Isolamento de Dados**: Todas as operações são isoladas por usuário autenticado
-- **Validação de Entrada**: Bean Validation (JSR-303) em todos os endpoints
-- **Tratamento de Exceções**: Handler global com respostas padronizadas
-
-### 💳 Gestão de Contas Bancárias
-
-- **CRUD Completo**: Criar, listar, atualizar e excluir contas bancárias
-- **Tipos de Conta**: Suporte para CHECKING, INVESTMENT e CASH
-- **Isolamento por Usuário**: Cada usuário vê apenas suas próprias contas
-- **Personalização**: Nome, saldo inicial, tipo e cor para identificação visual
-
-### 📂 Categorias
-
-- **Seed Automático**: Categorias pré-configuradas criadas via Flyway
-- **Tipos de Categoria**: INCOME (Receitas) e EXPENSE (Despesas)
-- **Isolamento por Usuário**: Categorias personalizadas por usuário
-- **Ícones**: Suporte para identificação visual com ícones
-
-### 👥 Gestão de Usuários
-
-- **Cadastro**: Registro de novos usuários com validação
-- **Validação de Email**: Prevenção de emails duplicados
-- **Proteção de Dados**: Senhas nunca expostas em respostas JSON
-
-### 🗄️ Migrações de Banco de Dados
-
-- **Flyway**: Versionamento automático do schema
-- **Migrações Automáticas**: Executadas na inicialização da aplicação
-- **Histórico Completo**: Controle de versão do banco de dados
+O backend está totalmente operacional com sistema de autenticação JWT, gerenciamento completo de usuários, contas bancárias, transações financeiras, metas de poupança e dashboard de resumo. Todas as funcionalidades principais estão implementadas, testadas e prontas para produção.
 
 ---
 
 ## 🛠️ Tech Stack
 
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-brightgreen?style=for-the-badge&logo=spring-security)
-![JWT](https://img.shields.io/badge/JWT-0.13.0-black?style=for-the-badge&logo=jsonwebtokens)
-![BCrypt](https://img.shields.io/badge/BCrypt-10_rounds-blue?style=for-the-badge)
-![Flyway](https://img.shields.io/badge/Flyway-10.x-red?style=for-the-badge&logo=flyway)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
-![Maven](https://img.shields.io/badge/Maven-3.6+-C71A36?style=for-the-badge&logo=apache-maven)
-![Lombok](https://img.shields.io/badge/Lombok-1.18+-pink?style=for-the-badge)
+### Tecnologias Principais
+
+- **Java 25** - Linguagem de programação com suporte a Records (Java 14+) e novas funcionalidades de performance
+- **Spring Boot 4.0.2** - Framework principal para desenvolvimento de aplicações Java
+- **Spring Security 6.x** - Framework de segurança para autenticação e autorização
+- **Spring Data JPA** - Abstração para acesso a dados com Hibernate
+- **JWT 0.13.0** - Autenticação stateless com tokens JSON Web Token
+- **PostgreSQL 16** - Banco de dados relacional
+- **Flyway** - Versionamento e migração automática do banco de dados
+- **Lombok** - Redução de boilerplate com anotações
+- **Maven 3.6+** - Gerenciamento de dependências e build
+
+### Características Técnicas
+
+- **Records Java**: Utilização de Records para DTOs, garantindo imutabilidade e código mais conciso
+- **Bean Validation**: Validação de entrada em todos os endpoints com Jakarta Validation
+- **BCrypt**: Criptografia de senhas com custo de 10 rounds
+- **JWT Stateless**: Tokens com expiração configurável (padrão: 14 dias)
+- **Migrações Automáticas**: Flyway executa migrações na inicialização da aplicação
 
 ---
 
-## 📡 Endpoints Disponíveis
+## 🎯 Funcionalidades Implementadas
+
+### 🔐 Autenticação & Segurança
+
+- **JWT Stateless**: Autenticação sem estado com tokens de 14 dias de expiração
+- **BCrypt para Senhas**: Criptografia robusta antes da persistência
+- **Isolamento de Dados**: Todas as operações são isoladas por usuário autenticado
+- **Validação de Entrada**: Bean Validation (JSR-303) em todos os endpoints
+- **Tratamento de Exceções**: Handler global com respostas padronizadas em JSON
+- **Proteção de Dados**: Senhas nunca expostas em respostas JSON
+
+### 💳 Gestão de Contas Bancárias
+
+- **CRUD Completo**: Criar, listar, atualizar e excluir contas bancárias
+- **Tipos de Conta**: Suporte para CHECKING (Conta Corrente), INVESTMENT (Investimento) e CASH (Dinheiro)
+- **Isolamento por Usuário**: Cada usuário vê apenas suas próprias contas
+- **Reconciliação Automática**: Saldo atualizado automaticamente ao criar/editar/deletar transações
+- **Personalização**: Nome, saldo inicial, tipo e cor para identificação visual
+
+### 💸 Transações Financeiras
+
+- **Lógica de Entradas e Saídas**: Suporte para INCOME (Receitas) e EXPENSE (Despesas)
+- **Reconciliação Bancária Automática**: 
+  - Saldo da conta atualiza automaticamente ao criar transação
+  - Reversão e recálculo ao editar transação existente
+  - Reversão ao deletar transação
+- **Filtros Avançados**: 
+  - Por mês e ano (`?year=2026&month=2`)
+  - Por conta bancária (`?bankAccountId=uuid`)
+  - Por tipo (`?type=INCOME` ou `?type=EXPENSE`)
+  - Combinação de filtros suportada
+- **Validações de Negócio**:
+  - Validação de tipo de categoria vs tipo de transação
+  - Validação de saldo insuficiente para despesas
+  - Validação de propriedade de conta e categoria pelo usuário
+
+### 🎯 Metas de Poupança (Savings Goals)
+
+- **CRUD Completo**: Criar, listar, atualizar e excluir metas
+- **Cálculo Automático de Progresso**: Percentual calculado automaticamente (currentAmount / targetAmount * 100)
+- **Atualização Parcial de Valor**: Endpoint PATCH para atualizar progresso (`/api/goals/{id}/amount`)
+- **Status Tracking**: Suporte para ACTIVE, COMPLETED e CANCELLED
+- **Personalização**: Nome, valor alvo, cor e acompanhamento de progresso
+
+### 📊 Dashboard
+
+- **Resumo Financeiro Consolidado**: Endpoint único com dados agregados
+- **Saldo Total**: Soma de todos os saldos das contas do usuário
+- **Totais Mensais**: 
+  - Total de receitas do mês atual
+  - Total de despesas do mês atual
+- **Performance Otimizada**: Consultas agregadas no banco de dados
+
+### 📂 Categorias
+
+- **Seed Automático**: Categorias pré-configuradas criadas automaticamente no cadastro do usuário
+- **Tipos de Categoria**: INCOME (Receitas) e EXPENSE (Despesas)
+- **Isolamento por Usuário**: Categorias personalizadas por usuário
+- **Ícones**: Suporte para identificação visual com ícones
+- **Validação de Tipo**: Categoria deve corresponder ao tipo da transação
+
+### 👥 Gestão de Usuários
+
+- **Cadastro**: Registro de novos usuários com validação completa
+- **Validação de Email**: Prevenção de emails duplicados
+- **Criação de Categorias Padrão**: Ao cadastrar, usuário recebe categorias pré-configuradas
+
+---
+
+## 🏗️ Arquitetura do Projeto
+
+### Organização por Camadas
+
+O projeto segue uma arquitetura em camadas bem definida:
+
+- **Controllers** (`api/controllers/`): Endpoints REST, validação de entrada e formatação de saída
+- **Services** (`domain/services/`): Lógica de negócio e orquestração
+- **Repositories** (`domain/repositories/`): Acesso a dados com Spring Data JPA
+- **Entities** (`domain/entities/`): Entidades JPA representando o modelo de domínio
+- **DTOs** (`api/dto/`): Objetos de transferência de dados organizados por domínio
+
+### Organização de DTOs por Domínio
+
+Os DTOs foram refatorados e organizados em subpacotes por domínio de negócio para melhor manutenibilidade e escalabilidade:
+
+```
+api/dto/
+├── auth/          # Autenticação
+│   ├── LoginRequest.java
+│   └── LoginResponse.java
+├── user/          # Usuários
+│   ├── UserRegistrationRequest.java
+│   └── UserResponse.java
+├── account/       # Contas bancárias
+│   ├── BankAccountRequest.java
+│   └── BankAccountResponse.java
+├── category/      # Categorias
+│   └── CategoryResponse.java
+├── transaction/   # Transações
+│   ├── TransactionRequest.java
+│   ├── TransactionResponse.java
+│   └── TransactionUpdateRequest.java
+├── goal/          # Metas de poupança
+│   ├── SavingsGoalRequest.java
+│   ├── SavingsGoalResponse.java
+│   └── SavingsGoalAmountRequest.java
+└── dashboard/     # Dashboard
+    └── DashboardResponse.java
+```
+
+**Benefícios da Organização por Domínio:**
+- ✅ Melhor manutenibilidade: DTOs relacionados agrupados logicamente
+- ✅ Escalabilidade: Fácil adicionar novos DTOs sem poluir o pacote raiz
+- ✅ Clareza: Estrutura reflete a organização do domínio de negócio
+- ✅ Reutilização: Imports mais claros e organizados
+
+---
+
+## 📡 Guia de Endpoints
 
 ### 🔓 Endpoints Públicos
 
-#### Autenticação
-- `POST /api/auth/login` - Realizar login e obter token JWT
-- `POST /api/users` - Registrar novo usuário
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `POST` | `/api/auth/login` | Autenticação e obtenção de token JWT |
+| `POST` | `/api/users` | Registro de novo usuário |
 
 ### 🔒 Endpoints Protegidos (Requerem JWT)
 
 #### Contas Bancárias
-- `GET /api/accounts` - Listar todas as contas do usuário autenticado
-- `POST /api/accounts` - Criar nova conta bancária
-- `PUT /api/accounts/{id}` - Atualizar conta bancária
-- `DELETE /api/accounts/{id}` - Excluir conta bancária
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/accounts` | Listar todas as contas do usuário autenticado |
+| `POST` | `/api/accounts` | Criar nova conta bancária |
+| `PUT` | `/api/accounts/{id}` | Atualizar conta bancária |
+| `DELETE` | `/api/accounts/{id}` | Excluir conta bancária |
 
 #### Categorias
-- `GET /api/categories` - Listar todas as categorias do usuário autenticado
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/categories` | Listar todas as categorias do usuário autenticado |
+
+#### Transações Financeiras
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/transactions` | Listar transações com filtros opcionais |
+| `POST` | `/api/transactions` | Criar nova transação |
+| `PUT` | `/api/transactions/{id}` | Atualizar transação existente |
+| `DELETE` | `/api/transactions/{id}` | Excluir transação |
+
+**Parâmetros de Filtro para GET /api/transactions:**
+- `year` (Integer): Filtrar por ano (ex: `?year=2026`)
+- `month` (Integer): Filtrar por mês (ex: `?month=2`)
+- `bankAccountId` (UUID): Filtrar por conta bancária
+- `type` (TransactionType): Filtrar por tipo (`INCOME` ou `EXPENSE`)
+
+**Exemplo de uso combinado:**
+```
+GET /api/transactions?year=2026&month=2&type=EXPENSE&bankAccountId=uuid-da-conta
+```
+
+#### Metas de Poupança
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/goals` | Listar todas as metas do usuário |
+| `POST` | `/api/goals` | Criar nova meta de poupança |
+| `PUT` | `/api/goals/{id}` | Atualizar meta completa |
+| `PATCH` | `/api/goals/{id}/amount` | Atualizar progresso da meta (valor parcial) |
+| `DELETE` | `/api/goals/{id}` | Excluir meta |
+
+#### Dashboard
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/dashboard` | Obter resumo financeiro consolidado |
 
 ---
 
@@ -98,7 +232,7 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
 - **Java 25** ou superior
 - **Maven 3.6+**
 - **PostgreSQL 12+** instalado e rodando
-- Arquivo `.env` configurado
+- Arquivo `.env` configurado na pasta `backend/`
 
 ### Variáveis de Ambiente
 
@@ -127,7 +261,7 @@ JWT_SECRET=uma_chave_segura_com_pelo_menos_32_caracteres_aleatorios
 CREATE DATABASE nome_do_banco;
 ```
 
-2. As migrações Flyway serão executadas automaticamente na primeira inicialização da aplicação
+2. **Migrações Flyway**: As migrações serão executadas automaticamente na inicialização da aplicação. Não é necessário executar comandos manuais.
 
 ---
 
@@ -159,7 +293,7 @@ A aplicação estará disponível em: `http://localhost:8080`
 
 ---
 
-## 🧪 Testando a API
+## 🧪 Exemplos de Uso da API
 
 ### 1. Registrar um Usuário
 
@@ -179,8 +313,8 @@ curl -X POST http://localhost:8080/api/users \
   "id": "uuid-do-usuario",
   "name": "João Silva",
   "email": "joao@example.com",
-  "createdAt": "2026-02-06T10:00:00Z",
-  "updatedAt": "2026-02-06T10:00:00Z"
+  "createdAt": "2026-02-08T10:00:00Z",
+  "updatedAt": "2026-02-08T10:00:00Z"
 }
 ```
 
@@ -199,15 +333,11 @@ curl -X POST http://localhost:8080/api/auth/login \
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "uuid-do-usuario",
-    "name": "João Silva",
-    "email": "joao@example.com"
-  }
+  "name": "João Silva"
 }
 ```
 
-### 3. Criar uma Conta Bancária (Requer Autenticação)
+### 3. Criar uma Conta Bancária
 
 ```bash
 curl -X POST http://localhost:8080/api/accounts \
@@ -221,18 +351,91 @@ curl -X POST http://localhost:8080/api/accounts \
   }'
 ```
 
-### 4. Listar Contas Bancárias (Requer Autenticação)
+### 4. Criar uma Transação
 
 ```bash
-curl -X GET http://localhost:8080/api/accounts \
+curl -X POST http://localhost:8080/api/transactions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI" \
+  -d '{
+    "name": "Salário",
+    "amount": 5000.00,
+    "date": "2026-02-01",
+    "type": "INCOME",
+    "bankAccountId": "uuid-da-conta",
+    "categoryId": "uuid-da-categoria"
+  }'
+```
+
+**Nota**: O saldo da conta será atualizado automaticamente após criar a transação.
+
+### 5. Listar Transações com Filtros
+
+```bash
+# Listar todas as despesas de fevereiro de 2026
+curl -X GET "http://localhost:8080/api/transactions?year=2026&month=2&type=EXPENSE" \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI"
+
+# Listar transações de uma conta específica
+curl -X GET "http://localhost:8080/api/transactions?bankAccountId=uuid-da-conta" \
   -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI"
 ```
 
-### 5. Listar Categorias (Requer Autenticação)
+### 6. Criar uma Meta de Poupança
 
 ```bash
-curl -X GET http://localhost:8080/api/categories \
+curl -X POST http://localhost:8080/api/goals \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI" \
+  -d '{
+    "name": "Viagem para Europa",
+    "targetAmount": 10000.00,
+    "color": "#10B981"
+  }'
+```
+
+**Resposta:**
+```json
+{
+  "id": "uuid-da-meta",
+  "name": "Viagem para Europa",
+  "targetAmount": 10000.00,
+  "currentAmount": 0.00,
+  "color": "#10B981",
+  "progressPercentage": 0.00,
+  "status": "ACTIVE",
+  "createdAt": "2026-02-08T10:00:00Z",
+  "updatedAt": "2026-02-08T10:00:00Z"
+}
+```
+
+### 7. Atualizar Progresso de Meta (PATCH)
+
+```bash
+curl -X PATCH http://localhost:8080/api/goals/uuid-da-meta/amount \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI" \
+  -d '{
+    "amount": 2500.00
+  }'
+```
+
+**Resposta:** O percentual de progresso será recalculado automaticamente (25% neste exemplo).
+
+### 8. Obter Dashboard
+
+```bash
+curl -X GET http://localhost:8080/api/dashboard \
   -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI"
+```
+
+**Resposta:**
+```json
+{
+  "totalBalance": 15000.00,
+  "totalIncomeMonth": 5000.00,
+  "totalExpenseMonth": 1200.00
+}
 ```
 
 ---
@@ -245,32 +448,58 @@ backend/
 │   ├── main/
 │   │   ├── java/com/astrocode/backend/
 │   │   │   ├── api/
-│   │   │   │   ├── controllers/     # Controllers REST
+│   │   │   │   ├── controllers/          # Controllers REST
 │   │   │   │   │   ├── AuthController.java
 │   │   │   │   │   ├── BankAccountController.java
 │   │   │   │   │   ├── CategoryController.java
+│   │   │   │   │   ├── DashboardController.java
+│   │   │   │   │   ├── SavingsGoalController.java
+│   │   │   │   │   ├── TransactionController.java
 │   │   │   │   │   └── UserController.java
-│   │   │   │   ├── dto/             # Data Transfer Objects
-│   │   │   │   └── exception/       # Exception handlers
+│   │   │   │   ├── dto/                  # DTOs organizados por domínio
+│   │   │   │   │   ├── account/          # Contas bancárias
+│   │   │   │   │   ├── auth/             # Autenticação
+│   │   │   │   │   ├── category/         # Categorias
+│   │   │   │   │   ├── dashboard/        # Dashboard
+│   │   │   │   │   ├── goal/             # Metas de poupança
+│   │   │   │   │   ├── transaction/      # Transações
+│   │   │   │   │   └── user/             # Usuários
+│   │   │   │   └── exception/            # Exception handlers
 │   │   │   │       └── GlobalExceptionHandler.java
-│   │   │   ├── config/              # Configurações
+│   │   │   ├── config/                   # Configurações
 │   │   │   │   ├── JwtAuthenticationFilter.java
 │   │   │   │   └── SecurityConfig.java
 │   │   │   ├── domain/
-│   │   │   │   ├── entities/        # Entidades JPA
-│   │   │   │   ├── exceptions/      # Exceções de domínio
-│   │   │   │   ├── model/           # Enums
-│   │   │   │   ├── repositories/    # Repositórios JPA
-│   │   │   │   └── services/        # Lógica de negócio
+│   │   │   │   ├── entities/             # Entidades JPA
+│   │   │   │   │   ├── BankAccount.java
+│   │   │   │   │   ├── Category.java
+│   │   │   │   │   ├── SavingsGoal.java
+│   │   │   │   │   ├── Transaction.java
+│   │   │   │   │   └── User.java
+│   │   │   │   ├── exceptions/           # Exceções de domínio
+│   │   │   │   ├── model/                # Enums
+│   │   │   │   │   └── enums/
+│   │   │   │   │       ├── AccountType.java
+│   │   │   │   │       ├── GoalStatus.java
+│   │   │   │   │       └── TransactionType.java
+│   │   │   │   ├── repositories/         # Repositórios JPA
+│   │   │   │   └── services/            # Lógica de negócio
+│   │   │   │       ├── AuthService.java
+│   │   │   │       ├── BankAccountService.java
+│   │   │   │       ├── CategoryService.java
+│   │   │   │       ├── DashboardService.java
+│   │   │   │       ├── JwtService.java
+│   │   │   │       ├── SavingsGoalService.java
+│   │   │   │       ├── TransactionService.java
+│   │   │   │       └── UserService.java
 │   │   │   └── BackendApplication.java
 │   │   └── resources/
 │   │       ├── application.properties
-│   │       └── db/migration/        # Migrações Flyway
-│   │           ├── V1__initial_schema.sql
-│   │           └── V2__add_type_to_categories.sql
-│   └── test/                         # Testes unitários
-├── .env.example                      # Exemplo de variáveis de ambiente
-└── pom.xml                           # Dependências Maven
+│   │       └── db/migration/             # Migrações Flyway
+│   │           └── V1__initial_schema.sql
+│   └── test/                              # Testes unitários
+├── .env.example                           # Exemplo de variáveis de ambiente
+└── pom.xml                                # Dependências Maven
 ```
 
 ---
@@ -280,11 +509,11 @@ backend/
 ### Implementações de Segurança
 
 - ✅ **BCrypt**: Senhas criptografadas com custo padrão de 10 rounds
-- ✅ **JWT**: Tokens assinados com HMAC SHA-256
+- ✅ **JWT**: Tokens assinados com HMAC SHA-256, expiração de 14 dias
 - ✅ **Spring Security**: Configuração de segurança para APIs REST
 - ✅ **CORS**: Configurado para permitir requisições do frontend
-- ✅ **Validação**: Validação de entrada em todos os endpoints
-- ✅ **Isolamento**: Dados isolados por usuário autenticado
+- ✅ **Validação**: Validação de entrada em todos os endpoints com Bean Validation
+- ✅ **Isolamento**: Dados isolados por usuário autenticado em todas as operações
 - ✅ **Proteção de Dados**: Senhas nunca retornadas em respostas JSON
 
 ### Configuração de CORS
@@ -301,15 +530,16 @@ O backend está configurado para aceitar requisições de:
 
 - **users**: Usuários do sistema
 - **bank_accounts**: Contas bancárias dos usuários
-- **categories**: Categorias de transações
-- **transactions**: Transações financeiras
-- **savings_goals**: Metas de economia
+- **categories**: Categorias de transações (INCOME/EXPENSE)
+- **transactions**: Transações financeiras com reconciliação automática
+- **savings_goals**: Metas de economia com cálculo de progresso
 
 ### Migrações Flyway
 
-As migrações são executadas automaticamente na inicialização:
-- `V1__initial_schema.sql`: Schema inicial com todas as tabelas
-- `V2__add_type_to_categories.sql`: Adiciona coluna `type` nas categorias
+As migrações são executadas **automaticamente** na inicialização da aplicação:
+- `V1__initial_schema.sql`: Schema inicial com todas as tabelas e relacionamentos
+
+**Nota**: Não é necessário executar comandos manuais do Flyway. A aplicação gerencia as migrações automaticamente.
 
 ---
 
@@ -319,7 +549,7 @@ A API retorna erros padronizados em formato JSON:
 
 ```json
 {
-  "timestamp": "2026-02-06T10:00:00Z",
+  "timestamp": "2026-02-08T10:00:00Z",
   "status": 400,
   "error": "Bad Request",
   "message": "Mensagem de erro descritiva",
@@ -337,6 +567,17 @@ A API retorna erros padronizados em formato JSON:
 - `404 Not Found`: Recurso não encontrado
 - `409 Conflict`: Conflito (ex: email já cadastrado)
 - `500 Internal Server Error`: Erro interno do servidor
+
+### Exceções de Domínio
+
+O projeto utiliza exceções customizadas para melhor tratamento de erros:
+- `EmailAlreadyExistsException`: Email já cadastrado
+- `InvalidCredentialsException`: Credenciais inválidas
+- `ResourceNotFoundException`: Recurso não encontrado
+- `ResourceAccessDeniedException`: Acesso negado ao recurso
+- `AccountNotOwnedException`: Conta não pertence ao usuário
+- `InsufficientBalanceException`: Saldo insuficiente
+- `CategoryTypeMismatchException`: Tipo de categoria não corresponde ao tipo de transação
 
 ---
 

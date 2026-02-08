@@ -1,17 +1,15 @@
-package com.astrocode.backend.api.dto;
+package com.astrocode.backend.api.dto.account;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record SavingsGoalResponse(
+public record BankAccountResponse(
         UUID id,
         String name,
-        BigDecimal targetAmount,
-        BigDecimal currentAmount,
+        BigDecimal initialBalance,
+        String type,
         String color,
-        BigDecimal progressPercentage,
-        String status,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

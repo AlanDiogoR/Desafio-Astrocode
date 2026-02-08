@@ -1,6 +1,6 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.SavingsGoalRequest;
+import com.astrocode.backend.api.dto.goal.SavingsGoalRequest;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;

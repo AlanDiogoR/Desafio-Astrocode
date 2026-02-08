@@ -1,7 +1,7 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.UserRegistrationRequest;
-import com.astrocode.backend.api.dto.UserResponse;
+import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
+import com.astrocode.backend.api.dto.user.UserResponse;
 import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;

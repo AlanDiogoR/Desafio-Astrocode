@@ -1,7 +1,7 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.TransactionRequest;
-import com.astrocode.backend.api.dto.TransactionUpdateRequest;
+import com.astrocode.backend.api.dto.transaction.TransactionRequest;
+import com.astrocode.backend.api.dto.transaction.TransactionUpdateRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.Transaction;

@@ -1,6 +1,6 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.BankAccountRequest;
+import com.astrocode.backend.api.dto.account.BankAccountRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;

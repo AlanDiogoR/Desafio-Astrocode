@@ -1,6 +1,6 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.CategoryResponse;
+import com.astrocode.backend.api.dto.category.CategoryResponse;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.services.CategoryService;
 import org.springframework.http.ResponseEntity;
