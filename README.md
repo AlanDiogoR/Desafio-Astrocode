@@ -4,7 +4,7 @@
 
 **Sistema completo de gestão financeira pessoal com controle de contas bancárias, transações, categorias e metas de economia**
 
-[![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
+[![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-Em%20Breve-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
@@ -31,7 +31,7 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 
 ### Linguagens
 
-![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
+![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
 
@@ -87,7 +87,7 @@ Desafio-Astrocode/
 
 ### Pré-requisitos
 
-- Java 25 ou superior
+- Java 21 ou superior
 - Maven 3.6+
 - PostgreSQL 12+
 - Node.js 18+ (para o frontend, quando disponível)

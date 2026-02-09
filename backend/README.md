@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)
-![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)
+![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
 ![Status](https://img.shields.io/badge/Status-Funcional-success?style=for-the-badge)
 
@@ -23,7 +23,7 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
 
 ### Tecnologias Principais
 
-- **Java 25** - Linguagem de programação com suporte a Records (Java 14+) e novas funcionalidades de performance
+- **Java 21** - Linguagem de programação com suporte a Records (Java 14+) e novas funcionalidades de performance
 - **Spring Boot 4.0.2** - Framework principal para desenvolvimento de aplicações Java
 - **Spring Security 6.x** - Framework de segurança para autenticação e autorização
 - **Spring Data JPA** - Abstração para acesso a dados com Hibernate
@@ -229,7 +229,7 @@ GET /api/transactions?year=2026&month=2&type=EXPENSE&bankAccountId=uuid-da-conta
 
 ### Pré-requisitos
 
-- **Java 25** ou superior
+- **Java 21** ou superior
 - **Maven 3.6+**
 - **PostgreSQL 12+** instalado e rodando
 - Arquivo `.env` configurado na pasta `backend/`
@@ -253,6 +253,9 @@ JWT_SECRET=uma_chave_segura_com_pelo_menos_32_caracteres_aleatorios
 **⚠️ Importante**: 
 - O `JWT_SECRET` deve ter pelo menos 32 caracteres para segurança adequada
 - Nunca commite o arquivo `.env` no repositório (já está no `.gitignore`)
+
+**☁️ Configuração em Serviços de Cloud**:
+Ao fazer deploy em serviços de Cloud (como Render, Railway ou Heroku), configure as variáveis de ambiente diretamente no painel do serviço. Não é necessário criar o arquivo `.env` manualmente - as variáveis de ambiente configuradas no serviço serão automaticamente utilizadas pela aplicação.
 
 ### Configuração do Banco de Dados
 
@@ -589,6 +592,6 @@ Este projeto está sob a licença especificada no arquivo [LICENSE](../LICENSE).
 
 <div align="center">
 
-**Desenvolvido com Spring Boot 4.0.2 e Java 25**
+**Desenvolvido com Spring Boot 4.0.2 e Java 21**
 
 </div>
