@@ -3,12 +3,28 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  // Módulos
+  srcDir: 'app/',
+
+  build: {
+    transpile: ['vuetify'],
+  },
+
   modules: ['@pinia/nuxt'],
 
-  // Vuetify styles são importados via plugin (plugins/vuetify.client.ts)
-  // Não há necessidade de CSS customizado - Vuetify gerencia tudo via tema
+  css: [
+    '~/assets/design-tokens.scss',
+    '~/assets/main.scss',
+  ],
 
-  // Configuração de SSR
+  app: {
+    head: {
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
+      ],
+    },
+  },
+
   ssr: true,
 })

@@ -1,0 +1,24 @@
+/**
+ * Design Tokens - Grivy Auth (Fonte: Figma node-id=229-8335)
+ * https://www.figma.com/design/DpG2mssrVypqAfVy8VDXWr/Grivy?node-id=229-8335
+ *
+ * Valores extraídos/conforme design:
+ * - Botão: #087F5B (teal-900), altura 56px, border-radius 12px
+ * - Inputs: borda #DEE2E6 (gray-300), border-radius 12px
+ * - Hero bg: gradient #E6FCF5 -> #C3FAE8 -> #96F2D7
+ * - Título: Inter 700, 32px (text-h4)
+ * - Link: #087F5B
+ */
+
+:root {
+  --auth-btn-height: 56px;
+  --auth-input-radius: 12px;
+  --auth-btn-radius: 12px;
+  --auth-hero-bg: linear-gradient(135deg, #E6FCF5 0%, #C3FAE8 50%, #96F2D7 100%);
+  --auth-hero-bg-solid: #E6FCF5;
+  --auth-input-border: #DEE2E6;
+  --auth-primary: #087F5B;
+  --auth-title-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --auth-title-size: 32px;
+  --auth-title-weight: 700;
+}
