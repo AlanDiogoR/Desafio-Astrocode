@@ -44,7 +44,7 @@
 
 <style scoped>
 .auth-form-side {
-  background-color: #FFFFFF !important;
+  background-color: #fff !important;
   height: 100vh;
   overflow: hidden;
 }

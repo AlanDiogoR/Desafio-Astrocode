@@ -7,22 +7,25 @@ interface Props {
   color?: string
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   loading: false,
   disabled: false,
   block: true,
   type: 'button',
   color: 'primary',
 })
+
+const isLoading = computed(() => Boolean(props.loading))
+const isDisabled = computed(() => Boolean(props.disabled))
 </script>
 
 <template>
   <v-btn
-    :type="type"
-    :loading="loading"
-    :disabled="disabled"
-    :block="block"
-    :color="color"
+    :type="props.type"
+    :loading="isLoading"
+    :disabled="isDisabled"
+    :block="props.block"
+    :color="props.color"
     height="48"
     elevation="0"
     class="text-none app-button"

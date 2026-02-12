@@ -1,10 +1,11 @@
 import axios from 'axios'
 
 export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
   const authStore = useAuthStore()
 
   const api = axios.create({
-    baseURL: 'https://desafio-astrocode-production.up.railway.app/api',
+    baseURL: config.public.apiBase,
   })
 
   api.interceptors.request.use(

@@ -4,10 +4,21 @@
 
 **Sistema completo de gestão financeira pessoal com controle de contas bancárias, transações, categorias e metas de economia**
 
-[![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-Em%20Breve-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
+### Frontend
+
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.3-00DC82?style=for-the-badge&logo=nuxt.js)](https://nuxt.com/)
+[![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
+[![Vuetify](https://img.shields.io/badge/Vuetify-3.11-1867C0?style=for-the-badge&logo=vuetify)](https://vuetifyjs.com/)
+[![Pinia](https://img.shields.io/badge/Pinia-3.0-FFD859?style=for-the-badge&logo=pinia)](https://pinia.vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Radix Icons](https://img.shields.io/badge/Radix_UI-Vue-000000?style=for-the-badge&logo=radix-ui)](https://www.radix-ui.com/)
+
+### Backend
+
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-6DB33F?style=for-the-badge&logo=spring-boot)](https://spring.io/projects/spring-boot)
+[![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-6DB33F?style=for-the-badge&logo=spring-security)](https://spring.io/projects/spring-security)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
 
 </div>
 
@@ -29,35 +40,27 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 
 ## 🚀 Tech Stacks
 
-### Linguagens
+### Frontend
 
-![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
+| Tecnologia | Descrição |
+|------------|-----------|
+| Nuxt 4 | Framework full-stack baseado em Vue |
+| Vue 3 | Framework progressivo para interfaces |
+| Vuetify 3 | Component library Material Design |
+| Pinia | Gerenciamento de estado |
+| TypeScript | Tipagem estática |
+| Radix Icons | Biblioteca de ícones |
 
-### Back-end
+### Backend
 
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-brightgreen?style=for-the-badge&logo=spring)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-brightgreen?style=for-the-badge&logo=spring-security)
-![JWT](https://img.shields.io/badge/JWT-0.13.0-black?style=for-the-badge&logo=jsonwebtokens)
-![Flyway](https://img.shields.io/badge/Flyway-10.x-red?style=for-the-badge&logo=flyway)
-
-### Front-end
-
-![Vue.js](https://img.shields.io/badge/Vue.js-Em%20Breve-4FC08D?style=for-the-badge&logo=vue.js)
-![Vite](https://img.shields.io/badge/Vite-Em%20Breve-646CFF?style=for-the-badge&logo=vite)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Em%20Breve-38B2AC?style=for-the-badge&logo=tailwind-css)
-
-### Banco de Dados
-
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=for-the-badge&logo=postgresql)
-
-### DevOps & Ferramentas
-
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white)
+| Tecnologia | Descrição |
+|------------|-----------|
+| Java 21 | Linguagem de programação |
+| Spring Boot 4 | Framework para APIs REST |
+| Spring Security 6 | Autenticação e autorização |
+| PostgreSQL 16 | Banco de dados relacional |
+| JWT 0.13 | Autenticação stateless |
+| Flyway | Migrações de banco de dados |
 
 ---
 
@@ -65,21 +68,30 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 
 ```
 Desafio-Astrocode/
-├── backend/          # API REST com Spring Boot
+├── backend/              # API REST com Spring Boot
 │   ├── src/
 │   ├── pom.xml
 │   └── README.md
-├── frontend/         # Interface web (Em desenvolvimento)
+├── frontend/             # Interface web com Nuxt
+│   ├── app/
+│   │   ├── components/
+│   │   ├── composables/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── plugins/
+│   │   └── stores/
+│   ├── .env.example
+│   ├── nuxt.config.ts
 │   └── README.md
-└── README.md         # Este arquivo
+└── README.md
 ```
 
 ---
 
 ## 📚 Documentação
 
-- [📖 README do Backend](backend/README.md) - Documentação completa da API
-- [🎨 README do Frontend](frontend/README.md) - Documentação do frontend (Em breve)
+- [Backend](backend/README.md) - API REST, endpoints e configuração
+- [Frontend](frontend/README.md) - Setup, estrutura e design tokens
 
 ---
 
@@ -87,26 +99,32 @@ Desafio-Astrocode/
 
 ### Pré-requisitos
 
-- Java 21 ou superior
+- Java 21+
 - Maven 3.6+
 - PostgreSQL 12+
-- Node.js 18+ (para o frontend, quando disponível)
+- Node.js 18+
 
-### Instalação Rápida
+### Backend
 
-1. Clone o repositório:
-```bash
-git clone https://github.com/AlanDiogoR/Desafio-Astrocode.git
-cd Desafio-Astrocode
-```
-
-2. Configure o backend seguindo as instruções em [backend/README.md](backend/README.md)
-
-3. Execute a aplicação backend:
 ```bash
 cd backend
+# Configure .env (veja backend/.env.example)
 mvn spring-boot:run
 ```
+
+API disponível em `http://localhost:8080`
+
+### Frontend
+
+```bash
+cd frontend
+cp .env.example .env
+# Ajuste NUXT_PUBLIC_API_BASE se necessário
+npm install
+npm run dev
+```
+
+Interface em `http://localhost:3000`
 
 ---
 
@@ -123,11 +141,3 @@ mvn spring-boot:run
 ## 📝 Licença
 
 Este projeto está sob a licença especificada no arquivo [LICENSE](LICENSE).
-
----
-
-<div align="center">
-
-**Desenvolvido com ❤️ usando Spring Boot e Vue.js**
-
-</div>

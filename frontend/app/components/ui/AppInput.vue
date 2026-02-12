@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Cross2Icon } from '@radix-icons/vue'
+import { CrossCircledIcon } from '@radix-icons/vue'
 
 type Rule = (v: string) => boolean | string
 
@@ -9,6 +9,7 @@ interface Props {
   rules?: Rule[]
   disabled?: boolean
   fieldError?: string
+  errorText?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   rules: () => [],
   disabled: false,
   fieldError: '',
+  errorText: '',
 })
 
 const model = defineModel<string>({ default: '' })
@@ -24,14 +26,13 @@ const emit = defineEmits<{
   clearError: []
 }>()
 
-const hasError = computed(() => !!props.fieldError)
-
-const errorText = computed(() => props.fieldError ?? '')
+const errorMessages = computed(() => props.errorText || props.fieldError || '')
+const errorMessagesArray = computed(() =>
+  errorMessages.value ? [errorMessages.value] : []
+)
 
 function onInput() {
-  if (props.fieldError) {
-    emit('clearError')
-  }
+  if (errorMessages.value) emit('clearError')
 }
 </script>
 
@@ -42,20 +43,23 @@ function onInput() {
     :type="type"
     :disabled="disabled"
     :rules="rules"
-    :error="hasError"
-    :error-messages="hasError ? [errorText] : undefined"
+    :error="!!errorMessages"
+    :error-messages="errorMessagesArray"
     variant="outlined"
     density="comfortable"
     color="primary"
-    hide-details="auto"
     class="app-input"
     v-bind="$attrs"
     @update:model-value="onInput"
   >
     <template #message="{ message }">
-      <div class="app-input-error">
-        <Cross2Icon class="app-input-error-icon" aria-hidden />
-        <span class="app-input-error-text">{{ message }}</span>
+      <div class="error-message-wrapper">
+        <CrossCircledIcon
+          :width="16"
+          :height="16"
+          class="error-icon"
+        />
+        <span class="error-text">{{ message }}</span>
       </div>
     </template>
     <template v-if="$slots['append-inner']" #append-inner>
@@ -95,33 +99,36 @@ function onInput() {
   color: #E03131 !important;
 }
 
-.app-input-error {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #E03131;
-  font-size: 12px;
-}
-
-.app-input-error-icon {
-  width: 12px;
-  height: 12px;
-  flex-shrink: 0;
-  color: #E03131;
-}
-
-.app-input-error-text {
-  font-size: 12px;
-  font-weight: 400;
-  color: #E03131;
-  line-height: 1.4;
-}
-
 .app-input :deep(.v-input__details) {
-  padding-left: 0;
+  padding-inline: 0 !important;
+  padding-top: 6px !important;
+  justify-content: flex-start !important;
 }
 
 .app-input :deep(.v-messages__message) {
-  padding-left: 0;
+  text-align: left !important;
+  line-height: 1.2;
+}
+
+.error-message-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  color: #E03131;
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-text {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: inherit;
 }
 </style>

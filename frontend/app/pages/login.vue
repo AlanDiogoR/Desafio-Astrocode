@@ -6,7 +6,7 @@ definePageMeta({
 const {
   email,
   password,
-  isLoading,
+  loginMutation,
   emailError,
   passwordError,
   handleLogin,
@@ -15,6 +15,7 @@ const {
 
 const { validateField } = useFieldValidation()
 
+const isPending = computed(() => Boolean(unref(loginMutation.isPending)))
 const showPassword = ref(false)
 const hasAttemptedSubmit = ref(false)
 
@@ -65,7 +66,7 @@ async function onSubmit() {
         type="email"
         :rules="emailRules"
         :field-error="emailFieldError"
-        :disabled="isLoading"
+        :disabled="isPending"
         class="mb-4"
         @clear-error="clearFieldError('email')"
       />
@@ -76,7 +77,7 @@ async function onSubmit() {
         :type="showPassword ? 'text' : 'password'"
         :rules="passwordRules"
         :field-error="passwordFieldError"
-        :disabled="isLoading"
+        :disabled="isPending"
         class="mb-6"
         @clear-error="clearFieldError('password')"
       >
@@ -89,7 +90,13 @@ async function onSubmit() {
         </template>
       </AppInput>
 
-      <AppButton type="submit" :loading="isLoading" block>
+      <AppButton
+        type="submit"
+        :loading="isPending"
+        :disabled="isPending"
+        :class="{ 'app-button--loading': isPending }"
+        block
+      >
         Entrar
       </AppButton>
     </v-form>
@@ -111,7 +118,7 @@ async function onSubmit() {
 }
 
 .auth-subtitle {
-  color: #868E96; /* Gray-7 - cinza suave */
+  color: #868E96;
   font-weight: 400;
   line-height: 1.5;
 }
@@ -131,6 +138,10 @@ async function onSubmit() {
 
 .footer-link:hover {
   text-decoration: underline;
+}
+
+.app-button--loading {
+  opacity: 0.8;
 }
 
 @media (max-width: 599px) {
