@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
     "@mdi/font": "^7.4.47",
     "@pinia/nuxt": "^0.11.3",
     "@radix-icons/vue": "^1.0.0",

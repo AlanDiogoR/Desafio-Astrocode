@@ -19,7 +19,8 @@
           md="6"
           class="d-none d-md-flex auth-hero-side flex-column align-center justify-center text-center"
         >
-          <div class="auth-hero-inner d-flex flex-column align-center justify-center text-center w-100">
+          <div class="auth-hero-inner d-flex flex-column align-start justify-center text-start w-100">
+
             <div class="auth-hero-image mb-8">
               <v-img
                 src="/images/Login.png"
@@ -29,7 +30,7 @@
                 class="rounded-xl"
               />
             </div>
-            <div class="d-flex justify-center mb-4">
+            <div class="align-self-start">
               <AppLogo color="#087F5B" :size="32" />
             </div>
             <p class="auth-hero-text text-h6 font-weight-regular">
@@ -50,7 +51,7 @@
 }
 
 .auth-hero-side {
-  background: linear-gradient(135deg, #E6FCF5 0%, #C3FAE8 50%, #96F2D7 100%);
+  background: #fff;
   height: 100vh;
   overflow: hidden;
 }

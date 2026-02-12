@@ -52,7 +52,7 @@ withDefaults(defineProps<Props>(), {
       <rect x="9.5" y="20" width="12" height="1" rx="0.5" fill="white" opacity="0.3" />
     </svg>
     <span
-      class="app-logo__text font-weight-bold"
+      class="app-logo__text font-weight-normal"
       :style="{ color, fontSize: `${Math.round(size * 1.1)}px` }"
     >
       Grivy

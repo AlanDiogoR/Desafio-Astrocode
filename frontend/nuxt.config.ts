@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   ],
 
   build: {
-    transpile: ['vuetify', '@radix-icons/vue'],
+    transpile: ['vuetify', '@radix-icons/vue', '@headlessui/vue'],
   },
 
   modules: ['@pinia/nuxt'],
