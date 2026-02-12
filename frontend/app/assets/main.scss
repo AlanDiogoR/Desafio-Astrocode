@@ -1,164 +1,32 @@
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
 html,
 body {
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
 }
 
-/* Auth form overrides (pixel-perfect conforme Figma) */
-.auth-form-wrapper {
+.auth-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1.2;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+@media (max-width: 599px) {
   .auth-title {
-    font-family: var(--auth-title-font);
-    font-size: var(--auth-title-size);
-    font-weight: var(--auth-title-weight);
-    color: #212529;
-  }
-
-  .auth-btn {
-    height: var(--auth-btn-height) !important;
-    font-weight: 700 !important;
+    font-size: 24px;
   }
 }
 
-:root {
-  --v-gray-50: #F8F9FA;
-  --v-gray-100: #F1F3F5;
-  --v-gray-200: #E9ECEF;
-  --v-gray-300: #DEE2E6;
-  --v-gray-400: #CED4DA;
-  --v-gray-500: #ADB5BD;
-  --v-gray-600: #868E96;
-  --v-gray-700: #495057;
-  --v-gray-800: #343A40;
-  --v-gray-900: #212529;
-
-  --v-red-50: #FFF5F5;
-  --v-red-100: #FFE3E3;
-  --v-red-200: #FFC9C9;
-  --v-red-300: #FFA8A8;
-  --v-red-400: #FF8787;
-  --v-red-500: #FF6B6B;
-  --v-red-600: #FA5252;
-  --v-red-700: #F03E3E;
-  --v-red-800: #E03131;
-  --v-red-900: #C92A2A;
-
-  --v-pink-50: #FFF0F6;
-  --v-pink-100: #FFDEEB;
-  --v-pink-200: #FCC2D7;
-  --v-pink-300: #FAA2C1;
-  --v-pink-400: #F783AC;
-  --v-pink-500: #F06595;
-  --v-pink-600: #E64980;
-  --v-pink-700: #D6336C;
-  --v-pink-800: #C2255C;
-  --v-pink-900: #A61E4D;
-
-  --v-grape-50: #F8F0FC;
-  --v-grape-100: #F3D9FA;
-  --v-grape-200: #EEBEFA;
-  --v-grape-300: #E599F7;
-  --v-grape-400: #DA77F2;
-  --v-grape-500: #CC5DE8;
-  --v-grape-600: #BE4BDB;
-  --v-grape-700: #AE3EC9;
-  --v-grape-800: #9C36B5;
-  --v-grape-900: #862E9C;
-
-  --v-violet-50: #F3F0FF;
-  --v-violet-100: #E5DBFF;
-  --v-violet-200: #D0BFFF;
-  --v-violet-300: #B197FC;
-  --v-violet-400: #9775FA;
-  --v-violet-500: #845EF7;
-  --v-violet-600: #7950F2;
-  --v-violet-700: #7048E8;
-  --v-violet-800: #6741D9;
-  --v-violet-900: #5F3DC4;
-
-  --v-indigo-50: #EDF2FF;
-  --v-indigo-100: #DBE4FF;
-  --v-indigo-200: #BAC8FF;
-  --v-indigo-300: #91A7FF;
-  --v-indigo-400: #748FFC;
-  --v-indigo-500: #5C7CFA;
-  --v-indigo-600: #4C6EF5;
-  --v-indigo-700: #4263EB;
-  --v-indigo-800: #3B5BDB;
-  --v-indigo-900: #364FC7;
-
-  --v-blue-50: #E7F5FF;
-  --v-blue-100: #D0EBFF;
-  --v-blue-200: #A5D8FF;
-  --v-blue-300: #74C0FC;
-  --v-blue-400: #4DABF7;
-  --v-blue-500: #339AF0;
-  --v-blue-600: #228BE6;
-  --v-blue-700: #1C7ED6;
-  --v-blue-800: #1971C2;
-  --v-blue-900: #1864AB;
-
-  --v-cyan-50: #E3FAFC;
-  --v-cyan-100: #C5F6FA;
-  --v-cyan-200: #99E9F2;
-  --v-cyan-300: #66D9E8;
-  --v-cyan-400: #3BC9DB;
-  --v-cyan-500: #22B8CF;
-  --v-cyan-600: #15AABF;
-  --v-cyan-700: #1098AD;
-  --v-cyan-800: #0C8599;
-  --v-cyan-900: #0B7285;
-
-  --v-teal-50: #E6FCF5;
-  --v-teal-100: #C3FAE8;
-  --v-teal-200: #96F2D7;
-  --v-teal-300: #63E6BE;
-  --v-teal-400: #38D9A9;
-  --v-teal-500: #20C997;
-  --v-teal-600: #12B886;
-  --v-teal-700: #0CA678;
-  --v-teal-800: #099268;
-  --v-teal-900: #087F5B;
-
-  --v-green-50: #EBFBEE;
-  --v-green-100: #D3F9D8;
-  --v-green-200: #B2F2BB;
-  --v-green-300: #8CE99A;
-  --v-green-400: #69DB7C;
-  --v-green-500: #51CF66;
-  --v-green-600: #40C057;
-  --v-green-700: #37B24D;
-  --v-green-800: #2F9E44;
-  --v-green-900: #2B8A3E;
-
-  --v-lime-50: #F4FCE3;
-  --v-lime-100: #E9FAC8;
-  --v-lime-200: #D8F5A2;
-  --v-lime-300: #C0EB75;
-  --v-lime-400: #A9E34B;
-  --v-lime-500: #94D82D;
-  --v-lime-600: #82C91E;
-  --v-lime-700: #74B816;
-  --v-lime-800: #66A80F;
-  --v-lime-900: #5C940D;
-
-  --v-yellow-50: #FFF9DB;
-  --v-yellow-100: #FFF3BF;
-  --v-yellow-200: #FFEC99;
-  --v-yellow-300: #FFE066;
-  --v-yellow-400: #FFD43B;
-  --v-yellow-500: #FCC419;
-  --v-yellow-600: #FAB005;
-  --v-yellow-700: #F59F00;
-  --v-yellow-800: #F08C00;
-  --v-yellow-900: #E67700;
-
-  --v-orange-50: #FFF4E6;
-  --v-orange-100: #FFE8CC;
-  --v-orange-200: #FFD8A8;
-  --v-orange-300: #FFC078;
-  --v-orange-400: #FFA94D;
-  --v-orange-500: #FF922B;
-  --v-orange-600: #FD7E14;
-  --v-orange-700: #F76707;
-  --v-orange-800: #E8590C;
-  --v-orange-900: #D9480F;
+@media (min-width: 600px) and (max-width: 959px) {
+  .auth-title {
+    font-size: 28px;
+  }
 }

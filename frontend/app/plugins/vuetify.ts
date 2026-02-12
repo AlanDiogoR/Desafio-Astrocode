@@ -211,27 +211,29 @@ export default defineNuxtPlugin({
           grivyTheme,
         },
       },
+      display: {
+        mobileBreakpoint: 'md',
+      },
       defaults: {
         VBtn: {
-          rounded: 12,
+          rounded: 'lg',
           elevation: 0,
           color: 'primary',
-          height: 56,
         },
         VCard: {
-          color: 'surface',
           rounded: 'xl',
-          variant: 'flat',
+          elevation: 0,
         },
         VTextField: {
           variant: 'outlined',
           color: 'primary',
           baseColor: 'gray-300',
-          rounded: 12,
+          rounded: 'lg',
           density: 'comfortable',
         },
         VSelect: {
           variant: 'outlined',
+          rounded: 'lg',
           density: 'comfortable',
         },
       },

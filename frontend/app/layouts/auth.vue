@@ -1,83 +1,78 @@
 <template>
-  <v-main class="pa-0">
-    <v-container fluid class="auth-layout pa-0 ma-0 fill-height" style="overflow-x: hidden">
-        <v-row no-gutters class="fill-height">
-          <!-- Coluna Esquerda - Formulário (50% desktop) -->
-          <v-col
-            cols="12"
-            md="6"
-            lg="6"
-            class="d-flex flex-column align-center justify-center bg-white"
-            style="min-height: 100vh"
-          >
-            <div class="auth-form-wrapper pa-6 pa-md-12 d-flex flex-column justify-center mx-auto" style="width: 100%; max-width: 450px">
-              <slot />
-            </div>
-          </v-col>
+  <v-main class="pa-0 ma-0 overflow-hidden">
+    <v-container
+      fluid
+      class="pa-0 ma-0 overflow-hidden"
+      style="overflow: hidden !important; height: 100vh;"
+    >
+      <v-row no-gutters class="fill-height">
+        <v-col
+          cols="12"
+          md="6"
+          class="auth-form-side d-flex flex-column align-center justify-center bg-white px-6 py-6 px-md-16 py-md-8 px-xl-16"
+        >
+          <slot />
+        </v-col>
 
-          <!-- Coluna Direita - Hero/Marketing (50% desktop, oculta em mobile) -->
-          <v-col
-            cols="12"
-            md="6"
-            lg="6"
-            class="d-none d-md-flex auth-visual align-stretch"
-          >
-            <div class="auth-visual__content d-flex flex-column align-center justify-center px-8 py-12">
-              <!-- Ilustração centralizada (Login.png) -->
-              <div class="auth-visual__image-container mb-10">
-                <v-img
-                  src="/images/Login.png"
-                  contain
-                  max-height="360"
-                  class="auth-visual__image"
-                />
-              </div>
-
-              <!-- Branding promocional abaixo da imagem -->
-              <div class="auth-visual__branding text-center" style="max-width: 420px">
-                <div class="d-flex align-center justify-center mb-4">
-                  <img src="~/assets/images/Bank Card double 1.png" alt="Grivy" style="height: 28px; width: auto; margin-right: 8px;" />
-                  <span class="text-h5 font-weight-bold" style="color: #087F5B">Grivy</span>
-                </div>
-                <p class="text-body-1" style="color: #495057; line-height: 1.6">
-                  Gerencie suas finanças pessoais de uma forma simples com o Grivy, e o melhor, totalmente de graça!
-                </p>
-              </div>
+        <v-col
+          cols="0"
+          md="6"
+          class="d-none d-md-flex auth-hero-side flex-column align-center justify-center text-center"
+        >
+          <div class="auth-hero-inner d-flex flex-column align-center justify-center text-center w-100">
+            <div class="auth-hero-image mb-8">
+              <v-img
+                src="/images/Login.png"
+                cover
+                max-width="520"
+                height="400"
+                class="rounded-xl"
+              />
             </div>
-          </v-col>
+            <div class="d-flex justify-center mb-4">
+              <AppLogo color="#087F5B" :size="32" />
+            </div>
+            <p class="auth-hero-text text-h6 font-weight-regular">
+              Gerencie suas finanças pessoais de uma forma simples com o Grivy, e o melhor, totalmente de graça!
+            </p>
+          </div>
+        </v-col>
       </v-row>
     </v-container>
   </v-main>
 </template>
 
 <style scoped>
-.auth-layout {
-  min-height: 100vh;
-  overflow-x: hidden;
+.auth-form-side {
+  background-color: #FFFFFF !important;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.auth-visual {
-  position: relative;
-  min-height: 100vh;
-  background: var(--auth-hero-bg, linear-gradient(135deg, #E6FCF5 0%, #C3FAE8 50%, #96F2D7 100%));
+.auth-hero-side {
+  background: linear-gradient(135deg, #E6FCF5 0%, #C3FAE8 50%, #96F2D7 100%);
+  height: 100vh;
+  overflow: hidden;
 }
 
-.auth-visual__content {
+.auth-hero-inner {
+  gap: 32px;
+}
+
+.auth-hero-text {
+  color: #495057;
+  line-height: 1.6;
+  max-width: 580px;
+}
+
+.auth-hero-image {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  max-width: 520px;
 }
 
-.auth-visual__image-container {
-  width: 100%;
-  max-width: 480px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.auth-visual__image {
-  object-fit: contain;
-  object-position: center;
+@media (min-width: 960px) and (max-width: 1280px) {
+  .auth-hero-image :deep(.v-img) {
+    max-width: 400px;
+  }
 }
 </style>

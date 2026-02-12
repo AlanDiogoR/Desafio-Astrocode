@@ -3,78 +3,139 @@ definePageMeta({
   layout: 'auth',
 })
 
-const { email, password, isLoading, errorMessage, handleLogin } = useAuthForm()
+const {
+  email,
+  password,
+  isLoading,
+  emailError,
+  passwordError,
+  handleLogin,
+  clearFieldError,
+} = useAuthForm()
+
+const { validateField } = useFieldValidation()
+
 const showPassword = ref(false)
+const hasAttemptedSubmit = ref(false)
+
+const emailRules: Array<(v: string) => boolean | string> = [
+  (v: string) => !!v || 'E-mail é obrigatório',
+  (v: string) => /.+@.+\..+/.test(v || '') || 'E-mail inválido',
+]
+
+const passwordRules: Array<(v: string) => boolean | string> = [
+  (v: string) => !!v || 'Senha é obrigatória',
+  (v: string) => !v || v.length >= 8 || 'Senha deve ter no mínimo 8 caracteres',
+]
+
+const emailFieldError = computed(() => {
+  if (!hasAttemptedSubmit.value) return emailError.value
+  return validateField(email.value, emailRules) || emailError.value
+})
+
+const passwordFieldError = computed(() => {
+  if (!hasAttemptedSubmit.value) return passwordError.value
+  return validateField(password.value, passwordRules) || passwordError.value
+})
+
+async function onSubmit() {
+  hasAttemptedSubmit.value = true
+  const emailValidation = validateField(email.value, emailRules)
+  const passwordValidation = validateField(password.value, passwordRules)
+  if (emailValidation || passwordValidation) return
+  await handleLogin()
+}
 </script>
 
 <template>
-  <div>
-    <!-- Logo -->
-    <div class="d-flex align-center mb-10">
-      <img src="~/assets/images/Bank Card double 1.png" alt="Grivy" style="height: 32px; width: auto; margin-right: 8px;" />
-      <span class="text-h6 font-weight-bold" style="color: #087F5B">Grivy</span>
+  <div
+    class="mx-auto text-center"
+    style="max-width: 440px; width: 100%;"
+  >
+    <div class="d-flex justify-center mb-2">
+      <AppLogo color="#868E96" :size="28" />
     </div>
+    <h1 class="page-title text-h4 font-weight-bold text-center mb-1 mt-0">Entrar na sua conta</h1>
+    <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
 
-    <!-- Cabeçalho -->
-    <h1 class="auth-title mb-2">
-      Entre em sua conta
-    </h1>
-    <p class="text-body-1 mb-8" style="color: #868E96">
-      Novo por aqui?
-      <NuxtLink to="/register" class="text-decoration-none font-weight-medium" style="color: var(--auth-primary)">
-        Crie uma conta
-      </NuxtLink>
-    </p>
-
-    <!-- Formulário -->
-    <v-form @submit.prevent="handleLogin">
-      <v-text-field
+    <v-form class="w-100" @submit.prevent="onSubmit">
+      <AppInput
         v-model="email"
-        type="email"
         label="E-mail"
-        variant="outlined"
-        density="comfortable"
+        type="email"
+        :rules="emailRules"
+        :field-error="emailFieldError"
         :disabled="isLoading"
-        class="mb-1 auth-input"
+        class="mb-4"
+        @clear-error="clearFieldError('email')"
       />
 
-      <v-text-field
+      <AppInput
         v-model="password"
-        :type="showPassword ? 'text' : 'password'"
         label="Senha"
-        variant="outlined"
-        density="comfortable"
+        :type="showPassword ? 'text' : 'password'"
+        :rules="passwordRules"
+        :field-error="passwordFieldError"
         :disabled="isLoading"
-        class="mb-1 auth-input"
+        class="mb-6"
+        @clear-error="clearFieldError('password')"
       >
         <template #append-inner>
           <v-icon
             :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            class="cursor-pointer"
             @click="showPassword = !showPassword"
-            style="cursor: pointer"
           />
         </template>
-      </v-text-field>
+      </AppInput>
 
-      <v-alert
-        v-if="errorMessage"
-        type="error"
-        variant="tonal"
-        density="compact"
-        class="mb-4"
-      >
-        {{ errorMessage }}
-      </v-alert>
-
-      <v-btn
-        type="submit"
-        color="primary"
-        block
-        :loading="isLoading"
-        class="text-none auth-btn"
-      >
+      <AppButton type="submit" :loading="isLoading" block>
         Entrar
-      </v-btn>
+      </AppButton>
     </v-form>
+
+    <p class="page-footer mt-8 text-center">
+      Ainda não tem conta?
+      <NuxtLink to="/register" class="footer-link">Criar conta</NuxtLink>
+    </p>
   </div>
 </template>
+
+<style scoped>
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+  color: #868E96; /* Gray-7 - cinza suave */
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.page-footer {
+  font-size: 14px;
+  color: #495057;
+  margin: 0;
+}
+
+.footer-link {
+  color: #087F5B;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 599px) {
+  .page-title {
+    font-size: 24px;
+  }
+}
+</style>
