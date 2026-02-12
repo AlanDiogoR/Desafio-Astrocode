@@ -28,6 +28,16 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+    }
+
     public UserResponse register(UserRegistrationRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException(request.email());
@@ -42,13 +52,7 @@ public class UserService {
         var savedUser = userRepository.save(user);
         createDefaultCategories(savedUser);
 
-        return new UserResponse(
-                savedUser.getId(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getCreatedAt(),
-                savedUser.getUpdatedAt()
-        );
+        return toResponse(savedUser);
     }
 
     private void createDefaultCategories(User user) {

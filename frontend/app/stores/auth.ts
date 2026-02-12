@@ -2,10 +2,12 @@ import { ref, computed } from 'vue'
 import { useCookie } from '#imports'
 import { defineStore } from 'pinia'
 
-interface User {
+export interface User {
   id: string
   name: string
   email: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {

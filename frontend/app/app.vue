@@ -1,3 +1,7 @@
+<script setup lang="ts">
+useUser()
+</script>
+
 <template>
   <ClientOnly>
     <v-app>
