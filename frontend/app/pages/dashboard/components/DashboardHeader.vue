@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ExitIcon } from '@radix-icons/vue'
 import AppLogo from '~/components/ui/AppLogo.vue'
+import AppDropdown from '~/components/ui/AppDropdown.vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
@@ -13,6 +15,14 @@ const userInitials = computed(() => {
   }
   return name.slice(0, 2).toUpperCase()
 })
+
+const dropdownItems = computed(() => [
+  {
+    label: 'Sair',
+    icon: ExitIcon,
+    action: () => authStore.logout(),
+  },
+])
 </script>
 
 <template>
@@ -23,12 +33,16 @@ const userInitials = computed(() => {
         :size="28"
       />
     </div>
-    <v-avatar
-      class="dashboard-header__avatar"
-      size="40"
-    >
-      <span class="avatar-initials">{{ userInitials }}</span>
-    </v-avatar>
+    <AppDropdown :items="dropdownItems">
+      <template #trigger>
+        <v-avatar
+          class="dashboard-header__avatar cursor-pointer"
+          size="40"
+        >
+          <span class="avatar-initials">{{ userInitials }}</span>
+        </v-avatar>
+      </template>
+    </AppDropdown>
   </header>
 </template>
 

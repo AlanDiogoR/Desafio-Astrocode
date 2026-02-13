@@ -38,5 +38,10 @@ export const useAuthStore = defineStore('auth', () => {
     tokenCookie.value = null
   }
 
-  return { user, token, hasToken, isLoggedIn, getUser, setToken, setUser, clearAuth }
+  async function logout() {
+    clearAuth()
+    await navigateTo('/login')
+  }
+
+  return { user, token, hasToken, isLoggedIn, getUser, setToken, setUser, clearAuth, logout }
 })

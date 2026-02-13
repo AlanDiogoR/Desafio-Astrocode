@@ -13,6 +13,7 @@ interface BankAccount {
 
 defineProps<{
   account: BankAccount
+  showPrivacy: boolean
 }>()
 
 function getAccountIcon(type: AccountType): string {
@@ -40,7 +41,7 @@ function getAccountIcon(type: AccountType): string {
       {{ account.name }}
     </p>
     <p class="account-card__value">
-      {{ formatCurrency(account.balance) }}
+      {{ showPrivacy ? formatCurrency(account.balance) : '••••' }}
     </p>
     <p class="account-card__label">
       Saldo atual

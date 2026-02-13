@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { formatCurrency } from '~/utils/format'
+import { PlusIcon } from '@radix-icons/vue'
+import AppDropdown from '~/components/ui/AppDropdown.vue'
+import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
+import { DropdownMenuItem } from 'radix-vue'
+
+interface TransactionType {
+  value: string
+  label: string
+  icon: string
+  filter: string
+  colorClass: 'income' | 'expense' | 'neutral'
+}
 
 interface Transaction {
   id: number
@@ -10,6 +22,79 @@ interface Transaction {
   type: 'income' | 'expense'
 }
 
+defineProps<{
+  showPrivacy: boolean
+}>()
+
+function iconPath(name: string): string {
+  return `/images/${encodeURIComponent(name)}`
+}
+
+const transactionTypes: TransactionType[] = [
+  {
+    value: 'all',
+    label: 'Transações',
+    icon: iconPath('Nome=Transações.png'),
+    filter: 'brightness(0) saturate(100%) invert(29%) sepia(15%) saturate(664%) hue-rotate(174deg) brightness(94%) contrast(89%)',
+    colorClass: 'neutral',
+  },
+  {
+    value: 'income',
+    label: 'Receitas',
+    icon: iconPath('Nome=Receitas.png'),
+    filter: 'brightness(0) saturate(100%) invert(32%) sepia(96%) saturate(1836%) hue-rotate(137deg) brightness(93%) contrast(101%)',
+    colorClass: 'income',
+  },
+  {
+    value: 'expense',
+    label: 'Despesas',
+    icon: iconPath('Nome=Despesas.png'),
+    filter: 'brightness(0) saturate(100%) invert(18%) sepia(74%) saturate(5865%) hue-rotate(356deg) brightness(101%) contrast(115%)',
+    colorClass: 'expense',
+  },
+]
+
+const defaultType = transactionTypes[0]
+
+const selectedType = ref<TransactionType>(defaultType)
+
+const GRAY_FILTER = 'brightness(0) saturate(100%) invert(29%) sepia(15%) saturate(664%) hue-rotate(174deg) brightness(94%) contrast(89%)'
+const GREEN_FILTER = 'brightness(0) saturate(100%) invert(32%) sepia(96%) saturate(1836%) hue-rotate(137deg) brightness(93%) contrast(101%)'
+const RED_FILTER = 'brightness(0) saturate(100%) invert(18%) sepia(74%) saturate(5865%) hue-rotate(356deg) brightness(101%) contrast(115%)'
+
+interface FabOption {
+  label: string
+  action: string
+  icon: string
+  filter: string
+  size?: number
+}
+
+const fabOptions: FabOption[] = [
+  {
+    label: 'Nova despesa',
+    action: 'new-expense',
+    icon: iconPath('Nome=Despesas.png'),
+    filter: RED_FILTER,
+    size: 28,
+  },
+  {
+    label: 'Nova receita',
+    action: 'new-income',
+    icon: iconPath('Nome=Receitas.png'),
+    filter: GREEN_FILTER,
+    size: 28,
+  },
+  {
+    label: 'Nova conta',
+    action: 'new-account',
+    icon: '/images/banco.svg',
+    filter: '',
+    size: 34,
+  },
+]
+
+const showFilters = ref(false)
 const selectedDate = ref(new Date())
 
 const monthNames = [
@@ -67,7 +152,12 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const DEFAULT_ICON = 'mdi-tag-outline'
 
-const transactionsIconSrc = '/images/' + encodeURIComponent('Nome=Transações.png')
+function handleTypeSelect(type: TransactionType) {
+  selectedType.value = type
+}
+
+function handleFabAction(_action: string) {
+}
 
 function getCategoryIcon(transaction: Transaction): string {
   return CATEGORY_ICONS[transaction.title] ?? CATEGORY_ICONS[transaction.category] ?? DEFAULT_ICON
@@ -87,39 +177,78 @@ const transactions = ref<Transaction[]>([
   <div class="transaction-list">
     <div class="transaction-list__header-area">
       <div class="transaction-list__header d-flex align-center justify-space-between mb-3">
-        <button
-          type="button"
-          class="transactions-dropdown-trigger d-flex align-center gap-2"
-          @click="() => {}"
-        >
-          <img
-            :src="transactionsIconSrc"
-            alt="Transações"
-            class="transactions-dropdown-icon"
-          >
-          <span class="section-title text-h6 font-weight-medium">Transações</span>
-          <v-icon icon="mdi-chevron-down" size="20" class="transactions-dropdown-chevron" />
-        </button>
+        <AppDropdown content-max-width="279px">
+          <template #trigger>
+            <div class="transactions-dropdown-trigger d-flex align-center gap-2">
+              <img
+                :src="selectedType.icon"
+                :alt="selectedType.label"
+                class="transactions-dropdown-icon"
+                :style="{ filter: selectedType.filter }"
+              >
+              <h3 class="section-title text-h6 font-weight-medium mb-0">
+                {{ selectedType.label }}
+              </h3>
+              <v-icon icon="mdi-chevron-down" size="20" class="transactions-dropdown-chevron" />
+            </div>
+          </template>
+          <template #content>
+            <DropdownMenuItem
+              v-for="type in transactionTypes"
+              :key="type.value"
+              class="dropdown-item"
+              :class="{
+                'dropdown-item--income': type.colorClass === 'income',
+                'dropdown-item--expense': type.colorClass === 'expense',
+              }"
+              :text-value="type.label"
+              @select="handleTypeSelect(type)"
+            >
+              <div class="d-flex align-center dropdown-item__row" style="gap: 8px; width: 100%">
+                <img
+                  :src="type.icon"
+                  alt=""
+                  width="20"
+                  height="20"
+                  :style="{ filter: type.filter, objectFit: 'contain' }"
+                  class="transition-all"
+                >
+                <span
+                  class="text-body-2"
+                  :class="{
+                    'text-green-darken-2': type.value === 'income',
+                    'text-red-darken-2': type.value === 'expense',
+                    'text-grey-darken-3': type.value === 'all',
+                  }"
+                >
+                  {{ type.label }}
+                </span>
+              </div>
+            </DropdownMenuItem>
+          </template>
+        </AppDropdown>
         <v-btn
           variant="text"
           icon
           size="small"
           class="section-filter"
+          @click="showFilters = true"
         >
           <v-icon icon="mdi-filter-outline" size="22" class="filter-icon" />
         </v-btn>
       </div>
-      <div class="month-selector d-flex align-center gap-2">
+      <div class="month-selector d-flex align-center">
         <v-btn
           icon
           variant="text"
           size="x-small"
           class="month-nav"
+          color="grey"
           @click="goToPrevMonth"
         >
           <v-icon icon="mdi-chevron-left" size="20" />
         </v-btn>
-        <div class="month-selector__months d-flex gap-2">
+        <div class="month-selector__months">
           <button
             v-for="(month, index) in displayedMonths"
             :key="index"
@@ -136,6 +265,7 @@ const transactions = ref<Transaction[]>([
           variant="text"
           size="x-small"
           class="month-nav"
+          color="grey"
           @click="goToNextMonth"
         >
           <v-icon icon="mdi-chevron-right" size="20" />
@@ -176,19 +306,62 @@ const transactions = ref<Transaction[]>([
                 transaction.type === 'income' ? 'amount-income' : 'amount-expense',
               ]"
             >
-              {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+              {{ showPrivacy ? (transaction.type === 'income' ? '+' : '-') + formatCurrency(transaction.amount) : '••••' }}
             </span>
           </div>
         </v-card>
       </div>
     </div>
-    <v-btn
-      icon="mdi-plus"
-      color="primary"
-      rounded="circle"
-      elevation="4"
-      class="transaction-fab"
-    />
+    <div class="fab-wrapper">
+      <AppDropdown
+        class="fab-dropdown"
+        content-side="top"
+        content-align="end"
+      >
+      <template #trigger>
+        <v-btn
+          color="primary"
+          icon
+          width="48"
+          height="48"
+          min-width="48"
+          rounded="circle"
+          elevation="4"
+          class="fab-trigger d-flex align-center justify-center"
+        >
+          <PlusIcon width="32" height="32" class="plus-icon transition-transform text-white" />
+        </v-btn>
+      </template>
+      <template #content>
+        <DropdownMenuItem
+          v-for="(opt, i) in fabOptions"
+          :key="i"
+          class="dropdown-item"
+          :text-value="opt.label"
+          @select="handleFabAction(opt.action)"
+        >
+          <div class="d-flex align-center w-100">
+            <div
+              class="d-flex align-center justify-center mr-3"
+              style="width: 40px; height: 40px; flex-shrink: 0"
+            >
+              <img
+                :src="opt.icon"
+                alt=""
+                :width="opt.size ?? 24"
+                :height="opt.size ?? 24"
+                class="transition-opacity"
+                style="object-fit: contain"
+                :style="opt.filter ? { filter: opt.filter } : {}"
+              >
+            </div>
+            <span class="text-body-2 font-weight-medium">{{ opt.label }}</span>
+          </div>
+        </DropdownMenuItem>
+      </template>
+    </AppDropdown>
+    </div>
+    <TransactionFiltersModal v-model="showFilters" />
   </div>
 </template>
 
@@ -249,14 +422,20 @@ const transactions = ref<Transaction[]>([
   color: #212529;
 }
 
-.transaction-fab {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  z-index: 10;
+.fab-wrapper {
+  position: absolute !important;
+  bottom: 16px !important;
+  right: 16px !important;
+  z-index: 100;
+}
+
+.plus-icon {
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.fab-trigger[data-state="open"] .plus-icon {
+  transform: rotate(135deg);
 }
 
 .section-filter {
@@ -270,6 +449,7 @@ const transactions = ref<Transaction[]>([
 
 .month-selector {
   padding: 12px 0 16px;
+  gap: 16px;
 }
 
 .month-nav {
@@ -278,7 +458,10 @@ const transactions = ref<Transaction[]>([
 
 .month-selector__months {
   flex: 1;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 24px;
 }
 
 .month-btn {
@@ -290,7 +473,7 @@ const transactions = ref<Transaction[]>([
   color: #868e96;
   cursor: pointer;
   border-radius: 8px;
-  transition: color 0.2s, font-weight 0.2s;
+  transition: color 0.2s, font-weight 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
 
 .month-btn:hover {
@@ -299,7 +482,9 @@ const transactions = ref<Transaction[]>([
 
 .month-btn--current {
   font-weight: 700;
-  color: #087f5b;
+  color: #212529;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .transaction-list__cards {

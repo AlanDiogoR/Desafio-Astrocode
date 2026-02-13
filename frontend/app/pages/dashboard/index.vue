@@ -6,6 +6,8 @@ import TransactionList from './components/TransactionList.vue'
 definePageMeta({
   layout: 'dashboard',
 })
+
+const showPrivacy = ref(true)
 </script>
 
 <template>
@@ -13,10 +15,13 @@ definePageMeta({
     <DashboardHeader />
     <div class="dashboard-grid">
       <div class="dashboard-col dashboard-col--left">
-        <AccountOverview />
+        <AccountOverview
+          :show-privacy="showPrivacy"
+          @toggle-privacy="showPrivacy = !showPrivacy"
+        />
       </div>
       <div class="dashboard-col dashboard-col--right">
-        <TransactionList />
+        <TransactionList :show-privacy="showPrivacy" />
       </div>
     </div>
   </div>

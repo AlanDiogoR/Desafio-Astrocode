@@ -12,8 +12,15 @@ interface BankAccount {
   color: string
 }
 
+defineProps<{
+  showPrivacy: boolean
+}>()
+
+defineEmits<{
+  togglePrivacy: []
+}>()
+
 const totalBalance = ref(12450)
-const showBalance = ref(true)
 
 const carouselRef = ref<HTMLElement | null>(null)
 
@@ -59,7 +66,7 @@ const accounts = ref<BankAccount[]>([
         </p>
         <div class="d-flex align-center">
           <p class="balance-value ma-0">
-            {{ showBalance ? formatCurrency(totalBalance) : '••••••' }}
+            {{ showPrivacy ? formatCurrency(totalBalance) : '••••••' }}
           </p>
           <v-btn
             icon
@@ -67,9 +74,9 @@ const accounts = ref<BankAccount[]>([
             density="compact"
             color="white"
             class="opacity-80 ml-4"
-            @click="showBalance = !showBalance"
+            @click="$emit('togglePrivacy')"
           >
-            <v-icon :icon="showBalance ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
+            <v-icon :icon="showPrivacy ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
           </v-btn>
         </div>
       </section>
@@ -100,6 +107,7 @@ const accounts = ref<BankAccount[]>([
             v-for="account in accounts"
             :key="account.id"
             :account="account"
+            :show-privacy="showPrivacy"
             class="account-card-item"
           />
         </div>
