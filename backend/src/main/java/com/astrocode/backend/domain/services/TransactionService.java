@@ -4,6 +4,7 @@ import com.astrocode.backend.api.dto.transaction.TransactionRequest;
 import com.astrocode.backend.api.dto.transaction.TransactionUpdateRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.Category;
+import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
@@ -67,6 +68,37 @@ public class TransactionService {
         bankAccountRepository.save(bankAccount);
 
         return savedTransaction;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Transaction createGoalTransaction(
+            BankAccount bankAccount,
+            Category category,
+            String name,
+            BigDecimal amount,
+            TransactionType type,
+            User user,
+            SavingsGoal goal
+    ) {
+        validateAccountOwnership(bankAccount, user.getId());
+        validateCategoryOwnership(category, user.getId());
+        validateCategoryTypeMatch(type, category.getType());
+
+        var transaction = Transaction.builder()
+                .user(user)
+                .bankAccount(bankAccount)
+                .category(category)
+                .name(name)
+                .amount(amount)
+                .date(java.time.LocalDate.now())
+                .type(type)
+                .goal(goal)
+                .build();
+
+        var saved = transactionRepository.save(transaction);
+        updateAccountBalance(bankAccount, amount, type);
+        bankAccountRepository.save(bankAccount);
+        return saved;
     }
 
     public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month, UUID bankAccountId, TransactionType type) {

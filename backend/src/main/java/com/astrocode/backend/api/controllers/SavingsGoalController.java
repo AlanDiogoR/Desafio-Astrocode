@@ -1,7 +1,8 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.goal.SavingsGoalAmountRequest;
+import com.astrocode.backend.api.dto.goal.SavingsGoalContributeRequest;
 import com.astrocode.backend.api.dto.goal.SavingsGoalRequest;
+import com.astrocode.backend.api.dto.goal.SavingsGoalWithdrawRequest;
 import com.astrocode.backend.api.dto.goal.SavingsGoalResponse;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.User;
@@ -65,14 +66,27 @@ public class SavingsGoalController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{id}/amount")
-    public ResponseEntity<SavingsGoalResponse> updateAmount(
+    @PatchMapping("/{id}/contribute")
+    public ResponseEntity<SavingsGoalResponse> contribute(
             @PathVariable UUID id,
-            @RequestBody @Valid SavingsGoalAmountRequest request,
+            @RequestBody @Valid SavingsGoalContributeRequest request,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
-        var savingsGoal = savingsGoalService.updateAmount(id, request.amount(), user);
+        var savingsGoal = savingsGoalService.contribute(id, request, user);
+
+        var response = toResponse(savingsGoal);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/withdraw")
+    public ResponseEntity<SavingsGoalResponse> withdraw(
+            @PathVariable UUID id,
+            @RequestBody @Valid SavingsGoalWithdrawRequest request,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        var savingsGoal = savingsGoalService.withdraw(id, request, user);
 
         var response = toResponse(savingsGoal);
         return ResponseEntity.ok(response);

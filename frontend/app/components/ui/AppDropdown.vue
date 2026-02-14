@@ -23,13 +23,22 @@ interface Props {
   contentMaxWidth?: string
   contentSide?: DropdownSide
   contentAlign?: DropdownAlign
+  contentZIndex?: number
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   items: () => [],
   contentMaxWidth: undefined,
   contentSide: 'bottom',
   contentAlign: 'end',
+  contentZIndex: undefined,
+})
+
+const contentStyle = computed(() => {
+  const style: Record<string, string> = {}
+  if (props.contentMaxWidth) style.maxWidth = props.contentMaxWidth
+  if (props.contentZIndex != null) style.zIndex = String(props.contentZIndex)
+  return Object.keys(style).length ? style : undefined
 })
 
 function handleSelect(item: DropdownItem) {
@@ -46,7 +55,7 @@ function handleSelect(item: DropdownItem) {
       <DropdownMenuContent
         class="dropdown-content"
         :class="{ 'dropdown-content--top': contentSide === 'top' }"
-        :style="contentMaxWidth ? { maxWidth: contentMaxWidth } : undefined"
+        :style="contentStyle"
         :side="contentSide"
         :align="contentAlign"
         :side-offset="5"

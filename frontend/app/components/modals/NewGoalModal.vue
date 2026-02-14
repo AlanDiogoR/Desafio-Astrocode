@@ -54,7 +54,7 @@ watch(isNewGoalModalOpen, (open: boolean) => {
         />
         <AppDatePicker
           v-model="deadline"
-          placeholder="Data limite"
+          placeholder="Data final"
         />
         <AppColorDropdown
           v-model="color"

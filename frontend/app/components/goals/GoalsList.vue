@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/format'
 import { useGoals } from '~/composables/useGoals'
+import GoalsFab from '~/components/goals/GoalsFab.vue'
+import GoalCard from '~/components/goals/GoalCard.vue'
 
 defineProps<{
   showPrivacy: boolean
 }>()
 
 const { goals } = useGoals()
-const { openNewGoalModal } = useDashboard()
+const goalsListRef = ref<HTMLElement | null>(null)
 
 const hasGoals = computed(() => (goals.value ?? []).length > 0)
+const hasCarousel = computed(() => (goals.value ?? []).length >= 3)
 
-function progressStrokeDasharray(percentage: number): string {
-  const circumference = 2 * Math.PI * 36
-  const drawn = (Math.min(100, Math.max(0, percentage)) / 100) * circumference
-  return `${drawn} ${circumference - drawn}`
+const CARD_SCROLL_OFFSET = 236
+
+function scrollGoals(direction: number) {
+  const el = goalsListRef.value
+  if (!el) return
+  el.scrollBy({ left: direction * CARD_SCROLL_OFFSET, behavior: 'smooth' })
 }
 </script>
 
@@ -24,73 +28,48 @@ function progressStrokeDasharray(percentage: number): string {
       <h3 class="goals-title">
         Minhas Metas
       </h3>
-      <button
-        type="button"
-        class="goals-add-btn"
-        aria-label="Adicionar meta"
-        @click="openNewGoalModal()"
-      >
-        <span class="goals-add-btn__icon">+</span>
-        <span class="goals-add-btn__text">Adicionar</span>
-      </button>
+      <div class="goals-header__actions d-flex align-center">
+        <GoalsFab />
+        <template v-if="hasCarousel">
+          <v-btn
+            icon="mdi-chevron-left"
+            variant="text"
+            density="compact"
+            color="white"
+            class="goals-nav__btn"
+            @click="scrollGoals(-1)"
+          />
+          <v-btn
+            icon="mdi-chevron-right"
+            variant="text"
+            density="compact"
+            color="white"
+            class="goals-nav__btn"
+            @click="scrollGoals(1)"
+          />
+        </template>
+      </div>
     </div>
     <div
       v-if="hasGoals"
+      ref="goalsListRef"
       class="goals-list"
+      :class="{ 'goals-list--carousel': hasCarousel }"
     >
-      <div
+      <GoalCard
         v-for="goal in goals"
         :key="goal.id"
-        class="goal-card"
-      >
-        <div class="goal-card__progress">
-          <svg
-            class="goal-card__ring"
-            viewBox="0 0 80 80"
-            width="72"
-            height="72"
-          >
-            <circle
-              class="goal-card__ring-bg"
-              cx="40"
-              cy="40"
-              r="36"
-              fill="none"
-              stroke-width="6"
-            />
-            <circle
-              class="goal-card__ring-fill"
-              cx="40"
-              cy="40"
-              r="36"
-              fill="none"
-              stroke-width="6"
-              stroke-linecap="round"
-              :stroke="goal.color ?? '#087f5b'"
-              :stroke-dasharray="progressStrokeDasharray(goal.progressPercentage)"
-              stroke-dashoffset="0"
-              transform="rotate(-90 40 40)"
-            />
-          </svg>
-        </div>
-        <div class="goal-card__body">
-          <div class="goal-card__content">
-            <span class="goal-card__title">{{ goal.name }}</span>
-            <span class="goal-card__amount">
-              {{ showPrivacy ? formatCurrency(goal.currentAmount) : '••••' }}
-            </span>
-          </div>
-          <span class="goal-card__target">
-            {{ showPrivacy ? `${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}` : '•••• / ••••' }}
-          </span>
-        </div>
-      </div>
+        :goal="goal"
+        :show-privacy="showPrivacy"
+        class="goals-list__card"
+      />
     </div>
   </section>
 </template>
 
 <style scoped>
 .goals-section {
+  position: relative;
   flex-shrink: 0;
   margin-bottom: 16px;
 }
@@ -99,37 +78,23 @@ function progressStrokeDasharray(percentage: number): string {
   margin-bottom: 12px;
 }
 
+.goals-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goals-nav__btn :deep(.v-btn),
+.goals-nav__btn :deep(.v-icon) {
+  color: rgb(255, 255, 255);
+}
+
 .goals-title {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
   opacity: 0.95;
   color: white;
-}
-
-.goals-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  background: transparent;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.goals-add-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: white;
-}
-
-.goals-add-btn__icon {
-  font-size: 18px;
-  line-height: 1;
 }
 
 .goals-list {
@@ -141,6 +106,11 @@ function progressStrokeDasharray(percentage: number): string {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.goals-list--carousel .goals-list__card {
+  scroll-snap-align: start;
 }
 
 .goals-list::-webkit-scrollbar {
@@ -151,66 +121,4 @@ function progressStrokeDasharray(percentage: number): string {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
-
-.goal-card {
-  flex: 0 0 220px;
-  min-width: 220px;
-  background: white;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
-.goal-card__progress {
-  flex-shrink: 0;
-}
-
-.goal-card__ring {
-  display: block;
-}
-
-.goal-card__ring-bg {
-  stroke: rgba(8, 127, 91, 0.2);
-}
-
-.goal-card__ring-fill {
-  transition: stroke-dasharray 0.3s ease;
-}
-
-.goal-card__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.goal-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.goal-card__title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #212529;
-}
-
-.goal-card__amount {
-  font-size: 16px;
-  font-weight: 700;
-  color: #212529;
-}
-
-.goal-card__target {
-  font-size: 12px;
-  color: #868e96;
-  align-self: flex-end;
-}
 </style>
-

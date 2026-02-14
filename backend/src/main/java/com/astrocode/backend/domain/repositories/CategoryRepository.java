@@ -17,4 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     
     @Query("SELECT c FROM Category c WHERE c.user.id = :userId")
     List<Category> findByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT c FROM Category c WHERE c.user.id = :userId AND c.type = :type")
+    List<Category> findByUserIdAndType(@Param("userId") UUID userId, @Param("type") TransactionType type);
 }

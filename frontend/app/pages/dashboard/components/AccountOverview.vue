@@ -4,6 +4,8 @@ import AccountCard from './AccountCard.vue'
 import GoalsList from '~/components/goals/GoalsList.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewGoalModal from '~/components/modals/NewGoalModal.vue'
+import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
+import EditGoalModal from '~/components/modals/EditGoalModal.vue'
 import { PlusIcon } from '@radix-icons/vue'
 
 type AccountType = 'checking' | 'investment' | 'cash'
@@ -118,6 +120,8 @@ function scrollAccounts(direction: number) {
     </div>
     <NewAccountModal />
     <NewGoalModal />
+    <GoalInteractionModal />
+    <EditGoalModal />
   </div>
 </template>
 

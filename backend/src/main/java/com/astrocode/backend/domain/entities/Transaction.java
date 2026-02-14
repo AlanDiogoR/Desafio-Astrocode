@@ -65,6 +65,10 @@ public class Transaction {
     @Column(name = "type", nullable = false, length = 20)
     private TransactionType type;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_id")
+    private SavingsGoal goal;
+
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

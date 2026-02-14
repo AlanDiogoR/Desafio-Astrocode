@@ -22,12 +22,14 @@ interface Props {
   label?: string
   placeholder?: string
   errorText?: string
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   label: 'Tipo',
   placeholder: 'Selecione',
   errorText: '',
+  disabled: false,
 })
 
 const modelValue = defineModel<string | null>()
@@ -53,13 +55,14 @@ const isFloating = computed(() => !!modelValue.value || isOpen.value)
 
 <template>
   <div class="app-select">
-    <SelectRoot v-model:open="isOpen" v-model="modelValue">
+    <SelectRoot v-model:open="isOpen" v-model="modelValue" :disabled="props.disabled">
       <SelectTrigger
         class="app-select__trigger"
         :class="{
           'app-select__trigger--filled': !!modelValue,
           'app-select__trigger--empty': !modelValue,
           'app-select__trigger--error': !!props.errorText,
+          'app-select__trigger--disabled': props.disabled,
         }"
       >
         <span
@@ -134,6 +137,11 @@ const isFloating = computed(() => !!modelValue.value || isOpen.value)
 
 .app-select__trigger--error {
   border-color: #e03131;
+}
+
+.app-select__trigger--disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .app-select__trigger {

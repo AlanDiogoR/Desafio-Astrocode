@@ -35,7 +35,11 @@ const currencyOptions = {
     <label v-if="label" class="input-currency__label">{{ label }}</label>
     <div
       class="input-currency__wrapper"
-      :class="{ 'input-currency__wrapper--error': !!errorText }"
+      :class="{
+        'input-currency__wrapper--error': !!errorText,
+        'input-currency__wrapper--themed': !!valueColor,
+      }"
+      :style="valueColor ? { '--input-value-color': valueColor } : undefined"
     >
       <span class="input-currency__prefix">R$</span>
       <VueNumberFormat
@@ -80,6 +84,10 @@ const currencyOptions = {
   color: #868e96;
   letter-spacing: -0.5px;
   flex-shrink: 0;
+}
+
+.input-currency__wrapper--themed .input-currency__prefix {
+  color: var(--input-value-color);
 }
 
 .input-currency__input {

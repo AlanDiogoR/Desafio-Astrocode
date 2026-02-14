@@ -75,6 +75,9 @@ public class SavingsGoal {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
     @PrePersist
     protected void onCreate() {
         OffsetDateTime now = OffsetDateTime.now();
