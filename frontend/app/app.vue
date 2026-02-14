@@ -17,7 +17,16 @@ onMounted(() => {
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
-      <Toaster />
+      <Toaster
+        :toast-options="{
+          success: {
+            iconTheme: {
+              primary: '#0d9488',
+              secondary: '#ffffff',
+            },
+          },
+        }"
+      />
     </v-app>
   </ClientOnly>
 </template>

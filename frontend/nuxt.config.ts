@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  spaLoadingTemplate: false,
 
   runtimeConfig: {
     public: {
@@ -18,7 +19,13 @@ export default defineNuxtConfig({
   ],
 
   build: {
-    transpile: ['vuetify', '@radix-icons/vue', '@headlessui/vue'],
+    transpile: ['vuetify', '@radix-icons/vue', '@headlessui/vue', 'vue-number-format', '@vuepic/vue-datepicker'],
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: ['@vuepic/vue-datepicker'],
+    },
   },
 
   modules: ['@pinia/nuxt'],

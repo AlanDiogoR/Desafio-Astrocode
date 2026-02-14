@@ -10,6 +10,8 @@ interface Props {
   disabled?: boolean
   fieldError?: string
   errorText?: string
+  /** Quando false, erros das rules só aparecem após interação (evita erro ao carregar) */
+  showValidation?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,117 +20,162 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   fieldError: '',
   errorText: '',
+  showValidation: false,
 })
 
 const model = defineModel<string>({ default: '' })
 
 const emit = defineEmits<{
   clearError: []
+  blur: []
 }>()
 
-const errorMessages = computed(() => props.errorText || props.fieldError || '')
-const errorMessagesArray = computed(() =>
-  errorMessages.value ? [errorMessages.value] : []
+const focused = ref(false)
+const isFloating = computed(() => focused.value || !!model.value)
+
+const hasError = computed(() => !!props.errorText || !!props.fieldError)
+const errorMessage = computed(() => props.errorText || props.fieldError || '')
+
+const computedRules = computed(() => {
+  if (!props.rules?.length) return []
+  const result = props.rules.map((rule) => rule(model.value))
+  return result.filter((r): r is string => r !== true)
+})
+
+const validationError = computed(() =>
+  props.showValidation ? computedRules.value[0] : undefined
+)
+const displayError = computed(
+  () => validationError.value || errorMessage.value || ''
 )
 
-function onInput() {
-  if (errorMessages.value) emit('clearError')
+function onInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  model.value = target.value
+  if (errorMessage.value) emit('clearError')
+}
+
+function onBlur() {
+  focused = false
+  emit('blur')
 }
 </script>
 
 <template>
-  <v-text-field
-    v-model="model"
-    :label="label"
-    :type="type"
-    :disabled="disabled"
-    :rules="rules"
-    :error="!!errorMessages"
-    :error-messages="errorMessagesArray"
-    variant="outlined"
-    density="comfortable"
-    color="primary"
-    class="app-input"
-    v-bind="$attrs"
-    @update:model-value="onInput"
-  >
-    <template #message="{ message }">
-      <div class="error-message-wrapper">
-        <CrossCircledIcon
-          :width="16"
-          :height="16"
-          class="error-icon"
-        />
-        <span class="error-text">{{ message }}</span>
-      </div>
-    </template>
-    <template v-if="$slots['append-inner']" #append-inner>
-      <slot name="append-inner" />
-    </template>
-  </v-text-field>
+  <div class="app-input-wrapper">
+    <div class="app-input-inner">
+      <input
+        :value="model"
+        :type="type"
+        :disabled="disabled"
+        class="app-input__field"
+        :class="{
+          'app-input__field--error': hasError || !!validationError,
+        }"
+        v-bind="$attrs"
+        @input="onInput"
+        @focus="focused = true"
+        @blur="onBlur"
+      >
+      <label
+        class="app-input__label"
+        :class="{ 'app-input__label--float': isFloating }"
+      >
+        {{ label }}
+      </label>
+      <span v-if="$slots['append-inner']" class="app-input__append">
+        <slot name="append-inner" />
+      </span>
+    </div>
+    <div
+      v-if="displayError"
+      class="app-input__error"
+    >
+      <CrossCircledIcon width="16" height="16" class="app-input__error-icon" />
+      <span class="app-input__error-text">{{ displayError }}</span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.app-input :deep(.v-field__overlay),
-.app-input :deep(.v-field__background) {
-  opacity: 0 !important;
-  background-color: transparent !important;
-  display: none !important;
+.app-input-wrapper {
+  display: flex;
+  flex-direction: column;
 }
 
-.app-input :deep(.v-field) {
-  --v-field-hover-opacity: 0 !important;
-  --v-field-focus-opacity: 0 !important;
-  background-color: transparent !important;
+.app-input-inner {
+  position: relative;
+  height: 56px;
+  width: 100%;
 }
 
-.app-input :deep(.v-field--focused) {
-  background-color: transparent !important;
+.app-input__field {
+  height: 100%;
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid #495057;
+  padding: 0 16px;
+  font-size: 16px;
+  color: #1f2937;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s;
+  background: white;
 }
 
-.app-input :deep(.v-field__outline) {
-  --v-field-border-opacity: 1 !important;
-  color: #ADB5BD !important;
+.app-input__field:focus,
+.app-input__field:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #087f5b;
 }
 
-.app-input :deep(.v-field--focused .v-field__outline) {
-  color: #087F5B !important;
+.app-input__field--error {
+  border-color: #e03131;
 }
 
-.app-input :deep(.v-field--error .v-field__outline) {
-  color: #E03131 !important;
+.app-input__label {
+  pointer-events: none;
+  position: absolute;
+  left: 16px;
+  padding: 0 4px;
+  background: white;
+  transition: transform 0.2s ease, top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #6b7280;
 }
 
-.app-input :deep(.v-input__details) {
-  padding-inline: 0 !important;
-  padding-top: 6px !important;
-  justify-content: flex-start !important;
+.app-input__label--float {
+  top: -8px;
+  font-size: 12px;
+  color: #087f5b;
+  transform: translateY(0);
 }
 
-.app-input :deep(.v-messages__message) {
-  text-align: left !important;
-  line-height: 1.2;
+.app-input__append {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: auto;
 }
 
-.error-message-wrapper {
+.app-input__error {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   gap: 8px;
-  color: #E03131;
+  padding-top: 6px;
+  color: #e03131;
 }
 
-.error-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.app-input__error-icon {
   flex-shrink: 0;
 }
 
-.error-text {
+.app-input__error-text {
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
-  color: inherit;
 }
 </style>

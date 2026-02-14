@@ -123,9 +123,10 @@ function handleSelect(item: DropdownItem) {
   color: #1f2937;
   cursor: pointer;
   outline: none;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 
+.dropdown-item:hover,
 .dropdown-item[data-highlighted] {
   background-color: #f9fafb;
 }

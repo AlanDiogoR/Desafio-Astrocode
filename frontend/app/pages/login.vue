@@ -7,43 +7,17 @@ const {
   email,
   password,
   loginMutation,
-  emailError,
-  passwordError,
+  emailErrorDisplay,
+  passwordErrorDisplay,
   handleLogin,
   clearFieldError,
+  markAsTouched,
 } = useAuthForm()
-
-const { validateField } = useFieldValidation()
 
 const isPending = computed(() => Boolean(unref(loginMutation.isPending)))
 const showPassword = ref(false)
-const hasAttemptedSubmit = ref(false)
-
-const emailRules: Array<(v: string) => boolean | string> = [
-  (v: string) => !!v || 'E-mail é obrigatório',
-  (v: string) => /.+@.+\..+/.test(v || '') || 'E-mail inválido',
-]
-
-const passwordRules: Array<(v: string) => boolean | string> = [
-  (v: string) => !!v || 'Senha é obrigatória',
-  (v: string) => !v || v.length >= 8 || 'Senha deve ter no mínimo 8 caracteres',
-]
-
-const emailFieldError = computed(() => {
-  if (!hasAttemptedSubmit.value) return emailError.value
-  return validateField(email.value, emailRules) || emailError.value
-})
-
-const passwordFieldError = computed(() => {
-  if (!hasAttemptedSubmit.value) return passwordError.value
-  return validateField(password.value, passwordRules) || passwordError.value
-})
 
 async function onSubmit() {
-  hasAttemptedSubmit.value = true
-  const emailValidation = validateField(email.value, emailRules)
-  const passwordValidation = validateField(password.value, passwordRules)
-  if (emailValidation || passwordValidation) return
   await handleLogin()
 }
 </script>
@@ -60,27 +34,28 @@ async function onSubmit() {
     <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
 
     <v-form class="w-100" @submit.prevent="onSubmit">
-      <AppInput
-        v-model="email"
-        label="E-mail"
-        type="email"
-        :rules="emailRules"
-        :field-error="emailFieldError"
-        :disabled="isPending"
-        class="mb-4"
-        @clear-error="clearFieldError('email')"
-      />
+      <ClientOnly>
+        <AppInput
+          v-model="email"
+          label="E-mail"
+          type="email"
+          :field-error="emailErrorDisplay"
+          :disabled="isPending"
+          class="mb-4"
+          @clear-error="clearFieldError('email')"
+          @blur="markAsTouched('email')"
+        />
 
-      <AppInput
-        v-model="password"
-        label="Senha"
-        :type="showPassword ? 'text' : 'password'"
-        :rules="passwordRules"
-        :field-error="passwordFieldError"
-        :disabled="isPending"
-        class="mb-6"
-        @clear-error="clearFieldError('password')"
-      >
+        <AppInput
+          v-model="password"
+          label="Senha"
+          :type="showPassword ? 'text' : 'password'"
+          :field-error="passwordErrorDisplay"
+          :disabled="isPending"
+          class="mb-6"
+          @clear-error="clearFieldError('password')"
+          @blur="markAsTouched('password')"
+        >
         <template #append-inner>
           <v-icon
             :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -88,7 +63,8 @@ async function onSubmit() {
             @click="showPassword = !showPassword"
           />
         </template>
-      </AppInput>
+        </AppInput>
+      </ClientOnly>
 
       <AppButton
         type="submit"

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { formatCurrency } from '~/utils/format'
 import AccountCard from './AccountCard.vue'
+import NewAccountModal from '~/components/modals/NewAccountModal.vue'
+import { PlusIcon } from '@radix-icons/vue'
 
 type AccountType = 'checking' | 'investment' | 'cash'
 
@@ -20,7 +22,12 @@ defineEmits<{
   togglePrivacy: []
 }>()
 
-const totalBalance = ref(12450)
+const { openNewAccountModal } = useDashboard()
+const { accounts: bankAccountsRef, totalBalance } = useBankAccounts()
+
+const accounts = computed<BankAccount[]>(() => bankAccountsRef?.value ?? [])
+
+const isEmpty = computed(() => (bankAccountsRef?.value ?? []).length === 0)
 
 const carouselRef = ref<HTMLElement | null>(null)
 
@@ -31,30 +38,6 @@ function scrollAccounts(direction: number) {
   if (!el) return
   el.scrollBy({ left: direction * CARD_SCROLL_OFFSET, behavior: 'smooth' })
 }
-
-const accounts = ref<BankAccount[]>([
-  {
-    id: '1',
-    name: 'Nubank',
-    balance: 5420,
-    type: 'checking',
-    color: '#820ad1',
-  },
-  {
-    id: '2',
-    name: 'Carteira',
-    balance: 380,
-    type: 'cash',
-    color: '#12b886',
-  },
-  {
-    id: '3',
-    name: 'Investimento',
-    balance: 6650,
-    type: 'investment',
-    color: '#087f5b',
-  },
-])
 </script>
 
 <template>
@@ -85,7 +68,10 @@ const accounts = ref<BankAccount[]>([
           <h3 class="accounts-title">
             Minhas contas
           </h3>
-          <div class="accounts-nav d-flex gap-1">
+          <div
+            class="accounts-nav d-flex gap-1"
+            :class="{ 'accounts-nav--hidden': isEmpty }"
+          >
             <v-btn
               icon="mdi-chevron-left"
               variant="text"
@@ -102,7 +88,21 @@ const accounts = ref<BankAccount[]>([
             />
           </div>
         </div>
-        <div ref="carouselRef" class="accounts-carousel">
+        <div
+          v-if="isEmpty"
+          class="accounts-empty"
+          role="button"
+          tabindex="0"
+          @click="openNewAccountModal()"
+          @keydown.enter="openNewAccountModal()"
+          @keydown.space.prevent="openNewAccountModal()"
+        >
+          <div class="accounts-empty__icon-wrapper">
+            <PlusIcon class="accounts-empty__icon" />
+          </div>
+          <span class="accounts-empty__text">Cadastrar uma nova conta</span>
+        </div>
+        <div v-else ref="carouselRef" class="accounts-carousel">
           <AccountCard
             v-for="account in accounts"
             :key="account.id"
@@ -113,6 +113,7 @@ const accounts = ref<BankAccount[]>([
         </div>
       </section>
     </div>
+    <NewAccountModal />
   </div>
 </template>
 
@@ -176,6 +177,10 @@ const accounts = ref<BankAccount[]>([
   color: rgb(255, 255, 255);
 }
 
+.accounts-nav--hidden {
+  visibility: hidden;
+}
+
 .accounts-carousel {
   display: flex;
   gap: 16px;
@@ -200,6 +205,43 @@ const accounts = ref<BankAccount[]>([
   flex: 0 0 calc((100% - 32px) / 2.5);
   min-width: 200px;
   max-width: 260px;
+}
+
+.accounts-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  border: 2px dashed #ffffff; /* borda pontilhada branca */
+  border-radius: 16px;
+  cursor: pointer;
+  min-height: 120px;
+  background: transparent;
+}
+
+.accounts-empty__icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px dashed #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accounts-empty__icon {
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+}
+
+.accounts-empty__text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: center;
 }
 
 @media (min-width: 960px) {

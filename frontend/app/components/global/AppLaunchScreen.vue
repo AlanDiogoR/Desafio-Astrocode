@@ -1,24 +1,22 @@
 <script setup lang="ts">
-import { TransitionRoot } from '@headlessui/vue'
-
 defineProps<{
   show: boolean
 }>()
 </script>
 
 <template>
-  <TransitionRoot
-    :show="show"
-    enter="app-launch-screen-enter"
-    enter-from="app-launch-screen-enter-from"
-    enter-to="app-launch-screen-enter-to"
-    leave="app-launch-screen-leave"
-    leave-from="app-launch-screen-leave-from"
-    leave-to="app-launch-screen-leave-to"
+  <Transition
+    enter-active-class="app-launch-screen-enter"
+    enter-from-class="app-launch-screen-enter-from"
+    enter-to-class="app-launch-screen-enter-to"
+    leave-active-class="app-launch-screen-leave"
+    leave-from-class="app-launch-screen-leave-from"
+    leave-to-class="app-launch-screen-leave-to"
   >
     <div
+      v-if="show"
+      key="launch"
       class="app-launch-screen"
-      :class="{ 'app-launch-screen--hidden': !show }"
     >
       <div class="app-launch-screen__content">
         <AppLogo
@@ -35,7 +33,7 @@ defineProps<{
         />
       </div>
     </div>
-  </TransitionRoot>
+  </Transition>
 </template>
 
 <style scoped>
@@ -85,8 +83,5 @@ defineProps<{
   opacity: 0;
 }
 
-.app-launch-screen--hidden {
-  pointer-events: none;
-}
 
 </style>

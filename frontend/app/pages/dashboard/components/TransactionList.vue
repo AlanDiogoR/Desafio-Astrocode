@@ -3,6 +3,8 @@ import { formatCurrency } from '~/utils/format'
 import { PlusIcon } from '@radix-icons/vue'
 import AppDropdown from '~/components/ui/AppDropdown.vue'
 import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
+import NewAccountModal from '~/components/modals/NewAccountModal.vue'
+import NewTransactionModal from '~/components/modals/NewTransactionModal.vue'
 import { DropdownMenuItem } from 'radix-vue'
 
 interface TransactionType {
@@ -94,6 +96,8 @@ const fabOptions: FabOption[] = [
   },
 ]
 
+const { openNewTransactionModal, openNewAccountModal } = useDashboard()
+
 const showFilters = ref(false)
 const selectedDate = ref(new Date())
 
@@ -156,7 +160,14 @@ function handleTypeSelect(type: TransactionType) {
   selectedType.value = type
 }
 
-function handleFabAction(_action: string) {
+function handleFabAction(action: string) {
+  if (action === 'new-account') {
+    openNewAccountModal()
+  } else if (action === 'new-income') {
+    openNewTransactionModal('INCOME')
+  } else if (action === 'new-expense') {
+    openNewTransactionModal('EXPENSE')
+  }
 }
 
 function getCategoryIcon(transaction: Transaction): string {
@@ -278,7 +289,6 @@ const transactions = ref<Transaction[]>([
           v-for="transaction in transactions"
           :key="transaction.id"
           class="transaction-card"
-          rounded="lg"
           variant="flat"
           elevation="0"
         >
@@ -362,6 +372,8 @@ const transactions = ref<Transaction[]>([
     </AppDropdown>
     </div>
     <TransactionFiltersModal v-model="showFilters" />
+    <NewAccountModal />
+    <NewTransactionModal />
   </div>
 </template>
 
@@ -497,6 +509,7 @@ const transactions = ref<Transaction[]>([
   background-color: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid #e9ecef;
+  border-radius: 16px;
 }
 
 .transaction-card__content {

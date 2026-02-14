@@ -3,13 +3,17 @@ import type { AxiosError } from 'axios'
 import { z } from 'zod'
 
 const loginSchema = z.object({
-  email: z.string().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
-  password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
+  email: z.string().min(1, 'Campo obrigatório').email('E-mail inválido'),
+  password: z.string().min(1, 'Campo obrigatório').min(8, 'A senha deve ter pelo menos 8 caracteres'),
 })
 
 const registerSchema = loginSchema.extend({
-  name: z.string().min(1, 'Nome é obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres'),
+  name: z.string().min(1, 'Campo obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres'),
 })
+
+const emailSchema = z.string().min(1, 'Campo obrigatório').email('E-mail inválido')
+const passwordSchema = z.string().min(1, 'Campo obrigatório').min(8, 'A senha deve ter pelo menos 8 caracteres')
+const nameSchema = z.string().min(1, 'Campo obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres')
 
 interface LoginPayload {
   email: string
@@ -40,9 +44,21 @@ export function useAuthForm() {
   const passwordError = ref<string>('')
   const nameError = ref<string>('')
 
+  const touched = reactive({
+    email: false,
+    password: false,
+    name: false,
+  })
+  const hasAttemptedSubmit = ref(false)
+
   const authStore = useAuthStore()
   const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+
+  function markAsTouched(field: 'email' | 'password' | 'name') {
+    touched[field] = true
+    validateFieldWithZod(field)
+  }
 
   function clearErrors() {
     emailError.value = ''
@@ -56,7 +72,30 @@ export function useAuthForm() {
     if (field === 'name') nameError.value = ''
   }
 
+  function shouldValidateField(field: 'email' | 'password' | 'name') {
+    return touched[field] || hasAttemptedSubmit.value
+  }
+
+  function validateFieldWithZod(field: 'email' | 'password' | 'name') {
+    if (!shouldValidateField(field)) return
+    if (field === 'email') {
+      const result = emailSchema.safeParse(email.value)
+      emailError.value = result.success ? '' : result.error.issues[0]?.message ?? ''
+    }
+    if (field === 'password') {
+      const result = passwordSchema.safeParse(password.value)
+      passwordError.value = result.success ? '' : result.error.issues[0]?.message ?? ''
+    }
+    if (field === 'name') {
+      const result = nameSchema.safeParse(name.value)
+      nameError.value = result.success ? '' : result.error.issues[0]?.message ?? ''
+    }
+  }
+
   function validateLogin(): boolean {
+    hasAttemptedSubmit.value = true
+    touched.email = true
+    touched.password = true
     clearErrors()
     try {
       loginSchema.parse({ email: email.value, password: password.value })
@@ -64,9 +103,9 @@ export function useAuthForm() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.issues.forEach((issue: z.ZodIssue) => {
-          const field = issue.path[0] as string
-          if (field === 'email') emailError.value = issue.message
-          if (field === 'password') passwordError.value = issue.message
+          const f = issue.path[0] as string
+          if (f === 'email') emailError.value = issue.message
+          if (f === 'password') passwordError.value = issue.message
         })
       }
       return false
@@ -74,6 +113,10 @@ export function useAuthForm() {
   }
 
   function validateRegister(): boolean {
+    hasAttemptedSubmit.value = true
+    touched.name = true
+    touched.email = true
+    touched.password = true
     clearErrors()
     try {
       registerSchema.parse({
@@ -85,10 +128,10 @@ export function useAuthForm() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.issues.forEach((issue: z.ZodIssue) => {
-          const field = issue.path[0] as string
-          if (field === 'name') nameError.value = issue.message
-          if (field === 'email') emailError.value = issue.message
-          if (field === 'password') passwordError.value = issue.message
+          const f = issue.path[0] as string
+          if (f === 'name') nameError.value = issue.message
+          if (f === 'email') emailError.value = issue.message
+          if (f === 'password') passwordError.value = issue.message
         })
       }
       return false
@@ -181,11 +224,32 @@ export function useAuthForm() {
     })
   }
 
-  watch([email, password, name], () => {
-    clearErrors()
+  watch(email, () => {
     loginMutation.reset()
     registerMutation.reset()
+    validateFieldWithZod('email')
   })
+
+  watch(password, () => {
+    loginMutation.reset()
+    registerMutation.reset()
+    validateFieldWithZod('password')
+  })
+
+  watch(name, () => {
+    registerMutation.reset()
+    validateFieldWithZod('name')
+  })
+
+  const emailErrorDisplay = computed(() =>
+    (touched.email || hasAttemptedSubmit.value) ? emailError.value : ''
+  )
+  const passwordErrorDisplay = computed(() =>
+    (touched.password || hasAttemptedSubmit.value) ? passwordError.value : ''
+  )
+  const nameErrorDisplay = computed(() =>
+    (touched.name || hasAttemptedSubmit.value) ? nameError.value : ''
+  )
 
   return {
     email,
@@ -196,9 +260,13 @@ export function useAuthForm() {
     emailError,
     passwordError,
     nameError,
+    emailErrorDisplay,
+    passwordErrorDisplay,
+    nameErrorDisplay,
     handleLogin,
     handleRegister,
     clearErrors,
     clearFieldError,
+    markAsTouched,
   }
 }

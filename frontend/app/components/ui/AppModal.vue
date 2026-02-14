@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  DialogClose,
   DialogContent,
   DialogOverlay,
   DialogPortal,
@@ -11,39 +10,51 @@ import { Cross2Icon } from '@radix-icons/vue'
 
 interface Props {
   title: string
-  modelValue: boolean
+  open: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
+  'update:open': [value: boolean]
 }>()
 
-function handleOpenChange(value: boolean) {
-  emit('update:modelValue', value)
+function close() {
+  emit('update:open', false)
+}
+
+function onPointerDownOutside(e: { preventDefault?: () => void; detail?: { originalEvent?: { target?: EventTarget } }; target?: EventTarget }) {
+  const target = (e.detail as { originalEvent?: { target?: EventTarget } } | undefined)?.originalEvent?.target ?? e.target
+  if (target instanceof HTMLElement && target.closest('[data-modal-ignore-close]')) {
+    e.preventDefault?.()
+  } else {
+    close()
+  }
 }
 </script>
 
 <template>
   <DialogRoot
-    :open="modelValue"
+    :open="open"
     :modal="true"
-    @update:open="handleOpenChange"
+    @update:open="(payload: boolean) => emit('update:open', payload)"
   >
     <DialogPortal>
       <DialogOverlay class="modal-overlay" />
-      <DialogContent class="modal-content">
+      <DialogContent
+        class="modal-content"
+        :aria-describedby="undefined"
+        @pointer-down-outside="onPointerDownOutside"
+      >
         <header class="modal-header">
-          <DialogClose as-child>
-            <button
-              type="button"
-              class="modal-close"
-              aria-label="Fechar"
-            >
-              <Cross2Icon width="24" height="24" />
-            </button>
-          </DialogClose>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="Fechar"
+            @click="close"
+          >
+            <Cross2Icon width="24" height="24" />
+          </button>
           <DialogTitle class="modal-title">
             {{ title }}
           </DialogTitle>
@@ -77,11 +88,19 @@ function handleOpenChange(value: boolean) {
   padding: 24px;
   box-shadow: 0 11px 20px 0 rgba(0, 0, 0, 0.1);
   z-index: 2001;
-  outline: none;
   display: flex;
   flex-direction: column;
   gap: 40px;
   animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-content:focus {
+  outline: 2px solid #087f5b;
+  outline-offset: 2px;
+}
+
+.modal-content:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .modal-header {
@@ -92,6 +111,8 @@ function handleOpenChange(value: boolean) {
 }
 
 .modal-close {
+  position: relative;
+  z-index: 10;
   width: 48px;
   height: 48px;
   display: flex;
@@ -103,6 +124,7 @@ function handleOpenChange(value: boolean) {
   color: #1f2937;
   border-radius: 8px;
   transition: background-color 0.2s;
+  pointer-events: auto;
 }
 
 .modal-close:hover {
@@ -120,6 +142,18 @@ function handleOpenChange(value: boolean) {
 .modal-spacer {
   width: 48px;
   height: 48px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes overlayShow {

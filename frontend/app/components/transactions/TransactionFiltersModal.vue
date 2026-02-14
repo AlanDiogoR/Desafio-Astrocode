@@ -37,8 +37,8 @@ function applyFilters() {
 <template>
   <AppModal
     title="Filtros"
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    :open="props.modelValue"
+    @update:open="(v: boolean) => emit('update:modelValue', v)"
   >
     <div class="filters-content">
       <section class="filters-section">
