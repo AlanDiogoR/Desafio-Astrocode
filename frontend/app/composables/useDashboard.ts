@@ -4,6 +4,7 @@ export function useDashboard() {
   const isNewTransactionModalOpen = useState<boolean>('isNewTransactionModalOpen', () => false)
   const newTransactionType = useState<TransactionModalType | null>('newTransactionType', () => null)
   const isNewAccountModalOpen = useState<boolean>('isNewAccountModalOpen', () => false)
+  const isNewGoalModalOpen = useState<boolean>('isNewGoalModalOpen', () => false)
   const { hasAccounts } = useBankAccounts()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -29,6 +30,14 @@ export function useDashboard() {
     isNewAccountModalOpen.value = false
   }
 
+  function openNewGoalModal() {
+    isNewGoalModalOpen.value = true
+  }
+
+  function closeNewGoalModal() {
+    isNewGoalModalOpen.value = false
+  }
+
   return {
     isNewTransactionModalOpen,
     newTransactionType,
@@ -37,5 +46,8 @@ export function useDashboard() {
     closeNewTransactionModal,
     openNewAccountModal,
     closeNewAccountModal,
+    isNewGoalModalOpen,
+    openNewGoalModal,
+    closeNewGoalModal,
   }
 }

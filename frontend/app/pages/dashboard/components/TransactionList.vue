@@ -174,14 +174,7 @@ function getCategoryIcon(transaction: Transaction): string {
   return CATEGORY_ICONS[transaction.title] ?? CATEGORY_ICONS[transaction.category] ?? DEFAULT_ICON
 }
 
-const transactions = ref<Transaction[]>([
-  { id: 1, title: 'Salário', category: 'Receita', date: '05/02/2025', amount: 5000, type: 'income' },
-  { id: 2, title: 'Almoço', category: 'Alimentação', date: '04/02/2025', amount: 25, type: 'expense' },
-  { id: 3, title: 'Mercado', category: 'Mercado', date: '03/02/2025', amount: 320, type: 'expense' },
-  { id: 4, title: 'Transporte', category: 'Transporte', date: '02/02/2025', amount: 18.5, type: 'expense' },
-  { id: 5, title: 'Freelance', category: 'Receita', date: '01/02/2025', amount: 1200, type: 'income' },
-  { id: 6, title: 'Streaming', category: 'Lazer', date: '28/01/2025', amount: 49.9, type: 'expense' },
-])
+const transactions = ref<Transaction[]>([])
 </script>
 
 <template>
@@ -284,7 +277,10 @@ const transactions = ref<Transaction[]>([
       </div>
     </div>
     <div class="transaction-list__scroll">
-      <div class="transaction-list__cards">
+      <div
+        v-if="transactions.length > 0"
+        class="transaction-list__cards"
+      >
         <v-card
           v-for="transaction in transactions"
           :key="transaction.id"
@@ -320,6 +316,16 @@ const transactions = ref<Transaction[]>([
             </span>
           </div>
         </v-card>
+      </div>
+      <div
+        v-else
+        class="transaction-list__empty d-flex flex-column align-center justify-center flex-grow-1"
+      >
+        <img
+          src="/images/ilustra.png"
+          alt="Sem transações"
+          class="transaction-list__empty-img"
+        >
       </div>
     </div>
     <div class="fab-wrapper">
@@ -398,6 +404,8 @@ const transactions = ref<Transaction[]>([
 
 .transaction-list__scroll {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 32px 100px;
@@ -503,6 +511,23 @@ const transactions = ref<Transaction[]>([
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.transaction-list__empty {
+  gap: 16px;
+  min-height: 200px;
+}
+
+.transaction-list__empty-img {
+  width: auto;
+  height: auto;
+}
+
+.transaction-list__empty-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #495057;
+  margin: 0;
 }
 
 .transaction-card {

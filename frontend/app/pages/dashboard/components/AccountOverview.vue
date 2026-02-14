@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { formatCurrency } from '~/utils/format'
 import AccountCard from './AccountCard.vue'
+import GoalsList from '~/components/goals/GoalsList.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
+import NewGoalModal from '~/components/modals/NewGoalModal.vue'
 import { PlusIcon } from '@radix-icons/vue'
 
 type AccountType = 'checking' | 'investment' | 'cash'
@@ -63,6 +65,7 @@ function scrollAccounts(direction: number) {
           </v-btn>
         </div>
       </section>
+      <GoalsList :show-privacy="showPrivacy" />
       <section class="accounts-section">
         <div class="accounts-header d-flex align-center justify-space-between">
           <h3 class="accounts-title">
@@ -114,6 +117,7 @@ function scrollAccounts(direction: number) {
       </section>
     </div>
     <NewAccountModal />
+    <NewGoalModal />
   </div>
 </template>
 
@@ -214,7 +218,7 @@ function scrollAccounts(direction: number) {
   justify-content: center;
   gap: 12px;
   padding: 32px;
-  border: 2px dashed #ffffff; /* borda pontilhada branca */
+  border: 2px dashed #ffffff;
   border-radius: 16px;
   cursor: pointer;
   min-height: 120px;

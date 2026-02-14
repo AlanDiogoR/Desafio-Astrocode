@@ -118,6 +118,10 @@ function closePicker() {
   border-color: #e03131;
 }
 
+.dp__theme_light {
+    --dp-background-color: #fff;
+}
+
 .app-datepicker__label {
   position: absolute;
   left: 16px;
@@ -141,7 +145,6 @@ function closePicker() {
 
 .app-datepicker__value {
   flex: 1;
-  padding-top: 12px;
   display: flex;
   align-items: center;
   justify-content: flex-start;

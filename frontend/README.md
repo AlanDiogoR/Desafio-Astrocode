@@ -37,7 +37,7 @@ Interface web do **Grivy**, sistema de controle financeiro pessoal. Desenvolvida
 |----------|-------------|
 | **Framework** | Nuxt 4, Vue 3 |
 | **UI Library** | Vuetify 3, Radix Vue, @radix-icons/vue |
-| **Estilização** | CSS Scoped, SCSS, Vuetify (sem Tailwind) |
+| **Estilização** | CSS Scoped, SCSS, Vuetify 
 | **Estado** | Pinia |
 | **Validação** | Zod |
 | **HTTP** | Axios |

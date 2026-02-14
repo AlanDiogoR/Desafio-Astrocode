@@ -1,11 +1,13 @@
 package com.astrocode.backend.api.dto.goal;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record SavingsGoalRequest(
         @NotBlank(message = "Nome é obrigatório")
@@ -15,6 +17,9 @@ public record SavingsGoalRequest(
         @NotNull(message = "Valor alvo é obrigatório")
         @DecimalMin(value = "0.01", message = "Valor alvo deve ser maior que zero")
         BigDecimal targetAmount,
+
+        @JsonProperty(required = false)
+        LocalDate endDate,
 
         @Size(max = 30, message = "Cor deve ter no máximo 30 caracteres")
         String color

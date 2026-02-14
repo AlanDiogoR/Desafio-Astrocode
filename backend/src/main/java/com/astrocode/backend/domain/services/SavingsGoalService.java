@@ -43,6 +43,7 @@ public class SavingsGoalService {
                 .targetAmount(request.targetAmount())
                 .currentAmount(BigDecimal.ZERO)
                 .startDate(LocalDate.now())
+                .endDate(request.endDate())
                 .status(GoalStatus.ACTIVE)
                 .color(request.color())
                 .build();
@@ -75,6 +76,7 @@ public class SavingsGoalService {
 
         savingsGoal.setName(request.name());
         savingsGoal.setTargetAmount(request.targetAmount());
+        savingsGoal.setEndDate(request.endDate());
         savingsGoal.setColor(request.color());
 
         return savingsGoalRepository.save(savingsGoal);
