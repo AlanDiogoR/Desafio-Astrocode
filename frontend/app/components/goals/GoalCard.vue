@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/format'
+import { formatCurrency, formatDate } from '~/utils/format'
 import type { SavingsGoal } from '~/composables/useGoals'
 
 const props = defineProps<{
@@ -14,12 +14,31 @@ const isCompleted = computed(() => {
   return g.currentAmount >= g.targetAmount || g.status === 'COMPLETED'
 })
 
+const isExpired = computed(() => {
+  const endDate = props.goal.endDate
+  if (!endDate) return false
+  return new Date(endDate) < new Date()
+})
+
+const badgeLabel = computed(() => {
+  if (isExpired.value) return 'Encerrada'
+  if (isCompleted.value) return 'Concluída'
+  return ''
+})
+
+const formattedDeadline = computed(() => {
+  const endDate = props.goal.endDate
+  if (!endDate) return ''
+  return formatDate(new Date(endDate), 'd MMM yyyy')
+})
+
 const canAdd = computed(() => {
   const g = props.goal
-  return g.currentAmount < g.targetAmount && g.status !== 'COMPLETED'
+  return g.currentAmount < g.targetAmount && g.status !== 'COMPLETED' && !isExpired.value
 })
 
 function handleClick() {
+  if (isExpired.value) return
   const type = canAdd.value ? 'DEPOSIT' : 'WITHDRAW'
   openGoalInteractionModal(type, props.goal)
 }
@@ -36,6 +55,7 @@ function progressStrokeDasharray(percentage: number): string {
     class="goal-card"
     :class="{
       'goal-card--completed': isCompleted,
+      'goal-card--expired': isExpired,
     }"
     role="button"
     tabindex="0"
@@ -43,8 +63,8 @@ function progressStrokeDasharray(percentage: number): string {
     @keydown.enter="handleClick"
     @keydown.space.prevent="handleClick"
   >
-    <div v-if="isCompleted" class="goal-card__badge">
-      Concluída
+    <div v-if="badgeLabel" class="goal-card__badge" :class="{ 'goal-card__badge--expired': isExpired }">
+      {{ badgeLabel }}
     </div>
     <div class="goal-card__progress">
       <svg
@@ -75,7 +95,7 @@ function progressStrokeDasharray(percentage: number): string {
           transform="rotate(-90 40 40)"
         />
       </svg>
-      <div v-if="isCompleted" class="goal-card__check">
+      <div v-if="isCompleted && !isExpired" class="goal-card__check">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
@@ -88,6 +108,9 @@ function progressStrokeDasharray(percentage: number): string {
           {{ showPrivacy ? formatCurrency(goal.currentAmount) : '••••' }}
         </span>
       </div>
+      <span v-if="formattedDeadline" class="goal-card__deadline">
+        {{ formattedDeadline }}
+      </span>
       <span class="goal-card__target">
         {{ showPrivacy ? `${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}` : '•••• / ••••' }}
       </span>
@@ -127,6 +150,17 @@ function progressStrokeDasharray(percentage: number): string {
   background: linear-gradient(to bottom, #fef3c7 0%, #f9fafb 100%);
 }
 
+.goal-card--expired {
+  border-color: #adb5bd;
+  background: #f1f3f5;
+  cursor: default;
+  opacity: 0.9;
+}
+
+.goal-card--expired:hover {
+  background: #e9ecef;
+}
+
 .goal-card__badge {
   position: absolute;
   top: 8px;
@@ -139,6 +173,11 @@ function progressStrokeDasharray(percentage: number): string {
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.goal-card__badge--expired {
+  color: #495057;
+  background: #dee2e6;
 }
 
 .goal-card__progress {
@@ -156,6 +195,10 @@ function progressStrokeDasharray(percentage: number): string {
 
 .goal-card--completed .goal-card__ring-bg {
   stroke: rgba(212, 160, 23, 0.3);
+}
+
+.goal-card--expired .goal-card__ring-bg {
+  stroke: rgba(173, 181, 189, 0.3);
 }
 
 .goal-card__ring-fill {
@@ -176,7 +219,7 @@ function progressStrokeDasharray(percentage: number): string {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .goal-card__content {
@@ -195,6 +238,11 @@ function progressStrokeDasharray(percentage: number): string {
   font-size: 16px;
   font-weight: 700;
   color: #212529;
+}
+
+.goal-card__deadline {
+  font-size: 11px;
+  color: #868e96;
 }
 
 .goal-card__target {

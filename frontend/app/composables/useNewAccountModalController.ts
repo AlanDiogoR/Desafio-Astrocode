@@ -1,6 +1,5 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
-import type { BankAccount } from '~/composables/useBankAccounts'
 
 const accountSchema = z.object({
   name: z.string().min(1, 'Campo obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
@@ -28,7 +27,8 @@ const ACCOUNT_TYPE_OPTIONS: SelectOption[] = [
 
 export function useNewAccountModalController() {
   const { closeNewAccountModal } = useDashboard()
-  const { addAccount } = useBankAccounts()
+  const { invalidateBankAccounts } = useBankAccounts()
+  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const balance = ref<number | null>(null)
@@ -52,19 +52,23 @@ export function useNewAccountModalController() {
 
   async function createAccount(payload: AccountFormValues) {
     isLoading.value = true
-    await new Promise((r) => setTimeout(r, 300))
-    const newAccount: BankAccount = {
-      id: crypto.randomUUID(),
-      name: payload.name.trim(),
-      balance: payload.initialBalance,
-      type: payload.type.toLowerCase() as BankAccount['type'],
-      color: payload.color ?? '#868E96',
+    try {
+      await $api.post('/accounts', {
+        name: payload.name.trim(),
+        initialBalance: payload.initialBalance,
+        type: payload.type,
+        color: payload.color ?? null,
+      })
+      toast.success('Conta criada com sucesso!')
+      invalidateBankAccounts()
+      closeNewAccountModal()
+      resetForm()
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(message ?? 'Erro ao criar conta. Tente novamente.')
+    } finally {
+      isLoading.value = false
     }
-    addAccount(newAccount)
-    toast.success('Conta criada com sucesso!')
-    closeNewAccountModal()
-    resetForm()
-    isLoading.value = false
   }
 
   function resetForm() {

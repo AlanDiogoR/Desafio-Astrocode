@@ -116,6 +116,7 @@ public class SavingsGoalController {
                 savingsGoal.getColor(),
                 progressPercentage,
                 savingsGoal.getStatus().name(),
+                savingsGoal.getEndDate(),
                 savingsGoal.getCreatedAt(),
                 savingsGoal.getUpdatedAt()
         );

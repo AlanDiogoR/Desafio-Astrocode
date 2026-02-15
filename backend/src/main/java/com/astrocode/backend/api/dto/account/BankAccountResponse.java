@@ -7,7 +7,7 @@ import java.util.UUID;
 public record BankAccountResponse(
         UUID id,
         String name,
-        BigDecimal initialBalance,
+        BigDecimal currentBalance,
         String type,
         String color,
         OffsetDateTime createdAt,

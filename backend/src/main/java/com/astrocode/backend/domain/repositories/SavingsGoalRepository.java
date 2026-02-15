@@ -12,6 +12,7 @@ import java.util.UUID;
 @Repository
 public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, UUID> {
     
-    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId AND sg.deletedAt IS NULL")
+    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId AND sg.deletedAt IS NULL " +
+           "ORDER BY sg.endDate ASC NULLS LAST, sg.createdAt DESC")
     List<SavingsGoal> findByUserId(@Param("userId") UUID userId);
 }

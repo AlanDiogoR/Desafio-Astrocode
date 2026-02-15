@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
-import { useAccounts } from '~/composables/useAccounts'
+import { useBankAccounts } from '~/composables/useBankAccounts'
 
 type InteractionMode = 'ADD' | 'REMOVE'
 
@@ -22,7 +22,7 @@ const withdrawSchema = z.object({
 export function useGoalInteractionController() {
   const { closeNewGoalValueModal, goalForValueAddition, goalInteractionType } = useDashboard()
   const { goals, invalidateGoals } = useGoals()
-  const { accounts, invalidateAccounts } = useAccounts()
+  const { accounts, invalidateBankAccounts } = useBankAccounts()
   const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -134,7 +134,7 @@ export function useGoalInteractionController() {
       }
 
       invalidateGoals()
-      invalidateAccounts()
+      invalidateBankAccounts()
       closeNewGoalValueModal()
       resetForm()
     } catch (err: unknown) {

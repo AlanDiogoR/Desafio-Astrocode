@@ -7,7 +7,7 @@ definePageMeta({
   layout: 'dashboard',
 })
 
-const showPrivacy = ref(true)
+const { areValuesVisible } = useDashboardController()
 </script>
 
 <template>
@@ -15,13 +15,10 @@ const showPrivacy = ref(true)
     <DashboardHeader />
     <div class="dashboard-grid">
       <div class="dashboard-col dashboard-col--left">
-        <AccountOverview
-          :show-privacy="showPrivacy"
-          @toggle-privacy="showPrivacy = !showPrivacy"
-        />
+        <AccountOverview />
       </div>
       <div class="dashboard-col dashboard-col--right">
-        <TransactionList :show-privacy="showPrivacy" />
+        <TransactionList :show-privacy="areValuesVisible" />
       </div>
     </div>
   </div>

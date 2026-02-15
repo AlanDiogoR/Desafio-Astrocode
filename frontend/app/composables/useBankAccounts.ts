@@ -8,34 +8,75 @@ export interface BankAccount {
   color: string
 }
 
-const MOCK_ACCOUNTS = ref<BankAccount[]>([
-  { id: '1', name: 'Nubank', balance: 5420, type: 'checking', color: '#820ad1' },
-  { id: '2', name: 'Carteira', balance: 380, type: 'cash', color: '#12b886' },
-  { id: '2', name: 'Rico', balance: 571, type: 'investment', color: '#ec6e27' },
-])
+interface BankAccountApiResponse {
+  id: string
+  name: string
+  currentBalance: number
+  type: string
+  color: string | null
+}
+
+const BANK_ACCOUNTS_QUERY_KEY = ['bankAccounts'] as const
+
+function mapApiToBankAccount(raw: BankAccountApiResponse): BankAccount {
+  const type = raw.type?.toLowerCase() as AccountType
+  return {
+    id: raw.id,
+    name: raw.name,
+    balance: Number(raw.currentBalance ?? 0),
+    type: type === 'checking' || type === 'investment' || type === 'cash' ? type : 'checking',
+    color: raw.color ?? '#868E96',
+  }
+}
 
 export function useBankAccounts() {
-  const accounts = MOCK_ACCOUNTS
+  const { $api } = useNuxtApp()
+  const authStore = useAuthStore()
+  const queryClient = useQueryClient()
+  const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
-  const hasAccounts = computed(() => (accounts?.value ?? []).length > 0)
+  const {
+    data: accountsData,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: BANK_ACCOUNTS_QUERY_KEY,
+    queryFn: async (): Promise<BankAccount[]> => {
+      const { data } = await $api.get<BankAccountApiResponse[]>('/accounts')
+      if (!Array.isArray(data)) return []
+      return data.map(mapApiToBankAccount)
+    },
+    enabled: computed(() => !!authStore.token),
+  })
+
+  const accounts = computed<BankAccount[]>(() => accountsData.value ?? [])
+
+  const hasAccounts = computed(() => accounts.value.length > 0)
 
   const totalBalance = computed(() =>
-    (accounts?.value ?? []).reduce((sum, a) => sum + a.balance, 0)
+    accounts.value.reduce((sum, a) => sum + a.balance, 0)
   )
 
-  function addAccount(account: BankAccount) {
-    accounts.value = [...(accounts?.value ?? []), account]
+  function invalidateBankAccounts() {
+    queryClient.invalidateQueries({ queryKey: BANK_ACCOUNTS_QUERY_KEY })
   }
 
-  function setAccounts(list: BankAccount[]) {
-    accounts.value = list
+  if (import.meta.client) {
+    watch(isError, (v) => {
+      if (v) toast.error('Erro ao carregar contas. Tente novamente.')
+    })
   }
 
   return {
     accounts,
     hasAccounts,
     totalBalance,
-    addAccount,
-    setAccounts,
+    isPending,
+    isError,
+    error,
+    refetch,
+    invalidateBankAccounts,
   }
 }

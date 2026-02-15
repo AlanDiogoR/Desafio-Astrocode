@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/format'
 import AccountCard from './AccountCard.vue'
 import GoalsList from '~/components/goals/GoalsList.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
@@ -8,39 +7,30 @@ import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
 import EditGoalModal from '~/components/modals/EditGoalModal.vue'
 import { PlusIcon } from '@radix-icons/vue'
 
-type AccountType = 'checking' | 'investment' | 'cash'
-
-interface BankAccount {
-  id: string
-  name: string
-  balance: number
-  type: AccountType
-  color: string
-}
-
-defineProps<{
-  showPrivacy: boolean
-}>()
-
-defineEmits<{
-  togglePrivacy: []
-}>()
-
 const { openNewAccountModal } = useDashboard()
-const { accounts: bankAccountsRef, totalBalance } = useBankAccounts()
-
-const accounts = computed<BankAccount[]>(() => bankAccountsRef?.value ?? [])
-
-const isEmpty = computed(() => (bankAccountsRef?.value ?? []).length === 0)
+const {
+  accounts,
+  goals,
+  formattedTotalBalance,
+  areValuesVisible,
+  isLoading,
+} = useDashboardController()
 
 const carouselRef = ref<HTMLElement | null>(null)
 
-const CARD_SCROLL_OFFSET = 280
+const isEmpty = computed(() => accounts.value.length === 0)
+const hasCarousel = computed(() => accounts.value.length >= 3)
+
+const CARD_SCROLL_OFFSET = 236
 
 function scrollAccounts(direction: number) {
   const el = carouselRef.value
   if (!el) return
   el.scrollBy({ left: direction * CARD_SCROLL_OFFSET, behavior: 'smooth' })
+}
+
+function togglePrivacy() {
+  areValuesVisible.value = !areValuesVisible.value
 }
 </script>
 
@@ -52,8 +42,11 @@ function scrollAccounts(direction: number) {
           Saldo total
         </p>
         <div class="d-flex align-center">
-          <p class="balance-value ma-0">
-            {{ showPrivacy ? formatCurrency(totalBalance) : '••••••' }}
+          <p v-if="isLoading" class="balance-skeleton ma-0">
+            <v-skeleton-loader type="text" width="140" />
+          </p>
+          <p v-else class="balance-value ma-0">
+            {{ formattedTotalBalance }}
           </p>
           <v-btn
             icon
@@ -61,13 +54,17 @@ function scrollAccounts(direction: number) {
             density="compact"
             color="white"
             class="opacity-80 ml-4"
-            @click="$emit('togglePrivacy')"
+            @click="togglePrivacy"
           >
-            <v-icon :icon="showPrivacy ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
+            <v-icon :icon="areValuesVisible ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
           </v-btn>
         </div>
       </section>
-      <GoalsList :show-privacy="showPrivacy" />
+      <GoalsList
+        :goals="goals"
+        :show-privacy="areValuesVisible"
+        :is-loading="isLoading"
+      />
       <section class="accounts-section">
         <div class="accounts-header d-flex align-center justify-space-between">
           <h3 class="accounts-title">
@@ -75,7 +72,7 @@ function scrollAccounts(direction: number) {
           </h3>
           <div
             class="accounts-nav d-flex gap-1"
-            :class="{ 'accounts-nav--hidden': isEmpty }"
+            :class="{ 'accounts-nav--hidden': !hasCarousel }"
           >
             <v-btn
               icon="mdi-chevron-left"
@@ -94,7 +91,20 @@ function scrollAccounts(direction: number) {
           </div>
         </div>
         <div
-          v-if="isEmpty"
+          v-if="isLoading"
+          class="accounts-skeleton"
+        >
+          <v-skeleton-loader
+            type="list-item-avatar-two-line"
+            class="accounts-skeleton__item"
+          />
+          <v-skeleton-loader
+            type="list-item-avatar-two-line"
+            class="accounts-skeleton__item"
+          />
+        </div>
+        <div
+          v-else-if="isEmpty"
           class="accounts-empty"
           role="button"
           tabindex="0"
@@ -112,7 +122,7 @@ function scrollAccounts(direction: number) {
             v-for="account in accounts"
             :key="account.id"
             :account="account"
-            :show-privacy="showPrivacy"
+            :show-privacy="areValuesVisible"
             class="account-card-item"
           />
         </div>
@@ -143,7 +153,6 @@ function scrollAccounts(direction: number) {
   overflow: hidden;
 }
 
-
 .balance-section {
   flex-shrink: 0;
 }
@@ -153,6 +162,10 @@ function scrollAccounts(direction: number) {
   font-weight: 500;
   opacity: 0.9;
   margin: 0 0 4px 0;
+}
+
+.balance-skeleton :deep(.v-skeleton-loader__text) {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .balance-value {
@@ -189,6 +202,19 @@ function scrollAccounts(direction: number) {
   visibility: hidden;
 }
 
+.accounts-skeleton {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.accounts-skeleton__item {
+  flex: 0 0 220px;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+}
+
 .accounts-carousel {
   display: flex;
   gap: 16px;
@@ -210,9 +236,8 @@ function scrollAccounts(direction: number) {
 }
 
 .account-card-item {
-  flex: 0 0 calc((100% - 32px) / 2.5);
-  min-width: 200px;
-  max-width: 260px;
+  flex: 0 0 220px;
+  min-width: 220px;
 }
 
 .accounts-empty {

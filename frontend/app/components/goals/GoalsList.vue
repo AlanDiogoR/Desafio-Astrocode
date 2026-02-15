@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { useGoals } from '~/composables/useGoals'
 import GoalsFab from '~/components/goals/GoalsFab.vue'
 import GoalCard from '~/components/goals/GoalCard.vue'
+import type { SavingsGoal } from '~/composables/useGoals'
 
-defineProps<{
+const props = defineProps<{
+  goals: SavingsGoal[]
   showPrivacy: boolean
+  isLoading?: boolean
 }>()
 
-const { goals } = useGoals()
 const goalsListRef = ref<HTMLElement | null>(null)
 
-const hasGoals = computed(() => (goals.value ?? []).length > 0)
-const hasCarousel = computed(() => (goals.value ?? []).length >= 3)
+const hasGoals = computed(() => (props.goals ?? []).length > 0)
+const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
 
 const CARD_SCROLL_OFFSET = 236
 
@@ -50,8 +51,18 @@ function scrollGoals(direction: number) {
         </template>
       </div>
     </div>
+    <div v-if="isLoading" class="goals-skeleton">
+      <v-skeleton-loader
+        type="list-item-avatar-two-line"
+        class="goals-skeleton__item"
+      />
+      <v-skeleton-loader
+        type="list-item-avatar-two-line"
+        class="goals-skeleton__item"
+      />
+    </div>
     <div
-      v-if="hasGoals"
+      v-else-if="hasGoals"
       ref="goalsListRef"
       class="goals-list"
       :class="{ 'goals-list--carousel': hasCarousel }"
@@ -64,6 +75,7 @@ function scrollGoals(direction: number) {
         class="goals-list__card"
       />
     </div>
+    <div v-else class="goals-empty" />
   </section>
 </template>
 
@@ -95,6 +107,23 @@ function scrollGoals(direction: number) {
   margin: 0;
   opacity: 0.95;
   color: white;
+}
+
+.goals-skeleton {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.goals-skeleton__item {
+  flex: 0 0 220px;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+}
+
+.goals-empty {
+  min-height: 4px;
 }
 
 .goals-list {

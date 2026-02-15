@@ -1,6 +1,7 @@
 package com.astrocode.backend.api.dto.goal;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ public record SavingsGoalResponse(
         String color,
         BigDecimal progressPercentage,
         String status,
+        LocalDate endDate,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

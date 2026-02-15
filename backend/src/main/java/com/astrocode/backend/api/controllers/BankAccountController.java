@@ -34,7 +34,7 @@ public class BankAccountController {
         var response = new BankAccountResponse(
                 bankAccount.getId(),
                 bankAccount.getName(),
-                bankAccount.getInitialBalance(),
+                bankAccount.getCurrentBalance(),
                 bankAccount.getType().name(),
                 bankAccount.getColor(),
                 bankAccount.getCreatedAt(),
@@ -54,7 +54,7 @@ public class BankAccountController {
                 .map(account -> new BankAccountResponse(
                         account.getId(),
                         account.getName(),
-                        account.getInitialBalance(),
+                        account.getCurrentBalance(),
                         account.getType().name(),
                         account.getColor(),
                         account.getCreatedAt(),
@@ -77,7 +77,7 @@ public class BankAccountController {
         var response = new BankAccountResponse(
                 bankAccount.getId(),
                 bankAccount.getName(),
-                bankAccount.getInitialBalance(),
+                bankAccount.getCurrentBalance(),
                 bankAccount.getType().name(),
                 bankAccount.getColor(),
                 bankAccount.getCreatedAt(),
