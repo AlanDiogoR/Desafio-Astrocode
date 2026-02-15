@@ -234,22 +234,22 @@ public class TransactionService {
     private void updateAccountBalance(BankAccount account, BigDecimal amount, TransactionType type) {
         BigDecimal newBalance;
         if (type == TransactionType.INCOME) {
-            newBalance = account.getInitialBalance().add(amount);
-            account.setInitialBalance(newBalance);
+            newBalance = account.getCurrentBalance().add(amount);
+            account.setCurrentBalance(newBalance);
         } else {
-            newBalance = account.getInitialBalance().subtract(amount);
+            newBalance = account.getCurrentBalance().subtract(amount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
                 throw new InsufficientBalanceException("Saldo insuficiente na conta");
             }
-            account.setInitialBalance(newBalance);
+            account.setCurrentBalance(newBalance);
         }
     }
 
     private void revertAccountBalance(BankAccount account, BigDecimal amount, TransactionType type) {
         if (type == TransactionType.INCOME) {
-            account.setInitialBalance(account.getInitialBalance().subtract(amount));
+            account.setCurrentBalance(account.getCurrentBalance().subtract(amount));
         } else {
-            account.setInitialBalance(account.getInitialBalance().add(amount));
+            account.setCurrentBalance(account.getCurrentBalance().add(amount));
         }
     }
 }

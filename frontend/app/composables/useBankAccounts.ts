@@ -1,3 +1,5 @@
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
+
 type AccountType = 'checking' | 'investment' | 'cash'
 
 export interface BankAccount {
@@ -11,7 +13,8 @@ export interface BankAccount {
 interface BankAccountApiResponse {
   id: string
   name: string
-  currentBalance: number
+  currentBalance?: number
+  current_balance?: number
   type: string
   color: string | null
 }
@@ -20,10 +23,14 @@ const BANK_ACCOUNTS_QUERY_KEY = ['bankAccounts'] as const
 
 function mapApiToBankAccount(raw: BankAccountApiResponse): BankAccount {
   const type = raw.type?.toLowerCase() as AccountType
+  const rawAny = raw as Record<string, unknown>
+  const currentBalance = raw.currentBalance ?? rawAny.current_balance
+  const balanceValue =
+    currentBalance != null ? Number(currentBalance) : 0
   return {
     id: raw.id,
     name: raw.name,
-    balance: Number(raw.currentBalance ?? 0),
+    balance: balanceValue,
     type: type === 'checking' || type === 'investment' || type === 'cash' ? type : 'checking',
     color: raw.color ?? '#868E96',
   }

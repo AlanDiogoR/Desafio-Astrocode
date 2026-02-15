@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
+import { useQueryClient } from '@tanstack/vue-query'
 import type { SavingsGoal } from '~/composables/useGoals'
 import { useBankAccounts } from '~/composables/useBankAccounts'
 
@@ -19,10 +20,13 @@ const withdrawSchema = z.object({
   bankAccountId: z.string().min(1, 'Selecione uma conta'),
 })
 
+const TRANSACTIONS_QUERY_KEY = ['transactions'] as const
+
 export function useGoalInteractionController() {
   const { closeNewGoalValueModal, goalForValueAddition, goalInteractionType } = useDashboard()
   const { goals, invalidateGoals } = useGoals()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
+  const queryClient = useQueryClient()
   const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -135,6 +139,7 @@ export function useGoalInteractionController() {
 
       invalidateGoals()
       invalidateBankAccounts()
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       closeNewGoalValueModal()
       resetForm()
     } catch (err: unknown) {

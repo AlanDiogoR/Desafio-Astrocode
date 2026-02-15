@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
+import { useQueryClient } from '@tanstack/vue-query'
 
 const transactionSchema = z.object({
   amount: z.number().min(0.01, 'Valor inválido'),
@@ -17,12 +18,16 @@ interface SelectOption {
   value: string
 }
 
+const TRANSACTIONS_QUERY_KEY = ['transactions'] as const
+
 export function useNewTransactionModalController() {
   const { newTransactionType, closeNewTransactionModal } = useDashboard()
   const type = newTransactionType
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+  const { $api } = useNuxtApp()
+  const queryClient = useQueryClient()
 
-  const { accounts: bankAccountsRef } = useBankAccounts()
+  const { accounts, invalidateBankAccounts } = useBankAccounts()
   const { categories: categoriesComputed } = useCategories(type)
 
   const amount = ref<number | null>(null)
@@ -32,10 +37,9 @@ export function useNewTransactionModalController() {
   const date = ref<Date>(new Date())
   const errors = reactive<Record<string, string>>({})
 
-  const accounts = computed<SelectOption[]>(() => {
-    const list = bankAccountsRef?.value ?? []
-    return list.map((a) => ({ label: a.name, value: a.id }))
-  })
+  const accountsOptions = computed<SelectOption[]>(() =>
+    accounts.value.map((a) => ({ label: a.name, value: a.id }))
+  )
 
   const categories = computed(() => categoriesComputed?.value ?? [])
 
@@ -59,11 +63,26 @@ export function useNewTransactionModalController() {
 
   async function createTransaction(payload: TransactionFormValues) {
     isLoading.value = true
-    await new Promise((r) => setTimeout(r, 300))
-    toast.success('Transação salva com sucesso!')
-    closeNewTransactionModal()
-    resetForm()
-    isLoading.value = false
+    try {
+      await $api.post('/transactions', {
+        name: payload.name.trim(),
+        amount: payload.amount,
+        date: payload.date.toISOString().slice(0, 10),
+        type: payload.type,
+        bankAccountId: payload.bankAccountId,
+        categoryId: payload.categoryId,
+      })
+      toast.success('Transação salva com sucesso!')
+      invalidateBankAccounts()
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      closeNewTransactionModal()
+      resetForm()
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(message ?? 'Erro ao salvar transação. Tente novamente.')
+    } finally {
+      isLoading.value = false
+    }
   }
 
   function resetForm() {
@@ -113,7 +132,7 @@ export function useNewTransactionModalController() {
     errors,
     isLoading,
     categories,
-    accounts,
+    accounts: accountsOptions,
     title,
     valueColor,
     valueLabel,

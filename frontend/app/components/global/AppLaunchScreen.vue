@@ -40,7 +40,7 @@ defineProps<{
 .app-launch-screen {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 9999;
   background-color: #087F5B;
   display: flex;
   align-items: center;
