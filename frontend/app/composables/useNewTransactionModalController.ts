@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import { useQueryClient } from '@tanstack/vue-query'
+import { createTransaction as createTransactionApi } from '~/services/transactionsService'
 
 const transactionSchema = z.object({
   amount: z.number().min(0.01, 'Valor inválido'),
@@ -24,7 +25,6 @@ export function useNewTransactionModalController() {
   const { newTransactionType, closeNewTransactionModal } = useDashboard()
   const type = newTransactionType
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
-  const { $api } = useNuxtApp()
   const queryClient = useQueryClient()
 
   const { accounts, invalidateBankAccounts } = useBankAccounts()
@@ -64,7 +64,7 @@ export function useNewTransactionModalController() {
   async function createTransaction(payload: TransactionFormValues) {
     isLoading.value = true
     try {
-      await $api.post('/transactions', {
+      await createTransactionApi({
         name: payload.name.trim(),
         amount: payload.amount,
         date: payload.date.toISOString().slice(0, 10),

@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { getAllGoals } from '~/services/goalsService'
 
 export interface SavingsGoal {
   id: string
@@ -44,7 +45,6 @@ function mapApiToSavingsGoal(raw: SavingsGoalApiResponse): SavingsGoal {
 }
 
 export function useGoals() {
-  const { $api } = useNuxtApp()
   const authStore = useAuthStore()
   const queryClient = useQueryClient()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
@@ -58,9 +58,8 @@ export function useGoals() {
   } = useQuery({
     queryKey: GOALS_QUERY_KEY,
     queryFn: async (): Promise<SavingsGoal[]> => {
-      const { data } = await $api.get<SavingsGoalApiResponse[]>('/goals')
-      if (!Array.isArray(data)) return []
-      return data.map(mapApiToSavingsGoal)
+      const data = await getAllGoals()
+      return (data as SavingsGoalApiResponse[]).map(mapApiToSavingsGoal)
     },
     enabled: computed(() => !!authStore.token),
   })

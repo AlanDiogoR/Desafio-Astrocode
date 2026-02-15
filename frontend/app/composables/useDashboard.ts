@@ -1,4 +1,5 @@
 import type { SavingsGoal } from '~/composables/useGoals'
+import type { ConfirmDeleteEntityType } from '~/types/confirmDelete'
 
 export type TransactionModalType = 'INCOME' | 'EXPENSE'
 export type GoalInteractionType = 'DEPOSIT' | 'WITHDRAW'
@@ -13,6 +14,9 @@ export function useDashboard() {
   const isEditGoalModalOpen = useState<boolean>('isEditGoalModalOpen', () => false)
   const goalBeingEdited = useState<SavingsGoal | null>('goalBeingEdited', () => null)
   const goalForValueAddition = useState<SavingsGoal | null>('goalForValueAddition', () => null)
+  const isConfirmDeleteModalOpen = useState<boolean>('isConfirmDeleteModalOpen', () => false)
+  const confirmDeleteEntityType = useState<ConfirmDeleteEntityType | null>('confirmDeleteEntityType', () => null)
+  const confirmDeleteEntityId = useState<string | null>('confirmDeleteEntityId', () => null)
   const { hasAccounts } = useBankAccounts()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -67,6 +71,19 @@ export function useDashboard() {
     goalBeingEdited.value = null
   }
 
+  function openConfirmDeleteModal(type: ConfirmDeleteEntityType, id: string) {
+    confirmDeleteEntityType.value = type
+    confirmDeleteEntityId.value = id
+    isConfirmDeleteModalOpen.value = true
+    isEditGoalModalOpen.value = false
+  }
+
+  function closeConfirmDeleteModal() {
+    isConfirmDeleteModalOpen.value = false
+    confirmDeleteEntityType.value = null
+    confirmDeleteEntityId.value = null
+  }
+
   return {
     isNewTransactionModalOpen,
     newTransactionType,
@@ -86,6 +103,11 @@ export function useDashboard() {
     goalBeingEdited,
     openEditGoalModal,
     closeEditGoalModal,
-    goalForValueAddition
+    goalForValueAddition,
+    isConfirmDeleteModalOpen,
+    confirmDeleteEntityType,
+    confirmDeleteEntityId,
+    openConfirmDeleteModal,
+    closeConfirmDeleteModal,
   }
 }

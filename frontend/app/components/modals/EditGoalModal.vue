@@ -21,10 +21,9 @@ const {
   goalOptions,
   resetForm,
   handleSubmit,
-  handleDelete,
 } = useEditGoalModalController()
 
-const { isEditGoalModalOpen, closeEditGoalModal } = useDashboard()
+const { isEditGoalModalOpen, closeEditGoalModal, openConfirmDeleteModal } = useDashboard()
 
 function handleOpenChange(v: boolean) {
   if (!v) closeEditGoalModal()
@@ -33,6 +32,10 @@ function handleOpenChange(v: boolean) {
 watch(isEditGoalModalOpen, (open: boolean) => {
   if (!open) resetForm()
 })
+
+function handleTrashClick() {
+  if (goalId.value) openConfirmDeleteModal('GOAL', goalId.value)
+}
 </script>
 
 <template>
@@ -41,6 +44,23 @@ watch(isEditGoalModalOpen, (open: boolean) => {
     title="Editar meta"
     @update:open="handleOpenChange"
   >
+    <template #rightAction>
+      <button
+        type="button"
+        class="edit-goal-trash-btn"
+        aria-label="Excluir meta"
+        :disabled="!goalId"
+        @click="handleTrashClick"
+      >
+        <img
+          src="/images/Nome=Deletar.svg"
+          alt=""
+          width="20"
+          height="20"
+          class="trash-icon"
+        >
+      </button>
+    </template>
     <v-form class="edit-goal-form" @submit.prevent="handleSubmit">
       <div class="edit-goal-form__fields">
         <AppSelect
@@ -85,14 +105,6 @@ watch(isEditGoalModalOpen, (open: boolean) => {
         >
           Salvar alterações
         </AppButton>
-        <button
-          type="button"
-          class="edit-goal-form__delete"
-          :disabled="isLoading || !goalId"
-          @click="handleDelete"
-        >
-          Excluir meta
-        </button>
       </div>
     </v-form>
   </AppModal>
@@ -121,23 +133,21 @@ watch(isEditGoalModalOpen, (open: boolean) => {
   width: 100%;
 }
 
-.edit-goal-form__delete {
-  background: none;
-  border: none;
-  padding: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #dc2626;
+.edit-goal-trash-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+}
+
+.edit-goal-trash-btn:not(:disabled) {
   cursor: pointer;
-  transition: opacity 0.2s;
 }
 
-.edit-goal-form__delete:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.edit-goal-form__delete:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.trash-icon {
+  pointer-events: none;
+  filter: brightness(0) saturate(100%) invert(18%) sepia(74%) saturate(5865%) hue-rotate(356deg) brightness(101%) contrast(115%);
 }
 </style>

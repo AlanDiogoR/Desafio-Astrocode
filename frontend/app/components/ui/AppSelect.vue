@@ -23,6 +23,7 @@ interface Props {
   placeholder?: string
   errorText?: string
   disabled?: boolean
+  scrollable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Selecione',
   errorText: '',
   disabled: false,
+  scrollable: false,
 })
 
 const modelValue = defineModel<string | null>()
@@ -77,11 +79,12 @@ const isFloating = computed(() => !!modelValue.value || isOpen.value)
       <SelectPortal>
         <SelectContent
           class="app-select__content"
+          :class="{ 'app-select__content--scrollable': props.scrollable }"
           position="popper"
           :side-offset="5"
           :style="{ zIndex: 2500 }"
         >
-          <SelectViewport>
+          <SelectViewport class="app-select__viewport">
             <SelectItem
               v-for="opt in resolvedOptions"
               :key="opt.value"
@@ -213,11 +216,30 @@ const isFloating = computed(() => !!modelValue.value || isOpen.value)
 .app-select__content {
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid #f3f4f6; 
+  border: 1px solid #f3f4f6;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   z-index: 2500;
   overflow: hidden;
   padding: 8px;
+}
+
+.app-select__content--scrollable :deep(.app-select__viewport),
+.app-select__content--scrollable :deep([data-radix-select-viewport]) {
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+}
+
+.app-select__content--scrollable :deep(.app-select__viewport)::-webkit-scrollbar,
+.app-select__content--scrollable :deep([data-radix-select-viewport])::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-select__content--scrollable :deep(.app-select__viewport)::-webkit-scrollbar-thumb,
+.app-select__content--scrollable :deep([data-radix-select-viewport])::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
 }
 
 .app-select__item {

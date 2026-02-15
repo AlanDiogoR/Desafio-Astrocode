@@ -68,6 +68,7 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
             :options="categories"
             placeholder="Categoria"
             :error-text="errors.category"
+            :scrollable="newTransactionType === 'EXPENSE'"
           />
           <AppSelect
             v-model="account"

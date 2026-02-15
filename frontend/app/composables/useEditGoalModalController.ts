@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
+import { updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '~/services/goalsService'
 
 const editGoalSchema = z.object({
   goalId: z.string().min(1, 'Selecione uma meta'),
@@ -17,7 +18,6 @@ export type EditGoalFormValues = z.infer<typeof editGoalSchema>
 export function useEditGoalModalController() {
   const { closeEditGoalModal, goalBeingEdited } = useDashboard()
   const { goals, invalidateGoals } = useGoals()
-  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const goalId = ref<string | null>(null)
@@ -69,7 +69,7 @@ export function useEditGoalModalController() {
       const endDate = payload.deadline
         ? payload.deadline.toISOString().slice(0, 10)
         : null
-      await $api.put(`/goals/${payload.goalId}`, {
+      await updateGoalApi(payload.goalId, {
         name: payload.name.trim(),
         targetAmount: payload.targetAmount,
         endDate,
@@ -90,7 +90,7 @@ export function useEditGoalModalController() {
   async function deleteGoal(id: string) {
     isLoading.value = true
     try {
-      await $api.delete(`/goals/${id}`)
+      await deleteGoalApi(id)
       toast.success('Meta excluída com sucesso!')
       invalidateGoals()
       closeEditGoalModal()

@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
+import { createAccount as createAccountApi } from '~/services/bankAccountsService'
 
 const accountSchema = z.object({
   name: z.string().min(1, 'Campo obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
@@ -32,7 +33,6 @@ const ACCOUNT_TYPE_OPTIONS: SelectOption[] = [
 export function useNewAccountModalController() {
   const { closeNewAccountModal } = useDashboard()
   const { invalidateBankAccounts } = useBankAccounts()
-  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const balance = ref<number | null>(null)
@@ -57,7 +57,7 @@ export function useNewAccountModalController() {
   async function createAccount(payload: AccountFormValues) {
     isLoading.value = true
     try {
-      await $api.post('/accounts', {
+      await createAccountApi({
         name: payload.name.trim(),
         initialBalance: payload.initialBalance,
         type: payload.type,

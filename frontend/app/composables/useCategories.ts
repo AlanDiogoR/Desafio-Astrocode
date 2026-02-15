@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/vue-query'
+import { getAllCategories } from '~/services/categoriesService'
+
 export interface Category {
   id: string
   name: string
@@ -5,25 +8,34 @@ export interface Category {
   type: 'INCOME' | 'EXPENSE'
 }
 
-const MOCK_CATEGORIES: Category[] = [
-  { id: '1', name: 'Salário', icon: 'salary', type: 'INCOME' },
-  { id: '2', name: 'Freelance', icon: 'freelance', type: 'INCOME' },
-  { id: '3', name: 'Investimentos', icon: 'investment', type: 'INCOME' },
-  { id: '4', name: 'Outros', icon: 'other', type: 'INCOME' },
-  { id: '5', name: 'Alimentação', icon: 'food', type: 'EXPENSE' },
-  { id: '6', name: 'Transporte', icon: 'transport', type: 'EXPENSE' },
-  { id: '7', name: 'Lazer', icon: 'leisure', type: 'EXPENSE' },
-  { id: '8', name: 'Contas', icon: 'bills', type: 'EXPENSE' },
-  { id: '9', name: 'Mercado', icon: 'grocery', type: 'EXPENSE' },
-  { id: '10', name: 'Outros', icon: 'other', type: 'EXPENSE' },
-]
+export const CATEGORIES_QUERY_KEY = ['categories'] as const
+
+function mapApiToCategory(raw: { id: string; name: string; icon: string; type: string }): Category {
+  const type = raw.type?.toUpperCase() as 'INCOME' | 'EXPENSE'
+  return {
+    id: raw.id,
+    name: raw.name,
+    icon: raw.icon ?? '',
+    type: type === 'INCOME' || type === 'EXPENSE' ? type : 'EXPENSE',
+  }
+}
 
 export function useCategories(transactionType?: Ref<'INCOME' | 'EXPENSE' | undefined>) {
+  const authStore = useAuthStore()
+
+  const { data: categoriesData } = useQuery({
+    queryKey: CATEGORIES_QUERY_KEY,
+    queryFn: async () => {
+      const raw = await getAllCategories()
+      return raw.map(mapApiToCategory)
+    },
+    enabled: computed(() => !!authStore.token),
+  })
+
   const categories = computed<{ label: string; value: string }[]>(() => {
+    const list = categoriesData.value ?? []
     const filterType = transactionType?.value
-    const filtered = filterType
-      ? MOCK_CATEGORIES.filter((c) => c.type === filterType)
-      : MOCK_CATEGORIES
+    const filtered = filterType ? list.filter((c) => c.type === filterType) : list
     return filtered.map((c) => ({ label: c.name, value: c.id }))
   })
 

@@ -57,6 +57,12 @@ function getAccountIcon(type: AccountType): string {
   flex-shrink: 0;
   border-bottom: 4px solid transparent;
   color: #212529;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.account-card:hover {
+  opacity: 0.95;
 }
 
 .account-card__icon {

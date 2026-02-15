@@ -58,7 +58,10 @@ function onPointerDownOutside(e: { preventDefault?: () => void; detail?: { origi
           <DialogTitle class="modal-title">
             {{ title }}
           </DialogTitle>
-          <div class="modal-spacer" />
+          <div v-if="$slots.rightAction" class="modal-right-action">
+            <slot name="rightAction" />
+          </div>
+          <div v-else class="modal-spacer" />
         </header>
         <slot />
       </DialogContent>
@@ -139,9 +142,37 @@ function onPointerDownOutside(e: { preventDefault?: () => void; detail?: { origi
   text-align: center;
 }
 
-.modal-spacer {
+.modal-spacer,
+.modal-right-action {
   width: 48px;
   height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.modal-right-action :deep(button) {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #ef4444;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.modal-right-action :deep(button:hover:not(:disabled)) {
+  color: #b91c1c;
+  background-color: #fef2f2;
+}
+
+.modal-right-action :deep(button:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .sr-only {

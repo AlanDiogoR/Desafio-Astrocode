@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
-import type { SavingsGoal } from '~/composables/useGoals'
+import { createGoal as createGoalApi } from '~/services/goalsService'
 
 const goalSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(120, 'Nome deve ter no máximo 120 caracteres'),
@@ -16,7 +16,6 @@ export type GoalFormValues = z.infer<typeof goalSchema>
 export function useNewGoalModalController() {
   const { closeNewGoalModal } = useDashboard()
   const { invalidateGoals } = useGoals()
-  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const name = ref('')
@@ -42,7 +41,7 @@ export function useNewGoalModalController() {
       const endDate = payload.deadline
         ? payload.deadline.toISOString().slice(0, 10)
         : null
-      await $api.post<SavingsGoal>('/goals', {
+      await createGoalApi({
         name: payload.name.trim(),
         targetAmount: payload.targetAmount,
         endDate,

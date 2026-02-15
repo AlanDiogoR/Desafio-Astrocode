@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { getAllAccounts } from '~/services/bankAccountsService'
 
 type AccountType = 'checking' | 'investment' | 'cash'
 
@@ -37,7 +38,6 @@ function mapApiToBankAccount(raw: BankAccountApiResponse): BankAccount {
 }
 
 export function useBankAccounts() {
-  const { $api } = useNuxtApp()
   const authStore = useAuthStore()
   const queryClient = useQueryClient()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
@@ -51,8 +51,7 @@ export function useBankAccounts() {
   } = useQuery({
     queryKey: BANK_ACCOUNTS_QUERY_KEY,
     queryFn: async (): Promise<BankAccount[]> => {
-      const { data } = await $api.get<BankAccountApiResponse[]>('/accounts')
-      if (!Array.isArray(data)) return []
+      const data = await getAllAccounts()
       return data.map(mapApiToBankAccount)
     },
     enabled: computed(() => !!authStore.token),

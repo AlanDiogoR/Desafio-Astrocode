@@ -12,8 +12,10 @@ import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.model.enums.TransactionType;
+import com.astrocode.backend.domain.model.enums.GoalStatus;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
+import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +31,18 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
     private final CategoryRepository categoryRepository;
+    private final SavingsGoalRepository savingsGoalRepository;
 
     public TransactionService(
             TransactionRepository transactionRepository,
             BankAccountRepository bankAccountRepository,
-            CategoryRepository categoryRepository
+            CategoryRepository categoryRepository,
+            SavingsGoalRepository savingsGoalRepository
     ) {
         this.transactionRepository = transactionRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.categoryRepository = categoryRepository;
+        this.savingsGoalRepository = savingsGoalRepository;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -208,6 +213,12 @@ public class TransactionService {
         revertAccountBalance(bankAccount, transaction.getAmount(), transaction.getType());
         bankAccountRepository.saveAndFlush(bankAccount);
 
+        var goal = transaction.getGoal();
+        if (goal != null) {
+            revertGoalAmount(goal, transaction.getAmount(), transaction.getType());
+            savingsGoalRepository.saveAndFlush(goal);
+        }
+
         transactionRepository.delete(transaction);
     }
 
@@ -250,6 +261,18 @@ public class TransactionService {
             account.setCurrentBalance(account.getCurrentBalance().subtract(amount));
         } else {
             account.setCurrentBalance(account.getCurrentBalance().add(amount));
+        }
+    }
+
+    private void revertGoalAmount(SavingsGoal goal, BigDecimal amount, TransactionType type) {
+        if (type == TransactionType.EXPENSE) {
+            goal.setCurrentAmount(goal.getCurrentAmount().subtract(amount));
+        } else {
+            goal.setCurrentAmount(goal.getCurrentAmount().add(amount));
+        }
+        if (goal.getStatus() == GoalStatus.COMPLETED
+                && goal.getCurrentAmount().compareTo(goal.getTargetAmount()) < 0) {
+            goal.setStatus(GoalStatus.ACTIVE);
         }
     }
 }

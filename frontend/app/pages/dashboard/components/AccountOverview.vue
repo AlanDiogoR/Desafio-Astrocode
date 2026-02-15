@@ -5,9 +5,11 @@ import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewGoalModal from '~/components/modals/NewGoalModal.vue'
 import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
 import EditGoalModal from '~/components/modals/EditGoalModal.vue'
+import ConfirmDeleteModal from '~/components/modals/ConfirmDeleteModal.vue'
 import { PlusIcon } from '@radix-icons/vue'
 
-const { openNewAccountModal } = useDashboard()
+const { openNewAccountModal, isConfirmDeleteModalOpen, confirmDeleteEntityType, confirmDeleteEntityId, closeConfirmDeleteModal, openConfirmDeleteModal } = useDashboard()
+const { handleConfirm } = useConfirmDelete()
 const {
   accounts,
   goals,
@@ -124,6 +126,7 @@ function togglePrivacy() {
             :account="account"
             :show-privacy="areValuesVisible"
             class="account-card-item"
+            @click="openConfirmDeleteModal('ACCOUNT', account.id)"
           />
         </div>
       </section>
@@ -132,6 +135,12 @@ function togglePrivacy() {
     <NewGoalModal />
     <GoalInteractionModal />
     <EditGoalModal />
+    <ConfirmDeleteModal
+      :is-open="isConfirmDeleteModalOpen && !!confirmDeleteEntityType && !!confirmDeleteEntityId"
+      :entity-type="confirmDeleteEntityType ?? 'ACCOUNT'"
+      :on-confirm="handleConfirm"
+      :on-close="closeConfirmDeleteModal"
+    />
   </div>
 </template>
 
