@@ -56,8 +56,12 @@ function onInput(e: Event) {
 }
 
 function onBlur() {
-  focused = false
+  focused.value = false
   emit('blur')
+}
+
+function onFocus() {
+  focused.value = true
 }
 </script>
 
@@ -74,7 +78,7 @@ function onBlur() {
         }"
         v-bind="$attrs"
         @input="onInput"
-        @focus="focused = true"
+        @focus="onFocus"
         @blur="onBlur"
       >
       <label

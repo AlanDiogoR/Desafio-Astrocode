@@ -166,6 +166,10 @@ public class SavingsGoalService {
         var category = incomeCategories.getFirst();
 
         goal.setCurrentAmount(goal.getCurrentAmount().subtract(request.amount()));
+        if (goal.getStatus() == GoalStatus.COMPLETED
+                && goal.getCurrentAmount().compareTo(goal.getTargetAmount()) < 0) {
+            goal.setStatus(GoalStatus.ACTIVE);
+        }
 
         transactionService.createGoalTransaction(
                 bankAccount,

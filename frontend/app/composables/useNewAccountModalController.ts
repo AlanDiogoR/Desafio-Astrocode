@@ -5,10 +5,14 @@ const accountSchema = z.object({
   name: z.string().min(1, 'Campo obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
   initialBalance: z
     .union([z.number(), z.null()])
-    .refine((v) => v !== null, { message: 'Campo obrigatório' }),
-  type: z.enum(['CHECKING', 'INVESTMENT', 'CASH'], {
-    errorMap: () => ({ message: 'Campo obrigatório' }),
-  }),
+    .transform((v) => v ?? 0)
+    .refine((v) => v >= 0, { message: 'Saldo não pode ser negativo' }),
+  type: z
+    .string()
+    .min(1, 'Tipo da conta é obrigatório')
+    .refine((v) => ['CHECKING', 'INVESTMENT', 'CASH'].includes(v), {
+      message: 'Tipo da conta é obrigatório',
+    }),
   color: z.string().max(30, 'Cor deve ter no máximo 30 caracteres').optional().nullable(),
 })
 

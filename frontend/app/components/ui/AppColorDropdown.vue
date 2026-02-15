@@ -57,14 +57,12 @@ function selectColor(color: string) {
           </span>
           <div class="app-color-dropdown__value" />
           <div class="app-color-dropdown__right-icon">
-            <span
+            <img
               v-if="selectedColor"
-              class="app-color-dropdown__circle"
-              :style="{
-                backgroundColor: selectedColor.color,
-                borderColor: selectedColor.color,
-              }"
-            />
+              :src="selectedColor.icon"
+              :alt="`Cor ${selectedColor.color}`"
+              class="app-color-dropdown__icon"
+            >
             <ChevronDownIcon
               v-else
               class="app-color-dropdown__chevron"
@@ -90,10 +88,11 @@ function selectColor(color: string) {
               :aria-label="`Cor ${opt.color}`"
               @click="selectColor(opt.color)"
             >
-              <span
-                class="app-color-dropdown__item-circle"
-                :style="{ backgroundColor: opt.color }"
-              />
+              <img
+                :src="opt.icon"
+                :alt="`Cor ${opt.color}`"
+                class="app-color-dropdown__item-icon"
+              >
               <CheckIcon
                 v-if="modelValue === opt.color"
                 class="app-color-dropdown__check"
@@ -173,11 +172,11 @@ function selectColor(color: string) {
   flex-shrink: 0;
 }
 
-.app-color-dropdown__circle {
-  width: 24px;
-  height: 24px;
+.app-color-dropdown__icon {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 2px solid;
+  object-fit: contain;
 }
 
 .app-color-dropdown__chevron {
@@ -230,8 +229,8 @@ function selectColor(color: string) {
 
 .app-color-dropdown__item {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   border: none;
   background: none;
   cursor: pointer;
@@ -247,14 +246,16 @@ function selectColor(color: string) {
   background: #f9fafb; /* gray-50 */
 }
 
-.app-color-dropdown__item-circle {
-  width: 32px;
-  height: 32px;
+.app-color-dropdown__item-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
+  object-fit: contain;
+  display: block;
 }
 
-.app-color-dropdown__item--selected .app-color-dropdown__item-circle {
-  box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+.app-color-dropdown__item--selected .app-color-dropdown__item-icon {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #087f5b;
 }
 
 .app-color-dropdown__check {
