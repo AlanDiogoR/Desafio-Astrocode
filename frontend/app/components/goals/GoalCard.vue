@@ -95,6 +95,9 @@ function progressStrokeDasharray(percentage: number): string {
           transform="rotate(-90 40 40)"
         />
       </svg>
+      <div v-if="!(isCompleted && !isExpired)" class="goal-card__percentage">
+        {{ Math.round(goal.progressPercentage) }}%
+      </div>
       <div v-if="isCompleted && !isExpired" class="goal-card__check">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12" />
@@ -183,6 +186,25 @@ function progressStrokeDasharray(percentage: number): string {
 .goal-card__progress {
   flex-shrink: 0;
   position: relative;
+}
+
+.goal-card__percentage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.goal-card--completed .goal-card__percentage {
+  color: #b45309;
+}
+
+.goal-card--expired .goal-card__percentage {
+  color: #495057;
 }
 
 .goal-card__ring {

@@ -1,8 +1,10 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import { useQueryClient } from '@tanstack/vue-query'
+import { getErrorMessage } from '~/utils/errorHandler'
 import type { SavingsGoal } from '~/composables/useGoals'
 import { useBankAccounts } from '~/composables/useBankAccounts'
+import { contributeToGoal, withdrawFromGoal } from '~/services/goals'
 
 type InteractionMode = 'ADD' | 'REMOVE'
 
@@ -27,7 +29,6 @@ export function useGoalInteractionController() {
   const { goals, invalidateGoals } = useGoals()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
   const queryClient = useQueryClient()
-  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const mode = ref<InteractionMode>('ADD')
@@ -62,10 +63,10 @@ export function useGoalInteractionController() {
   })
 
   watch([goalForValueAddition, goalInteractionType], ([goal, type]) => {
+    amount.value = null
+    bankAccountId.value = null
     if (goal) {
       goalId.value = goal.id
-      bankAccountId.value = null
-      amount.value = null
       mode.value = type === 'DEPOSIT' ? 'ADD' : 'REMOVE'
     } else {
       goalId.value = null
@@ -120,11 +121,11 @@ export function useGoalInteractionController() {
     isLoading.value = true
     try {
       const payload = result.data
-      const endpoint = mode.value === 'ADD' ? 'contribute' : 'withdraw'
-      await $api.patch(`/goals/${goal.id}/${endpoint}`, {
-        amount: payload.amount,
-        bankAccountId: payload.bankAccountId,
-      })
+      if (mode.value === 'ADD') {
+        await contributeToGoal(goal.id, { amount: payload.amount!, bankAccountId: payload.bankAccountId })
+      } else {
+        await withdrawFromGoal(goal.id, { amount: payload.amount!, bankAccountId: payload.bankAccountId })
+      }
 
       const newCurrent = mode.value === 'ADD'
         ? goal.currentAmount + (payload.amount ?? 0)
@@ -143,8 +144,7 @@ export function useGoalInteractionController() {
       closeNewGoalValueModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro na operação. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro na operação. Tente novamente.'))
     } finally {
       isLoading.value = false
     }

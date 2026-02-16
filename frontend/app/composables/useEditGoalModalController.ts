@@ -1,7 +1,8 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
-import { updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '~/services/goalsService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { updateGoal, deleteGoal as deleteGoalApi } from '~/services/goals'
 
 const editGoalSchema = z.object({
   goalId: z.string().min(1, 'Selecione uma meta'),
@@ -69,7 +70,7 @@ export function useEditGoalModalController() {
       const endDate = payload.deadline
         ? payload.deadline.toISOString().slice(0, 10)
         : null
-      await updateGoalApi(payload.goalId, {
+      await updateGoal(payload.goalId, {
         name: payload.name.trim(),
         targetAmount: payload.targetAmount,
         endDate,
@@ -80,8 +81,7 @@ export function useEditGoalModalController() {
       closeEditGoalModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro ao atualizar meta. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro ao atualizar meta. Tente novamente.'))
     } finally {
       isLoading.value = false
     }
@@ -96,8 +96,7 @@ export function useEditGoalModalController() {
       closeEditGoalModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro ao excluir meta. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro ao excluir meta. Tente novamente.'))
     } finally {
       isLoading.value = false
     }

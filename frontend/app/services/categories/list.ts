@@ -5,7 +5,7 @@ export interface CategoryApiResponse {
   type: string
 }
 
-export async function getAllCategories(): Promise<CategoryApiResponse[]> {
+export async function listCategories(): Promise<CategoryApiResponse[]> {
   const { $api } = useNuxtApp()
   const { data } = await $api.get<CategoryApiResponse[]>('/categories')
   return Array.isArray(data) ? data : []

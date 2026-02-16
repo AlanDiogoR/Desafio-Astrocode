@@ -1,24 +1,40 @@
 const CATEGORY_ICON_MAP: Record<string, string> = {
-  Alimentação: 'Categoria=Alimentação, Tipo=Despesa.svg',
-  Casa: 'Categoria=Casa, Tipo=Despesa.svg',
-  Compras: 'Categoria=Mercado, Tipo=Despesa.svg',
-  Educação: 'Categoria=Educação, Tipo=Despesa.svg',
-  Investimentos: 'Categoria=Investimentos, Tipo=Receita.svg',
-  Lazer: 'Categoria=Lazer, Tipo=Despesa.svg',
-  Mercado: 'Categoria=Mercado, Tipo=Despesa.svg',
-  Receita: 'Categoria=Receitas, Tipo=Geral.svg',
-  Roupas: 'Categoria=Roupas, Tipo=Despesa.svg',
-  Saúde: 'Categoria=Saúde, Tipo=Despesa.svg',
-  Transporte: 'Categoria=Transporte, Tipo=Despesa.svg',
-  Uber: 'Categoria=Transporte, Tipo=Despesa.svg',
-  Viagem: 'Categoria=Viagem, Tipo=Despesa.svg',
+  Alimentação: 'alimentacaoDespesa.svg',
+  Casa: 'casaDespesa.svg',
+  Compras: 'mercadoDespesa.svg',
+  Educação: 'educacaoDespesa.svg',
+  Investimentos: 'investimentosReceita.svg',
+  Lazer: 'lazerDespesa.svg',
+  Mercado: 'mercadoDespesa.svg',
+  Receita: 'receitasGeral.svg',
+  Roupas: 'roupasDespesa.svg',
+  Saúde: 'saudeDespesa.svg',
+  Transporte: 'transporteDespesa.svg',
+  Uber: 'transporteDespesa.svg',
+  Viagem: 'viagemDespesa.svg',
+  Salário: 'receitasGeral.svg',
+  Freelance: 'receitasGeral.svg',
+  Outro: 'despesasGeral.svg',
+  Outros: 'despesasGeral.svg',
+  'Conta Corrente': 'contaCorrenteReceita.svg',
+  'Dinheiro Físico': 'dinheiroFisicoReceita.svg',
 }
 
-const DEFAULT_INCOME_ICON = 'Categoria=Conta Corrente, Tipo=Receita.svg'
-const DEFAULT_EXPENSE_ICON = 'Categoria=Despesas, Tipo=Geral.svg'
+const FALLBACK_INCOME_ICON = 'receitasGeral.svg'
+const FALLBACK_EXPENSE_ICON = 'despesasGeral.svg'
+
+function normalizeCategory(name: string): string {
+  return name?.trim() ?? ''
+}
 
 export function getCategoryIconPath(category: string, type: 'income' | 'expense'): string {
-  const filename = CATEGORY_ICON_MAP[category]
-    ?? (type === 'income' ? DEFAULT_INCOME_ICON : DEFAULT_EXPENSE_ICON)
-  return `/images/${encodeURIComponent(filename)}`
+  const fallback = type === 'income' ? FALLBACK_INCOME_ICON : FALLBACK_EXPENSE_ICON
+  const name = normalizeCategory(category)
+  if (!name) return `/images/${fallback}`
+  const mapped = CATEGORY_ICON_MAP[name] ?? Object.entries(CATEGORY_ICON_MAP).find(
+    ([key]) => key.toLowerCase() === name.toLowerCase(),
+  )?.[1]
+  if (mapped) return `/images/${mapped}`
+  return `/images/${fallback}`
 }
+

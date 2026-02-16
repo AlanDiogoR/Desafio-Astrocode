@@ -1,12 +1,28 @@
 import type { SavingsGoal } from '~/composables/useGoals'
 import type { ConfirmDeleteEntityType } from '~/types/confirmDelete'
+import type { TransactionFiltersState } from '~/composables/useTransactions'
 
 export type TransactionModalType = 'INCOME' | 'EXPENSE'
 export type GoalInteractionType = 'DEPOSIT' | 'WITHDRAW'
 
+export interface TransactionForEdit {
+  id: string
+  name: string
+  amount: number
+  date: string
+  type: 'income' | 'expense'
+  bankAccountId: string
+  categoryId: string
+  bankName: string
+  categoryName: string
+}
+
 export function useDashboard() {
+  const transactionFilters = useState<TransactionFiltersState | undefined>('transactionFilters', () => undefined)
   const isNewTransactionModalOpen = useState<boolean>('isNewTransactionModalOpen', () => false)
   const newTransactionType = useState<TransactionModalType | null>('newTransactionType', () => null)
+  const isEditTransactionModalOpen = useState<boolean>('isEditTransactionModalOpen', () => false)
+  const transactionBeingEdited = useState<TransactionForEdit | null>('transactionBeingEdited', () => null)
   const isNewAccountModalOpen = useState<boolean>('isNewAccountModalOpen', () => false)
   const isNewGoalModalOpen = useState<boolean>('isNewGoalModalOpen', () => false)
   const isNewGoalValueModalOpen = useState<boolean>('isNewGoalValueModalOpen', () => false)
@@ -32,6 +48,16 @@ export function useDashboard() {
   function closeNewTransactionModal() {
     isNewTransactionModalOpen.value = false
     newTransactionType.value = null
+  }
+
+  function openEditTransactionModal(transaction: TransactionForEdit) {
+    transactionBeingEdited.value = transaction
+    isEditTransactionModalOpen.value = true
+  }
+
+  function closeEditTransactionModal() {
+    isEditTransactionModalOpen.value = false
+    transactionBeingEdited.value = null
   }
 
   function openNewAccountModal() {
@@ -85,11 +111,16 @@ export function useDashboard() {
   }
 
   return {
+    transactionFilters,
     isNewTransactionModalOpen,
     newTransactionType,
     isNewAccountModalOpen,
     openNewTransactionModal,
     closeNewTransactionModal,
+    isEditTransactionModalOpen,
+    transactionBeingEdited,
+    openEditTransactionModal,
+    closeEditTransactionModal,
     openNewAccountModal,
     closeNewAccountModal,
     isNewGoalModalOpen,

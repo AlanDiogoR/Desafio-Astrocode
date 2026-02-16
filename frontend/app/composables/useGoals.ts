@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getAllGoals } from '~/services/goalsService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { listGoals } from '~/services/goals'
 
 export interface SavingsGoal {
   id: string
@@ -58,7 +59,7 @@ export function useGoals() {
   } = useQuery({
     queryKey: GOALS_QUERY_KEY,
     queryFn: async (): Promise<SavingsGoal[]> => {
-      const data = await getAllGoals()
+      const data = await listGoals()
       return (data as SavingsGoalApiResponse[]).map(mapApiToSavingsGoal)
     },
     enabled: computed(() => !!authStore.token),
@@ -66,11 +67,20 @@ export function useGoals() {
 
   if (import.meta.client) {
     watch(isError, (v) => {
-      if (v) toast.error('Erro ao carregar metas. Tente novamente.')
+      if (v) toast.error(getErrorMessage(error.value ?? new Error(), 'Erro ao carregar metas.'))
     })
   }
 
-  const goals = computed<SavingsGoal[]>(() => goalsData.value ?? [])
+  const goals = computed<SavingsGoal[]>(() => {
+    const list = goalsData.value ?? []
+    return [...list].sort((a, b) => {
+      const aDone = a.status === 'COMPLETED' || a.currentAmount >= a.targetAmount
+      const bDone = b.status === 'COMPLETED' || b.currentAmount >= b.targetAmount
+      if (aDone && !bDone) return 1
+      if (!aDone && bDone) return -1
+      return 0
+    })
+  })
 
   function invalidateGoals() {
     queryClient.invalidateQueries({ queryKey: GOALS_QUERY_KEY })

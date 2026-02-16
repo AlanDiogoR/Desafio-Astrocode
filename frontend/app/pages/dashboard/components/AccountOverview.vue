@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import AccountCard from './AccountCard.vue'
+import AccountsEmpty from '~/components/accounts/AccountsEmpty.vue'
 import GoalsList from '~/components/goals/GoalsList.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewGoalModal from '~/components/modals/NewGoalModal.vue'
 import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
 import EditGoalModal from '~/components/modals/EditGoalModal.vue'
-import ConfirmDeleteModal from '~/components/modals/ConfirmDeleteModal.vue'
-import { PlusIcon } from '@radix-icons/vue'
+import { useCarousel } from '~/composables/useCarousel'
 
-const { openNewAccountModal, isConfirmDeleteModalOpen, confirmDeleteEntityType, confirmDeleteEntityId, closeConfirmDeleteModal, openConfirmDeleteModal } = useDashboard()
-const { handleConfirm } = useConfirmDelete()
+const { openNewAccountModal, openConfirmDeleteModal } = useDashboard()
 const {
   accounts,
   goals,
@@ -18,18 +17,9 @@ const {
   isLoading,
 } = useDashboardController()
 
-const carouselRef = ref<HTMLElement | null>(null)
-
+const { carouselRef, scroll } = useCarousel()
 const isEmpty = computed(() => accounts.value.length === 0)
 const hasCarousel = computed(() => accounts.value.length >= 3)
-
-const CARD_SCROLL_OFFSET = 236
-
-function scrollAccounts(direction: number) {
-  const el = carouselRef.value
-  if (!el) return
-  el.scrollBy({ left: direction * CARD_SCROLL_OFFSET, behavior: 'smooth' })
-}
 
 function togglePrivacy() {
   areValuesVisible.value = !areValuesVisible.value
@@ -81,14 +71,14 @@ function togglePrivacy() {
               variant="text"
               density="compact"
               color="white"
-              @click="scrollAccounts(-1)"
+              @click="scroll(-1)"
             />
             <v-btn
               icon="mdi-chevron-right"
               variant="text"
               density="compact"
               color="white"
-              @click="scrollAccounts(1)"
+              @click="scroll(1)"
             />
           </div>
         </div>
@@ -105,20 +95,10 @@ function togglePrivacy() {
             class="accounts-skeleton__item"
           />
         </div>
-        <div
+        <AccountsEmpty
           v-else-if="isEmpty"
-          class="accounts-empty"
-          role="button"
-          tabindex="0"
           @click="openNewAccountModal()"
-          @keydown.enter="openNewAccountModal()"
-          @keydown.space.prevent="openNewAccountModal()"
-        >
-          <div class="accounts-empty__icon-wrapper">
-            <PlusIcon class="accounts-empty__icon" />
-          </div>
-          <span class="accounts-empty__text">Cadastrar uma nova conta</span>
-        </div>
+        />
         <div v-else ref="carouselRef" class="accounts-carousel">
           <AccountCard
             v-for="account in accounts"
@@ -135,18 +115,11 @@ function togglePrivacy() {
     <NewGoalModal />
     <GoalInteractionModal />
     <EditGoalModal />
-    <ConfirmDeleteModal
-      :is-open="isConfirmDeleteModalOpen && !!confirmDeleteEntityType && !!confirmDeleteEntityId"
-      :entity-type="confirmDeleteEntityType ?? 'ACCOUNT'"
-      :on-confirm="handleConfirm"
-      :on-close="closeConfirmDeleteModal"
-    />
   </div>
 </template>
 
 <style scoped>
 .account-overview {
-  height: 100%;
   width: 100%;
   background-color: #087f5b;
   color: white;
@@ -157,9 +130,18 @@ function togglePrivacy() {
 
 .account-overview__content {
   width: 100%;
-  height: 100%;
   padding: 24px 24px 32px;
-  overflow: hidden;
+}
+
+@media (min-width: 960px) {
+  .account-overview {
+    height: 100%;
+  }
+
+  .account-overview__content {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 .balance-section {
@@ -247,43 +229,6 @@ function togglePrivacy() {
 .account-card-item {
   flex: 0 0 220px;
   min-width: 220px;
-}
-
-.accounts-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 32px;
-  border: 2px dashed #ffffff;
-  border-radius: 16px;
-  cursor: pointer;
-  min-height: 120px;
-  background: transparent;
-}
-
-.accounts-empty__icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px dashed #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.accounts-empty__icon {
-  width: 24px;
-  height: 24px;
-  color: #ffffff;
-}
-
-.accounts-empty__text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  text-align: center;
 }
 
 @media (min-width: 960px) {

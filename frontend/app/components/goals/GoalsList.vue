@@ -2,6 +2,7 @@
 import GoalsFab from '~/components/goals/GoalsFab.vue'
 import GoalCard from '~/components/goals/GoalCard.vue'
 import type { SavingsGoal } from '~/composables/useGoals'
+import { useCarousel } from '~/composables/useCarousel'
 
 const props = defineProps<{
   goals: SavingsGoal[]
@@ -9,18 +10,9 @@ const props = defineProps<{
   isLoading?: boolean
 }>()
 
-const goalsListRef = ref<HTMLElement | null>(null)
-
+const { carouselRef, scroll } = useCarousel()
 const hasGoals = computed(() => (props.goals ?? []).length > 0)
 const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
-
-const CARD_SCROLL_OFFSET = 236
-
-function scrollGoals(direction: number) {
-  const el = goalsListRef.value
-  if (!el) return
-  el.scrollBy({ left: direction * CARD_SCROLL_OFFSET, behavior: 'smooth' })
-}
 </script>
 
 <template>
@@ -38,7 +30,7 @@ function scrollGoals(direction: number) {
             density="compact"
             color="white"
             class="goals-nav__btn"
-            @click="scrollGoals(-1)"
+            @click="scroll(-1)"
           />
           <v-btn
             icon="mdi-chevron-right"
@@ -46,7 +38,7 @@ function scrollGoals(direction: number) {
             density="compact"
             color="white"
             class="goals-nav__btn"
-            @click="scrollGoals(1)"
+            @click="scroll(1)"
           />
         </template>
       </div>
@@ -63,7 +55,7 @@ function scrollGoals(direction: number) {
     </div>
     <div
       v-else-if="hasGoals"
-      ref="goalsListRef"
+      ref="carouselRef"
       class="goals-list"
       :class="{ 'goals-list--carousel': hasCarousel }"
     >

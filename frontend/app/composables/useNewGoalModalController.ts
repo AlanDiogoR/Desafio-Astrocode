@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
-import { createGoal as createGoalApi } from '~/services/goalsService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { createGoal } from '~/services/goals'
 
 const goalSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(120, 'Nome deve ter no máximo 120 caracteres'),
@@ -41,7 +42,7 @@ export function useNewGoalModalController() {
       const endDate = payload.deadline
         ? payload.deadline.toISOString().slice(0, 10)
         : null
-      await createGoalApi({
+      await createGoal({
         name: payload.name.trim(),
         targetAmount: payload.targetAmount,
         endDate,
@@ -52,8 +53,7 @@ export function useNewGoalModalController() {
       closeNewGoalModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro ao criar meta. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro ao criar meta. Tente novamente.'))
     } finally {
       isLoading.value = false
     }

@@ -38,6 +38,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'Grivy - Controle Financeiro',
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

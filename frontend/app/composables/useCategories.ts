@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/vue-query'
-import { getAllCategories } from '~/services/categoriesService'
+import { listCategories } from '~/services/categories'
 
 export interface Category {
   id: string
@@ -26,7 +26,7 @@ export function useCategories(transactionType?: Ref<'INCOME' | 'EXPENSE' | undef
   const { data: categoriesData } = useQuery({
     queryKey: CATEGORIES_QUERY_KEY,
     queryFn: async () => {
-      const raw = await getAllCategories()
+      const raw = await listCategories()
       return raw.map(mapApiToCategory)
     },
     enabled: computed(() => !!authStore.token),
@@ -39,5 +39,12 @@ export function useCategories(transactionType?: Ref<'INCOME' | 'EXPENSE' | undef
     return filtered.map((c) => ({ label: c.name, value: c.id }))
   })
 
-  return { categories }
+  const categoriesById = computed<Record<string, { name: string; icon: string }>>(() => {
+    const list = categoriesData.value ?? []
+    const map: Record<string, { name: string; icon: string }> = {}
+    list.forEach((c) => { map[c.id] = { name: c.name, icon: c.icon } })
+    return map
+  })
+
+  return { categories, categoriesById }
 }

@@ -26,7 +26,7 @@ export default defineNuxtPlugin(() => {
       if (error.response?.status === 401 && !isAuthRequest) {
         authStore.clearAuth()
         const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
-        toast.error('Sua sessão expirou. Por favor, faça login novamente.')
+        toast.error('Sessão expirada. Faça login novamente.')
         navigateTo('/login')
       }
       return Promise.reject(error)

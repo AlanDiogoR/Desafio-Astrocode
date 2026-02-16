@@ -2,16 +2,30 @@
 import AccountOverview from './components/AccountOverview.vue'
 import DashboardHeader from './components/DashboardHeader.vue'
 import TransactionList from './components/TransactionList.vue'
+import ConfirmDeleteModal from '~/components/modals/ConfirmDeleteModal.vue'
 
 definePageMeta({
   layout: 'dashboard',
 })
 
 const { areValuesVisible } = useDashboardController()
+const {
+  isConfirmDeleteModalOpen,
+  confirmDeleteEntityType,
+  confirmDeleteEntityId,
+  closeConfirmDeleteModal,
+} = useDashboard()
+const { handleConfirm } = useConfirmDelete()
 </script>
 
 <template>
   <div class="dashboard-page">
+    <ConfirmDeleteModal
+      :is-open="!!(isConfirmDeleteModalOpen && confirmDeleteEntityType && confirmDeleteEntityId)"
+      :entity-type="confirmDeleteEntityType ?? 'ACCOUNT'"
+      :on-confirm="handleConfirm"
+      :on-close="closeConfirmDeleteModal"
+    />
     <DashboardHeader />
     <div class="dashboard-grid">
       <div class="dashboard-col dashboard-col--left">
@@ -29,7 +43,6 @@ const { areValuesVisible } = useDashboardController()
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
   background-color: white;
 }
 
@@ -38,48 +51,45 @@ const { areValuesVisible } = useDashboardController()
   grid-template-columns: 1fr;
   gap: 24px;
   flex: 1;
-  min-height: 0;
-  height: calc(100vh - 64px);
   padding: 24px;
-  overflow: hidden;
 }
 
 .dashboard-col {
-  min-height: 0;
   border-radius: 16px;
   overflow: hidden;
 }
 
-.dashboard-col > * {
-  height: 100%;
-}
-
 @media (min-width: 960px) {
-  .dashboard-col--left {
-    grid-column: 1;
+  .dashboard-page {
+    min-height: 0;
   }
 
-  .dashboard-col--right {
-    grid-column: 2;
-  }
-}
-
-@media (min-width: 960px) {
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
+    min-height: 0;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+
+  .dashboard-col {
+    min-height: 0;
+  }
+
+  .dashboard-col > * {
+    height: 100%;
   }
 }
 
 @media (max-width: 959px) {
   .dashboard-grid {
-    height: auto;
-    overflow: visible;
     padding: 16px;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
     gap: 16px;
+    min-height: auto;
   }
 
   .dashboard-col {
-    min-height: 200px;
+    min-height: 180px;
   }
 }
 </style>

@@ -8,6 +8,16 @@ body {
   height: 100%;
 }
 
+@media (max-width: 959px) {
+  html,
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 100%;
+  }
+}
+
 .auth-title {
   font-size: 32px;
   font-weight: 700;

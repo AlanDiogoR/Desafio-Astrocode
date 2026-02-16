@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { getAllAccounts } from '~/services/bankAccountsService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { listBankAccounts } from '~/services/bankAccounts'
 
 type AccountType = 'checking' | 'investment' | 'cash'
 
@@ -11,7 +12,7 @@ export interface BankAccount {
   color: string
 }
 
-interface BankAccountApiResponse {
+interface BankAccountApiResponseRaw {
   id: string
   name: string
   currentBalance?: number
@@ -22,7 +23,7 @@ interface BankAccountApiResponse {
 
 const BANK_ACCOUNTS_QUERY_KEY = ['bankAccounts'] as const
 
-function mapApiToBankAccount(raw: BankAccountApiResponse): BankAccount {
+function mapApiToBankAccount(raw: BankAccountApiResponseRaw): BankAccount {
   const type = raw.type?.toLowerCase() as AccountType
   const rawAny = raw as Record<string, unknown>
   const currentBalance = raw.currentBalance ?? rawAny.current_balance
@@ -51,7 +52,7 @@ export function useBankAccounts() {
   } = useQuery({
     queryKey: BANK_ACCOUNTS_QUERY_KEY,
     queryFn: async (): Promise<BankAccount[]> => {
-      const data = await getAllAccounts()
+      const data = await listBankAccounts()
       return data.map(mapApiToBankAccount)
     },
     enabled: computed(() => !!authStore.token),
@@ -71,7 +72,7 @@ export function useBankAccounts() {
 
   if (import.meta.client) {
     watch(isError, (v) => {
-      if (v) toast.error('Erro ao carregar contas. Tente novamente.')
+      if (v) toast.error(getErrorMessage(error.value ?? new Error(), 'Erro ao carregar contas.'))
     })
   }
 

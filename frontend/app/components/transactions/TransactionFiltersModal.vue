@@ -1,25 +1,22 @@
 <script setup lang="ts">
 import AppModal from '~/components/ui/AppModal.vue'
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-icons/vue'
+import type { TransactionFiltersState } from '~/composables/useTransactions'
 
-interface Props {
+const props = defineProps<{
   modelValue: boolean
-}
-
-const props = defineProps<Props>()
+  filters: TransactionFiltersState
+}>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+  'apply': [filters: TransactionFiltersState]
 }>()
 
-const accounts = ['Nubank', 'XP Investimentos', 'Dinheiro']
+const { accounts } = useBankAccounts()
 
-const selectedAccount = ref('Nubank')
-const selectedYear = ref(2026)
-
-function selectAccount(account: string) {
-  selectedAccount.value = account
-}
+const selectedAccountId = ref<string | undefined>(undefined)
+const selectedYear = ref(new Date().getFullYear())
 
 function prevYear() {
   selectedYear.value -= 1
@@ -30,14 +27,29 @@ function nextYear() {
 }
 
 function applyFilters() {
+  emit('apply', {
+    bankAccountId: selectedAccountId.value,
+    year: selectedYear.value,
+  })
   emit('update:modelValue', false)
 }
+
+watch(
+  () => props.filters,
+  (f) => {
+    if (f) {
+      selectedAccountId.value = f.bankAccountId
+      if (f.year) selectedYear.value = f.year
+    }
+  },
+  { immediate: true, deep: true },
+)
 </script>
 
 <template>
   <AppModal
     title="Filtros"
-    :open="props.modelValue"
+    :open="modelValue"
     @update:open="(v: boolean) => emit('update:modelValue', v)"
   >
     <div class="filters-content">
@@ -45,14 +57,22 @@ function applyFilters() {
         <h3 class="filters-section__title">Conta</h3>
         <div class="filters-section__accounts">
           <button
-            v-for="account in accounts"
-            :key="account"
             type="button"
             class="account-btn"
-            :class="{ 'account-btn--selected': selectedAccount === account }"
-            @click="selectAccount(account)"
+            :class="{ 'account-btn--selected': selectedAccountId === undefined }"
+            @click="selectedAccountId = undefined"
           >
-            {{ account }}
+            Todas
+          </button>
+          <button
+            v-for="acc in accounts"
+            :key="acc.id"
+            type="button"
+            class="account-btn"
+            :class="{ 'account-btn--selected': selectedAccountId === acc.id }"
+            @click="selectedAccountId = acc.id"
+          >
+            {{ acc.name }}
           </button>
         </div>
       </section>

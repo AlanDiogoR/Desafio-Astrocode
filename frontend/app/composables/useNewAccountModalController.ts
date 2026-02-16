@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
-import { createAccount as createAccountApi } from '~/services/bankAccountsService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { createBankAccount } from '~/services/bankAccounts'
 
 const accountSchema = z.object({
   name: z.string().min(1, 'Campo obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
@@ -57,7 +58,7 @@ export function useNewAccountModalController() {
   async function createAccount(payload: AccountFormValues) {
     isLoading.value = true
     try {
-      await createAccountApi({
+      await createBankAccount({
         name: payload.name.trim(),
         initialBalance: payload.initialBalance,
         type: payload.type,
@@ -68,8 +69,7 @@ export function useNewAccountModalController() {
       closeNewAccountModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro ao criar conta. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro ao criar conta. Tente novamente.'))
     } finally {
       isLoading.value = false
     }

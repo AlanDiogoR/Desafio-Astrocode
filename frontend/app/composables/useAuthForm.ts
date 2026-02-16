@@ -1,6 +1,9 @@
 import { useMutation } from '@tanstack/vue-query'
 import type { AxiosError } from 'axios'
 import { z } from 'zod'
+import { getErrorMessage } from '~/utils/errorHandler'
+import { login as loginApi } from '~/services/auth/login'
+import { register as registerApi } from '~/services/auth/register'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Campo obrigatório').email('E-mail inválido'),
@@ -14,22 +17,6 @@ const registerSchema = loginSchema.extend({
 const emailSchema = z.string().min(1, 'Campo obrigatório').email('E-mail inválido')
 const passwordSchema = z.string().min(1, 'Campo obrigatório').min(8, 'A senha deve ter pelo menos 8 caracteres')
 const nameSchema = z.string().min(1, 'Campo obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres')
-
-interface LoginPayload {
-  email: string
-  password: string
-}
-
-interface RegisterPayload {
-  name: string
-  email: string
-  password: string
-}
-
-interface LoginResponse {
-  token: string
-  name: string
-}
 
 interface ApiErrorResponse {
   message?: string
@@ -52,7 +39,6 @@ export function useAuthForm() {
   const hasAttemptedSubmit = ref(false)
 
   const authStore = useAuthStore()
-  const { $api } = useNuxtApp()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   function markAsTouched(field: 'email' | 'password' | 'name') {
@@ -141,40 +127,33 @@ export function useAuthForm() {
   function handleLoginError(error: unknown) {
     const axiosError = error as AxiosError<ApiErrorResponse>
     const status = axiosError.response?.status
-
     if (status === 401) {
-      toast.error('E-mail ou senha inválidos')
       passwordError.value = 'E-mail ou senha inválidos'
+      toast.error('E-mail ou senha inválidos')
     } else {
-      toast.error('Erro na conexão com o servidor')
+      toast.error(getErrorMessage(error, 'Falha ao conectar com o servidor.'))
     }
   }
 
   function handleRegisterError(error: unknown) {
     const axiosError = error as AxiosError<ApiErrorResponse>
     const status = axiosError.response?.status
-    const data = axiosError.response?.data
-    const message = data?.message
-    const fieldErrors = data?.errors
-
+    const fieldErrors = axiosError.response?.data?.errors
     if (status === 409) {
+      emailError.value = 'Este e-mail já está cadastrado'
       toast.error('Este e-mail já está cadastrado')
-      emailError.value = message ?? 'Este e-mail já está cadastrado'
     } else if (status === 400 && fieldErrors) {
       if (fieldErrors.name) nameError.value = fieldErrors.name
       if (fieldErrors.email) emailError.value = fieldErrors.email
       if (fieldErrors.password) passwordError.value = fieldErrors.password
-      toast.error(message ?? 'Erro na conexão com o servidor')
+      toast.error(getErrorMessage(error, 'Falha ao conectar com o servidor.'))
     } else {
-      toast.error('Erro na conexão com o servidor')
+      toast.error(getErrorMessage(error, 'Falha ao conectar com o servidor.'))
     }
   }
 
   const loginMutation = useMutation({
-    mutationFn: async (payload: LoginPayload) => {
-      const { data } = await $api.post<LoginResponse>('/auth/login', payload)
-      return data
-    },
+    mutationFn: (payload: { email: string; password: string }) => loginApi(payload),
     onSuccess: (data) => {
       authStore.setToken(data.token)
       authStore.setUser({
@@ -189,13 +168,9 @@ export function useAuthForm() {
   })
 
   const registerMutation = useMutation({
-    mutationFn: async (payload: RegisterPayload) => {
-      await $api.post('/users', payload)
-      const { data } = await $api.post<LoginResponse>('/auth/login', {
-        email: payload.email,
-        password: payload.password,
-      })
-      return data
+    mutationFn: async (payload: { name: string; email: string; password: string }) => {
+      await registerApi(payload)
+      return loginApi({ email: payload.email, password: payload.password })
     },
     onSuccess: (data) => {
       authStore.setToken(data.token)

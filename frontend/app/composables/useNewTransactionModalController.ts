@@ -1,7 +1,8 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
+import { getErrorMessage } from '~/utils/errorHandler'
 import { useQueryClient } from '@tanstack/vue-query'
-import { createTransaction as createTransactionApi } from '~/services/transactionsService'
+import { createTransaction as createTransactionApi } from '~/services/transactions'
 
 const transactionSchema = z.object({
   amount: z.number().min(0.01, 'Valor inválido'),
@@ -78,8 +79,7 @@ export function useNewTransactionModalController() {
       closeNewTransactionModal()
       resetForm()
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(message ?? 'Erro ao salvar transação. Tente novamente.')
+      toast.error(getErrorMessage(err, 'Erro ao salvar transação. Tente novamente.'))
     } finally {
       isLoading.value = false
     }

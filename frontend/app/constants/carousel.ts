@@ -1,0 +1,2 @@
+export const CAROUSEL_CARD_SCROLL_OFFSET = 236
+export const CAROUSEL_CARD_MIN_WIDTH = 220
