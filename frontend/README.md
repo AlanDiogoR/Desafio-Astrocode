@@ -25,8 +25,9 @@ Interface web do **Grivy**, sistema de controle financeiro pessoal. Desenvolvida
 - ♿ **Acessibilidade**: Componentes com estados de erro e feedback visual
 
 - 📊 **Dashboard Interativo**: Visão geral de saldo com modo de privacidade (olho) e carrossel de contas bancárias
-- 💸 **Gestão de Transações**: Listagem com scroll infinito, agrupamento por data e ícones inteligentes
-- ⚡ **Ações Rápidas**: Botão FAB (Speed Dial) para novas receitas, despesas e contas
+- 💸 **Gestão de Transações**: Listagem com scroll infinito, agrupamento por data, ícones inteligentes e filtros por mês/conta/tipo
+- 🎯 **Metas de Poupança**: CRUD de metas com contribuição, saque e acompanhamento de progresso
+- ⚡ **Ações Rápidas**: Botões FAB (Speed Dial) para novas receitas, despesas, contas e metas
 - 🎯 **u/UX Moderna**: Modais acessíveis e Dropdowns animados (via Radix UI) para filtros e menus
 
 ---
@@ -36,11 +37,13 @@ Interface web do **Grivy**, sistema de controle financeiro pessoal. Desenvolvida
 | Categoria | Tecnologias |
 |----------|-------------|
 | **Framework** | Nuxt 4, Vue 3 |
-| **UI Library** | Vuetify 3, Radix Vue, @radix-icons/vue |
-| **Estilização** | CSS Scoped, SCSS, Vuetify 
+| **UI Library** | Vuetify 3, Radix Vue, @radix-icons/vue, @headlessui/vue |
+| **Estilização** | CSS Scoped, SCSS, Vuetify, Design Tokens |
 | **Estado** | Pinia |
+| **Dados/Servidor** | TanStack Vue Query (Vue Query 5) |
 | **Validação** | Zod |
 | **HTTP** | Axios |
+| **Extras** | vue3-hot-toast, vue-number-format, @vuepic/vue-datepicker |
 | **Linguagem** | TypeScript |
 
 ---
@@ -54,15 +57,29 @@ frontend/
 │   │   ├── design-tokens.scss
 │   │   └── main.scss
 │   ├── components/
-│   │   ├── transactions/    # TransactionFiltersModal
-│   │   ├── ui/              # AppButton, AppModal, AppDropdown, AppInput, AppLogo
+│   │   ├── accounts/         # AccountsEmpty
+│   │   ├── goals/           # GoalsList, GoalCard, GoalsFab
+│   │   ├── modals/          # NewTransactionModal, EditTransactionModal, NewGoalModal,
+│   │   │                    # EditGoalModal, NewAccountModal, GoalInteractionModal, ConfirmDeleteModal
+│   │   ├── transactions/    # TransactionCard, TransactionListHeader, TransactionEmptyState,
+│   │   │                    # TransactionFiltersModal, MonthSelector, TransactionsFab
+│   │   ├── ui/              # AppButton, AppModal, AppDropdown, AppInput, AppLogo, AppSelect,
+│   │   │                    # AppColorDropdown, InputCurrency, AppDatePicker
 │   │   ├── global/          # AppLaunchScreen
 │   │   └── LogoIcon.vue
 │   ├── composables/
-│   │   ├── useAuthForm.ts
-│   │   ├── useAppLoading.ts
-│   │   ├── useFieldValidation.ts
-│   │   └── useUser.ts
+│   │   ├── useAuthForm.ts, useFieldValidation.ts, useUser.ts
+│   │   ├── useAppLoading.ts, useCarousel.ts, useMonthSelector.ts
+│   │   ├── useTransactions.ts, useGoals.ts, useBankAccounts.ts, useAccounts.ts
+│   │   ├── useDashboard.ts, useCategories.ts, useDashboardController.ts
+│   │   ├── useNewTransactionModalController.ts, useEditTransactionModalController.ts
+│   │   ├── useNewGoalModalController.ts, useEditGoalModalController.ts, useGoalInteractionController.ts
+│   │   ├── useNewAccountModalController.ts, useConfirmDelete.ts
+│   │   └── ...
+│   ├── constants/
+│   │   ├── carousel.ts
+│   │   ├── transactions.ts
+│   │   └── ...
 │   ├── layouts/
 │   │   ├── auth.vue
 │   │   ├── dashboard.vue
@@ -80,11 +97,22 @@ frontend/
 │   │   ├── axios.client.ts
 │   │   ├── toast.client.ts
 │   │   ├── vue-query.ts
+│   │   ├── vue-number-format.client.ts
 │   │   └── vuetify.ts
+│   ├── services/
+│   │   ├── auth/            # login.ts, register.ts
+│   │   ├── bankAccounts/    # list, create, update, delete
+│   │   ├── categories/      # list.ts
+│   │   ├── goals/           # list, create, update, delete, contribute, withdraw
+│   │   └── transactions/    # list, create, update, delete
 │   ├── stores/
 │   │   └── auth.ts
+│   ├── types/
+│   │   └── confirmDelete.ts
 │   ├── utils/
-│   │   └── format.ts
+│   │   ├── format.ts, currency.ts, colors.ts, capitalize.ts
+│   │   ├── errorHandler.ts, transactionIcons.ts
+│   │   └── ...
 │   └── app.vue
 ├── public/
 │   └── images/              # Assets estáticos (ícones de categorias, etc.)

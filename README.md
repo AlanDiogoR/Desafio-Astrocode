@@ -71,15 +71,20 @@ Desafio-Astrocode/
 ├── backend/              # API REST com Spring Boot
 │   ├── src/
 │   ├── pom.xml
+│   ├── .env.example
 │   └── README.md
 ├── frontend/             # Interface web com Nuxt
 │   ├── app/
-│   │   ├── components/
+│   │   ├── components/   # ui, transactions, goals, accounts, modals, global
 │   │   ├── composables/
 │   │   ├── layouts/
 │   │   ├── pages/
 │   │   ├── plugins/
-│   │   └── stores/
+│   │   ├── services/
+│   │   ├── stores/
+│   │   ├── constants/
+│   │   ├── types/
+│   │   └── utils/
 │   ├── .env.example
 │   ├── nuxt.config.ts
 │   └── README.md
@@ -102,7 +107,7 @@ Desafio-Astrocode/
 - Java 21+
 - Maven 3.6+
 - PostgreSQL 12+
-- Node.js 18+
+- Node.js 20+
 
 ### Backend
 

@@ -83,9 +83,10 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
 
 - **CRUD Completo**: Criar, listar, atualizar e excluir metas
 - **Cálculo Automático de Progresso**: Percentual calculado automaticamente (currentAmount / targetAmount * 100)
-- **Atualização Parcial de Valor**: Endpoint PATCH para atualizar progresso (`/api/goals/{id}/amount`)
+- **Contribuir**: Endpoint PATCH `/api/goals/{id}/contribute` - transfere valor da conta bancária para a meta
+- **Sacar**: Endpoint PATCH `/api/goals/{id}/withdraw` - transfere valor da meta de volta para a conta
 - **Status Tracking**: Suporte para ACTIVE, COMPLETED e CANCELLED
-- **Personalização**: Nome, valor alvo, cor e acompanhamento de progresso
+- **Personalização**: Nome, valor alvo, cor, data fim e acompanhamento de progresso
 
 ### 📊 Dashboard
 
@@ -148,7 +149,8 @@ api/dto/
 ├── goal/          # Metas de poupança
 │   ├── SavingsGoalRequest.java
 │   ├── SavingsGoalResponse.java
-│   └── SavingsGoalAmountRequest.java
+│   ├── SavingsGoalContributeRequest.java
+│   └── SavingsGoalWithdrawRequest.java
 └── dashboard/     # Dashboard
     └── DashboardResponse.java
 ```
@@ -214,7 +216,8 @@ GET /api/transactions?year=2026&month=2&type=EXPENSE&bankAccountId=uuid-da-conta
 | `GET` | `/api/goals` | Listar todas as metas do usuário |
 | `POST` | `/api/goals` | Criar nova meta de poupança |
 | `PUT` | `/api/goals/{id}` | Atualizar meta completa |
-| `PATCH` | `/api/goals/{id}/amount` | Atualizar progresso da meta (valor parcial) |
+| `PATCH` | `/api/goals/{id}/contribute` | Contribuir para a meta (débito da conta + crédito na meta) |
+| `PATCH` | `/api/goals/{id}/withdraw` | Sacar da meta (crédito na conta + débito na meta) |
 | `DELETE` | `/api/goals/{id}` | Excluir meta |
 
 #### Dashboard
@@ -412,20 +415,35 @@ curl -X POST http://localhost:8080/api/goals \
 }
 ```
 
-### 7. Atualizar Progresso de Meta (PATCH)
+### 7. Contribuir para uma Meta (PATCH)
 
 ```bash
-curl -X PATCH http://localhost:8080/api/goals/uuid-da-meta/amount \
+curl -X PATCH http://localhost:8080/api/goals/uuid-da-meta/contribute \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI" \
   -d '{
-    "amount": 2500.00
+    "amount": 2500.00,
+    "bankAccountId": "uuid-da-conta-bancaria"
   }'
 ```
 
-**Resposta:** O percentual de progresso será recalculado automaticamente (25% neste exemplo).
+**Resposta:** O valor é debitado da conta bancária e creditado na meta. O percentual de progresso será recalculado automaticamente.
 
-### 8. Obter Dashboard
+### 8. Sacar de uma Meta (PATCH)
+
+```bash
+curl -X PATCH http://localhost:8080/api/goals/uuid-da-meta/withdraw \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI" \
+  -d '{
+    "amount": 500.00,
+    "bankAccountId": "uuid-da-conta-bancaria"
+  }'
+```
+
+**Resposta:** O valor é debitado da meta e creditado na conta bancária.
+
+### 9. Obter Dashboard
 
 ```bash
 curl -X GET http://localhost:8080/api/dashboard \
@@ -576,6 +594,7 @@ A API retorna erros padronizados em formato JSON:
 O projeto utiliza exceções customizadas para melhor tratamento de erros:
 - `EmailAlreadyExistsException`: Email já cadastrado
 - `InvalidCredentialsException`: Credenciais inválidas
+- `InvalidTokenException`: Token JWT inválido ou expirado
 - `ResourceNotFoundException`: Recurso não encontrado
 - `ResourceAccessDeniedException`: Acesso negado ao recurso
 - `AccountNotOwnedException`: Conta não pertence ao usuário
