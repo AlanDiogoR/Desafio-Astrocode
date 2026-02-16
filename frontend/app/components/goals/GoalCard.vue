@@ -52,7 +52,7 @@ function progressStrokeDasharray(percentage: number): string {
 
 <template>
   <div
-    class="goal-card"
+    class="goal-card d-flex align-center ga-3 pa-4 rounded-xl"
     :class="{
       'goal-card--completed': isCompleted,
       'goal-card--expired': isExpired,
@@ -104,8 +104,8 @@ function progressStrokeDasharray(percentage: number): string {
         </svg>
       </div>
     </div>
-    <div class="goal-card__body">
-      <div class="goal-card__content">
+    <div class="goal-card__body flex-grow-1 min-width-0 d-flex flex-column ga-1">
+      <div class="d-flex flex-column">
         <span class="goal-card__title">{{ goal.name }}</span>
         <span class="goal-card__amount">
           {{ showPrivacy ? formatCurrency(goal.currentAmount) : '••••' }}
@@ -126,13 +126,7 @@ function progressStrokeDasharray(percentage: number): string {
   flex: 0 0 220px;
   min-width: 220px;
   background: white;
-  border-radius: 16px;
-  padding: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 2px solid transparent;
@@ -234,20 +228,6 @@ function progressStrokeDasharray(percentage: number): string {
   align-items: center;
   justify-content: center;
   color: #087f5b;
-}
-
-.goal-card__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.goal-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .goal-card__title {

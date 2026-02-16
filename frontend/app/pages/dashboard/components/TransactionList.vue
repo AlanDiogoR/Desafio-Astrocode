@@ -5,7 +5,6 @@ import TransactionCard from '~/components/transactions/TransactionCard.vue'
 import TransactionEmptyState from '~/components/transactions/TransactionEmptyState.vue'
 import TransactionsFab from '~/components/transactions/TransactionsFab.vue'
 import SpendingAlert from '~/components/transactions/SpendingAlert.vue'
-import TopSpendingCards from '~/components/transactions/TopSpendingCards.vue'
 import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewTransactionModal from '~/components/modals/NewTransactionModal.vue'
@@ -33,7 +32,7 @@ const { selectedDate, displayedMonths, goToPrevMonth, goToNextMonth, selectMonth
 
 const insightYear = computed(() => selectedDate.value.getFullYear())
 const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
-const { topCategory, shouldShowAlert, byCategory, totalExpense } = useInsightsController(insightYear, insightMonth)
+const { topCategory, shouldShowAlert } = useInsightsController(insightYear, insightMonth)
 const selectedType = ref<TransactionTypeOption>(TRANSACTION_TYPES[0])
 const showFilters = ref(false)
 const iconLoadFailed = reactive(new Map<string, boolean>())
@@ -114,11 +113,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
           :category-name="topCategory.categoryName"
           :percentage="topCategory.percentage"
           :visible="shouldShowAlert"
-        />
-        <TopSpendingCards
-          v-if="byCategory.length > 0 && totalExpense > 0"
-          :categories="byCategory"
-          :total-expense="totalExpense"
         />
         <TransactionCard
           v-for="transaction in transactions"

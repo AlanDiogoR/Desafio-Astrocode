@@ -46,10 +46,10 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
   >
     <v-form
       v-if="newTransactionType"
-      class="new-transaction-form"
+      class="d-flex flex-column ga-6"
       @submit.prevent="handleSubmit"
     >
-      <div class="new-transaction-form__fields">
+      <div class="d-flex flex-column ga-4">
         <InputCurrency
           v-model="amount"
           :label="valueLabel"
@@ -62,7 +62,7 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
           label="Nome"
           :error-text="errors.name"
         />
-        <div class="new-transaction-form__row">
+        <div class="d-flex flex-column ga-4">
           <AppSelect
             v-model="category"
             label="Categoria"
@@ -95,7 +95,7 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
       </div>
       <AppButton
         type="submit"
-        class="new-transaction-form__submit"
+        class="w-100"
         :loading="isLoading"
         :disabled="isLoading"
       >
@@ -105,26 +105,3 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
   </AppModal>
 </template>
 
-<style scoped>
-.new-transaction-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.new-transaction-form__fields {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.new-transaction-form__row {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.new-transaction-form__submit {
-  width: 100%;
-}
-</style>

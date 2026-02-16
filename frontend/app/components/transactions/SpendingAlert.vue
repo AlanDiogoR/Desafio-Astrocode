@@ -27,79 +27,52 @@ function dismiss() {
   <Transition name="slide-fade">
     <div
       v-if="isVisible"
-      class="spending-alert"
+      class="d-flex align-start ga-3 pa-3 mb-3 rounded-lg border spending-alert__bg"
     >
-      <LightningBoltIcon class="spending-alert__icon" aria-hidden />
-      <div class="spending-alert__content flex-grow-1">
-        <span class="spending-alert__text">
-          Atenção: {{ percentage }}% dos seus gastos este mês foram em {{ categoryName }}.
-        </span>
-      </div>
-      <button
-        type="button"
-        class="spending-alert__dismiss"
+      <LightningBoltIcon
+        class="flex-shrink-0 mt-1 spending-alert__icon"
+        width="22"
+        height="22"
+        aria-hidden
+      />
+      <span class="flex-grow-1 min-width-0 text-body-2 spending-alert__text">
+        Atenção: {{ percentage }}% dos seus gastos este mês foram em {{ categoryName }}.
+      </span>
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        density="compact"
+        class="flex-shrink-0 spending-alert__dismiss"
         aria-label="Dispensar alerta"
         @click="dismiss"
       >
-        <Cross2Icon />
-      </button>
+        <Cross2Icon width="14" height="14" />
+      </v-btn>
     </div>
   </Transition>
 </template>
 
 <style scoped>
-.spending-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.spending-alert__icon {
-  width: 22px;
-  height: 22px;
-  color: #ea580c;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.spending-alert__content {
-  min-width: 0;
+.spending-alert__bg {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
 }
 
 .spending-alert__text {
-  font-size: 13px;
   color: #9a3412;
-  line-height: 1.4;
 }
 
 .spending-alert__dismiss {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
   color: #9a3412;
-  border-radius: 6px;
-  cursor: pointer;
-  opacity: 0.7;
 }
 
 .spending-alert__dismiss:hover {
-  opacity: 1;
-  background: rgba(234, 88, 12, 0.1);
+  background: rgba(234, 88, 12, 0.1) !important;
 }
 
-.spending-alert__dismiss svg {
-  width: 14px;
-  height: 14px;
+.spending-alert__icon {
+  color: #ea580c;
 }
 
 .slide-fade-enter-active,

@@ -50,7 +50,7 @@ const formattedDate = computed(() => {
 
 <template>
   <v-card
-    class="transaction-card"
+    class="transaction-card d-flex align-center ga-4 pa-4"
     variant="flat"
     elevation="0"
     role="button"
@@ -59,7 +59,6 @@ const formattedDate = computed(() => {
     @keydown.enter="emit('click', transaction as any)"
     @keydown.space.prevent="emit('click', transaction as any)"
   >
-    <div class="transaction-card__content d-flex align-center gap-4">
       <v-avatar
         size="56"
         variant="flat"
@@ -82,8 +81,8 @@ const formattedDate = computed(() => {
           @error="handleIconError"
         >
       </v-avatar>
-      <div class="transaction-content flex-grow-1 d-flex flex-column">
-        <div class="d-flex align-center gap-1">
+      <div class="flex-grow-1 d-flex flex-column">
+        <div class="d-flex align-center ga-1">
           <span class="transaction-title font-weight-bold">{{ transaction.name }}</span>
           <UpdateIcon
             v-if="transaction.isRecurring"
@@ -101,7 +100,6 @@ const formattedDate = computed(() => {
       >
         {{ showPrivacy ? (transaction.type === 'income' ? '+' : '-') + formatCurrency(transaction.amount) : '••••' }}
       </span>
-    </div>
   </v-card>
 </template>
 
@@ -116,11 +114,6 @@ const formattedDate = computed(() => {
 
 .transaction-card:hover {
   background-color: #f9fafb;
-}
-
-.transaction-card__content {
-  padding: 16px 20px;
-  gap: 16px;
 }
 
 .transaction-avatar {

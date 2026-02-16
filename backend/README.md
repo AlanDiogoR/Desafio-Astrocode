@@ -78,6 +78,11 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
   - Validação de tipo de categoria vs tipo de transação
   - Validação de saldo insuficiente para despesas
   - Validação de propriedade de conta e categoria pelo usuário
+- **Transações Recorrentes**:
+  - Marcação de transações como recorrentes (mensal ou anual)
+  - Job agendado diário (00:05) gera automaticamente as transações do período atual
+  - Transações filhas vinculadas ao pai via `parent_transaction_id`
+  - Evita duplicatas verificando se já existe filha para o mês/ano
 
 ### 🎯 Metas de Poupança (Savings Goals)
 

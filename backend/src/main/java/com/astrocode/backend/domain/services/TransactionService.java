@@ -310,4 +310,29 @@ public class TransactionService {
             goal.setStatus(GoalStatus.ACTIVE);
         }
     }
+
+    /**
+     * Cria uma transação filha a partir de uma transação pai recorrente.
+     * Usado pelo job de recorrência para gerar transações automaticamente.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Transaction createRecurringChild(Transaction parent, LocalDate targetDate) {
+        var child = Transaction.builder()
+                .user(parent.getUser())
+                .bankAccount(parent.getBankAccount())
+                .category(parent.getCategory())
+                .name(parent.getName())
+                .amount(parent.getAmount())
+                .date(targetDate)
+                .type(parent.getType())
+                .isRecurring(false)
+                .frequency(null)
+                .parentTransaction(parent)
+                .build();
+
+        var saved = transactionRepository.save(child);
+        updateAccountBalance(parent.getBankAccount(), parent.getAmount(), parent.getType());
+        bankAccountRepository.save(parent.getBankAccount());
+        return saved;
+    }
 }

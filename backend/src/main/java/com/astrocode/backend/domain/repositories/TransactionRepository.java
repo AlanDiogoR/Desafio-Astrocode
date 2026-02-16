@@ -91,4 +91,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT t FROM Transaction t WHERE t.isRecurring = true AND t.parentTransaction IS NULL")
+    List<Transaction> findParentRecurringTransactions();
+
+    @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.parentTransaction.id = :parentId AND t.date >= :startDate AND t.date <= :endDate")
+    boolean existsChildForParentInDateRange(
+            @Param("parentId") UUID parentId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
