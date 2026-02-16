@@ -5,6 +5,8 @@ interface UpdateTransactionPayload {
   type?: string
   bankAccountId?: string
   categoryId?: string
+  isRecurring?: boolean
+  frequency?: string
 }
 
 export async function updateTransaction(id: string, payload: UpdateTransactionPayload): Promise<void> {

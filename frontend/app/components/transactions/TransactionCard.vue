@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UpdateIcon } from '@radix-icons/vue'
 import { formatCurrency, formatDate } from '~/utils/format'
 import { getBankIconPath, getTransactionCategoryIconPath } from '~/utils/transactionIcons'
 
@@ -12,6 +13,7 @@ interface TransactionItem {
   categoryId: string
   bankName: string
   categoryName: string
+  isRecurring?: boolean
 }
 
 const props = defineProps<{
@@ -81,7 +83,14 @@ const formattedDate = computed(() => {
         >
       </v-avatar>
       <div class="transaction-content flex-grow-1 d-flex flex-column">
-        <span class="transaction-title font-weight-bold">{{ transaction.name }}</span>
+        <div class="d-flex align-center gap-1">
+          <span class="transaction-title font-weight-bold">{{ transaction.name }}</span>
+          <UpdateIcon
+            v-if="transaction.isRecurring"
+            class="transaction-recurring-icon"
+            aria-label="Transação recorrente"
+          />
+        </div>
         <span class="transaction-subtitle text-caption">{{ formattedDate }}</span>
       </div>
       <span
@@ -133,6 +142,13 @@ const formattedDate = computed(() => {
 .transaction-subtitle {
   font-size: 12px;
   color: #868e96;
+}
+
+.transaction-recurring-icon {
+  width: 14px;
+  height: 14px;
+  color: #868e96;
+  flex-shrink: 0;
 }
 
 .transaction-amount {

@@ -6,6 +6,8 @@ export interface TransactionApiResponse {
   type: string
   bankAccountId: string
   categoryId: string
+  isRecurring?: boolean
+  frequency?: string
   createdAt?: string
   updatedAt?: string
 }

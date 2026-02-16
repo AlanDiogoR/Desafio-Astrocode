@@ -13,6 +13,7 @@ const transactionSchema = z.object({
   bankAccountId: z.string().min(1, 'Conta é obrigatória'),
   date: z.date(),
   type: z.enum(['INCOME', 'EXPENSE']),
+  isRecurring: z.boolean().optional(),
 })
 
 export function useEditTransactionModalController(transaction: Ref<TransactionForEdit | null>) {
@@ -29,6 +30,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
   const categoryId = ref<string | null>(null)
   const bankAccountId = ref<string | null>(null)
   const date = ref<Date>(new Date())
+  const isRecurring = ref(false)
   const errors = reactive<Record<string, string>>({})
   const isLoading = ref(false)
 
@@ -46,6 +48,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
         categoryId.value = t.categoryId
         bankAccountId.value = t.bankAccountId
         date.value = new Date(t.date)
+        isRecurring.value = t.isRecurring ?? false
       }
     },
     { immediate: true },
@@ -67,6 +70,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
       bankAccountId: bankAccountId.value ?? '',
       date: date.value,
       type: t.type === 'income' ? 'INCOME' : 'EXPENSE',
+      isRecurring: isRecurring.value,
     })
 
     if (!result.success) {
@@ -89,6 +93,8 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
         type: result.data.type,
         bankAccountId: result.data.bankAccountId,
         categoryId: result.data.categoryId,
+        isRecurring: result.data.isRecurring ?? false,
+        frequency: result.data.isRecurring ? 'MONTHLY' : undefined,
       })
       toast.success('Transação atualizada!')
       invalidateBankAccounts()
@@ -114,6 +120,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
     category: categoryId,
     account: bankAccountId,
     date,
+    isRecurring,
     errors,
     isLoading,
     categories,

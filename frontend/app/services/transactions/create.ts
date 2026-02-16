@@ -5,6 +5,8 @@ interface CreateTransactionPayload {
   type: string
   bankAccountId: string
   categoryId: string
+  isRecurring?: boolean
+  frequency?: string
 }
 
 export async function createTransaction(payload: CreateTransactionPayload): Promise<void> {

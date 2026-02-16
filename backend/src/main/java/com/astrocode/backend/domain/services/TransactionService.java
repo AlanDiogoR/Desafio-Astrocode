@@ -1,5 +1,7 @@
 package com.astrocode.backend.domain.services;
 
+import com.astrocode.backend.api.dto.transaction.CategoryExpenseItem;
+import com.astrocode.backend.api.dto.transaction.MonthlySummaryResponse;
 import com.astrocode.backend.api.dto.transaction.TransactionRequest;
 import com.astrocode.backend.api.dto.transaction.TransactionUpdateRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
@@ -11,6 +13,7 @@ import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
 import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
+import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.model.enums.GoalStatus;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
@@ -58,6 +61,9 @@ public class TransactionService {
         validateCategoryOwnership(category, userId);
         validateCategoryTypeMatch(request.type(), category.getType());
 
+        var isRecurring = request.isRecurring() != null && request.isRecurring();
+        var frequency = isRecurring && request.frequency() != null ? request.frequency() : RecurrenceFrequency.MONTHLY;
+
         var transaction = Transaction.builder()
                 .user(bankAccount.getUser())
                 .bankAccount(bankAccount)
@@ -66,6 +72,8 @@ public class TransactionService {
                 .amount(request.amount())
                 .date(request.date())
                 .type(request.type())
+                .isRecurring(isRecurring)
+                .frequency(isRecurring ? frequency : null)
                 .build();
 
         var savedTransaction = transactionRepository.save(transaction);
@@ -185,6 +193,10 @@ public class TransactionService {
         if (request.date() != null) {
             transaction.setDate(request.date());
         }
+        if (request.isRecurring() != null) {
+            transaction.setIsRecurring(request.isRecurring());
+            transaction.setFrequency(request.isRecurring() && request.frequency() != null ? request.frequency() : null);
+        }
         transaction.setType(newType);
         transaction.setBankAccount(newBankAccount);
         transaction.setCategory(newCategory);
@@ -262,6 +274,29 @@ public class TransactionService {
         } else {
             account.setCurrentBalance(account.getCurrentBalance().add(amount));
         }
+    }
+
+    public MonthlySummaryResponse getMonthlySummary(UUID userId, int year, int month) {
+        var startDate = LocalDate.of(year, month, 1);
+        var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        var totalExpense = transactionRepository.sumTotalByUserIdAndTypeAndDateRange(
+                userId, TransactionType.EXPENSE, startDate, endDate
+        );
+        if (totalExpense == null) {
+            totalExpense = BigDecimal.ZERO;
+        }
+
+        var byCategoryRaw = transactionRepository.sumExpensesByCategoryForDateRange(userId, TransactionType.EXPENSE, startDate, endDate);
+        var byCategory = byCategoryRaw.stream()
+                .map(row -> new CategoryExpenseItem(
+                        (UUID) row[0],
+                        (String) row[1],
+                        (BigDecimal) row[2]
+                ))
+                .toList();
+
+        return new MonthlySummaryResponse(totalExpense, byCategory);
     }
 
     private void revertGoalAmount(SavingsGoal goal, BigDecimal amount, TransactionType type) {

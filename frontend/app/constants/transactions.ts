@@ -46,6 +46,8 @@ export interface TransactionFabOption {
   icon: string
   filter: string
   size?: number
+  useRadixIcon?: string
+  useMdiIcon?: boolean
 }
 
 export const TRANSACTION_FAB_OPTIONS: TransactionFabOption[] = [
@@ -62,6 +64,14 @@ export const TRANSACTION_FAB_OPTIONS: TransactionFabOption[] = [
     icon: iconPath('Nome=Receitas.png'),
     filter: ICON_FILTERS.GREEN,
     size: 28,
+  },
+  {
+    label: 'Resumo do Mês',
+    action: 'monthly-summary',
+    icon: 'mdi-chart-pie',
+    filter: '',
+    size: 28,
+    useMdiIcon: true,
   },
   {
     label: 'Nova conta',

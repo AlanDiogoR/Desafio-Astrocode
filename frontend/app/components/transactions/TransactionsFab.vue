@@ -47,7 +47,15 @@ function handleSelect(action: string) {
               class="d-flex align-center justify-center mr-3"
               style="width: 40px; height: 40px; flex-shrink: 0"
             >
+              <v-icon
+                v-if="opt.useMdiIcon"
+                :icon="opt.icon"
+                :size="opt.size ?? 24"
+                color="#7950F2"
+                class="transition-opacity"
+              />
               <img
+                v-else
                 :src="opt.icon"
                 alt=""
                 :width="opt.size ?? 24"

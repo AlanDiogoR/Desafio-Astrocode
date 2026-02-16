@@ -57,6 +57,7 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
       categoryId: t.categoryId,
       bankName: accountNameById.value[t.bankAccountId] ?? '',
       categoryName: categoryNameById.value[t.categoryId] ?? '',
+      isRecurring: t.isRecurring ?? false,
     }))
   })
 

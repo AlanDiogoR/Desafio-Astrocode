@@ -15,6 +15,7 @@ export interface TransactionForEdit {
   categoryId: string
   bankName: string
   categoryName: string
+  isRecurring?: boolean
 }
 
 export function useDashboard() {
@@ -33,6 +34,7 @@ export function useDashboard() {
   const isConfirmDeleteModalOpen = useState<boolean>('isConfirmDeleteModalOpen', () => false)
   const confirmDeleteEntityType = useState<ConfirmDeleteEntityType | null>('confirmDeleteEntityType', () => null)
   const confirmDeleteEntityId = useState<string | null>('confirmDeleteEntityId', () => null)
+  const isMonthlySummaryModalOpen = useState<boolean>('isMonthlySummaryModalOpen', () => false)
   const { hasAccounts } = useBankAccounts()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -110,6 +112,14 @@ export function useDashboard() {
     confirmDeleteEntityId.value = null
   }
 
+  function openMonthlySummaryModal() {
+    isMonthlySummaryModalOpen.value = true
+  }
+
+  function closeMonthlySummaryModal() {
+    isMonthlySummaryModalOpen.value = false
+  }
+
   return {
     transactionFilters,
     isNewTransactionModalOpen,
@@ -140,5 +150,8 @@ export function useDashboard() {
     confirmDeleteEntityId,
     openConfirmDeleteModal,
     closeConfirmDeleteModal,
+    isMonthlySummaryModalOpen,
+    openMonthlySummaryModal,
+    closeMonthlySummaryModal,
   }
 }

@@ -1,5 +1,6 @@
 package com.astrocode.backend.api.dto.transaction;
 
+import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -21,6 +22,10 @@ public record TransactionUpdateRequest(
 
         UUID bankAccountId,
 
-        UUID categoryId
+        UUID categoryId,
+
+        Boolean isRecurring,
+
+        RecurrenceFrequency frequency
 ) {
 }

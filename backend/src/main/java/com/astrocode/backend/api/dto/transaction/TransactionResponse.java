@@ -13,6 +13,8 @@ public record TransactionResponse(
         String type,
         UUID bankAccountId,
         UUID categoryId,
+        Boolean isRecurring,
+        String frequency,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

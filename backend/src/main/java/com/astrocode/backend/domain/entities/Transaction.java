@@ -1,5 +1,6 @@
 package com.astrocode.backend.domain.entities;
 
+import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -68,6 +69,18 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")
     private SavingsGoal goal;
+
+    @Column(name = "is_recurring", nullable = false)
+    @Builder.Default
+    private Boolean isRecurring = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "frequency", length = 20)
+    private RecurrenceFrequency frequency;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_transaction_id")
+    private Transaction parentTransaction;
 
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)

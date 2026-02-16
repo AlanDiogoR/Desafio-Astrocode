@@ -13,6 +13,7 @@ const {
   category,
   account,
   date,
+  isRecurring,
   errors,
   isLoading,
   categories,
@@ -82,6 +83,14 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
           v-model="date"
           placeholder="Data da transação"
           :error-text="errors.date"
+        />
+        <v-switch
+          v-model="isRecurring"
+          color="primary"
+          hide-details
+          density="compact"
+          class="mt-2"
+          label="Repetir mensalmente?"
         />
       </div>
       <AppButton

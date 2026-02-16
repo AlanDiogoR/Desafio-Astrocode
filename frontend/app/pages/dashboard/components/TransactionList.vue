@@ -4,10 +4,13 @@ import MonthSelector from '~/components/transactions/MonthSelector.vue'
 import TransactionCard from '~/components/transactions/TransactionCard.vue'
 import TransactionEmptyState from '~/components/transactions/TransactionEmptyState.vue'
 import TransactionsFab from '~/components/transactions/TransactionsFab.vue'
+import SpendingAlert from '~/components/transactions/SpendingAlert.vue'
+import TopSpendingCards from '~/components/transactions/TopSpendingCards.vue'
 import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewTransactionModal from '~/components/modals/NewTransactionModal.vue'
 import EditTransactionModal from '~/components/modals/EditTransactionModal.vue'
+import MonthlySummaryModal from '~/components/modals/MonthlySummaryModal.vue'
 import { TRANSACTION_TYPES, type TransactionTypeOption } from '~/constants/transactions'
 import type { TransactionFiltersState } from '~/composables/useTransactions'
 import { useMonthSelector } from '~/composables/useMonthSelector'
@@ -20,10 +23,17 @@ const {
   openNewTransactionModal,
   openNewAccountModal,
   openEditTransactionModal,
+  openMonthlySummaryModal,
+  closeMonthlySummaryModal,
+  isMonthlySummaryModalOpen,
   transactionFilters,
 } = useDashboard()
 
 const { selectedDate, displayedMonths, goToPrevMonth, goToNextMonth, selectMonth } = useMonthSelector()
+
+const insightYear = computed(() => selectedDate.value.getFullYear())
+const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
+const { topCategory, shouldShowAlert, byCategory, totalExpense } = useInsightsController(insightYear, insightMonth)
 const selectedType = ref<TransactionTypeOption>(TRANSACTION_TYPES[0])
 const showFilters = ref(false)
 const iconLoadFailed = reactive(new Map<string, boolean>())
@@ -46,6 +56,7 @@ function handleFabAction(action: string) {
   if (action === 'new-account') openNewAccountModal()
   else if (action === 'new-income') openNewTransactionModal('INCOME')
   else if (action === 'new-expense') openNewTransactionModal('EXPENSE')
+  else if (action === 'monthly-summary') openMonthlySummaryModal()
 }
 
 function applyFilters(f: TransactionFiltersState) {
@@ -67,6 +78,7 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
     categoryId: transaction.categoryId,
     bankName: transaction.bankName,
     categoryName: transaction.categoryName,
+    isRecurring: transaction.isRecurring,
   })
 }
 </script>
@@ -97,6 +109,17 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         v-else-if="transactions.length > 0"
         class="transaction-list__cards"
       >
+        <SpendingAlert
+          v-if="topCategory"
+          :category-name="topCategory.categoryName"
+          :percentage="topCategory.percentage"
+          :visible="shouldShowAlert"
+        />
+        <TopSpendingCards
+          v-if="byCategory.length > 0 && totalExpense > 0"
+          :categories="byCategory"
+          :total-expense="totalExpense"
+        />
         <TransactionCard
           v-for="transaction in transactions"
           :key="transaction.id"
@@ -118,6 +141,10 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
     <NewAccountModal />
     <NewTransactionModal />
     <EditTransactionModal />
+    <MonthlySummaryModal
+      :open="isMonthlySummaryModalOpen"
+      @update:open="(v) => !v && closeMonthlySummaryModal()"
+    />
   </div>
 </template>
 

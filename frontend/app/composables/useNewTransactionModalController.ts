@@ -11,6 +11,7 @@ const transactionSchema = z.object({
   bankAccountId: z.string().min(1, 'Conta é obrigatória'),
   date: z.date(),
   type: z.enum(['INCOME', 'EXPENSE']),
+  isRecurring: z.boolean().optional(),
 })
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
@@ -36,6 +37,7 @@ export function useNewTransactionModalController() {
   const categoryId = ref<string | null>(null)
   const bankAccountId = ref<string | null>(null)
   const date = ref<Date>(new Date())
+  const isRecurring = ref(false)
   const errors = reactive<Record<string, string>>({})
 
   const accountsOptions = computed<SelectOption[]>(() =>
@@ -72,6 +74,8 @@ export function useNewTransactionModalController() {
         type: payload.type,
         bankAccountId: payload.bankAccountId,
         categoryId: payload.categoryId,
+        isRecurring: payload.isRecurring ?? false,
+        frequency: payload.isRecurring ? 'MONTHLY' : undefined,
       })
       toast.success('Transação salva com sucesso!')
       invalidateBankAccounts()
@@ -91,6 +95,7 @@ export function useNewTransactionModalController() {
     categoryId.value = null
     bankAccountId.value = null
     date.value = new Date()
+    isRecurring.value = false
     Object.keys(errors).forEach((key) => delete errors[key])
   }
 
@@ -104,6 +109,7 @@ export function useNewTransactionModalController() {
       bankAccountId: bankAccountId.value ?? '',
       date: date.value,
       type: type.value ?? '',
+      isRecurring: isRecurring.value,
     })
 
     if (!result.success) {
@@ -129,6 +135,7 @@ export function useNewTransactionModalController() {
     category: categoryId,
     account: bankAccountId,
     date,
+    isRecurring,
     errors,
     isLoading,
     categories,

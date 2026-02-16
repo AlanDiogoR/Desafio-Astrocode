@@ -1,5 +1,6 @@
 package com.astrocode.backend.api.controllers;
 
+import com.astrocode.backend.api.dto.transaction.MonthlySummaryResponse;
 import com.astrocode.backend.api.dto.transaction.TransactionRequest;
 import com.astrocode.backend.api.dto.transaction.TransactionResponse;
 import com.astrocode.backend.api.dto.transaction.TransactionUpdateRequest;
@@ -34,17 +35,7 @@ public class TransactionController {
         User user = (User) authentication.getPrincipal();
         var transaction = transactionService.create(request, user.getId());
 
-        var response = new TransactionResponse(
-                transaction.getId(),
-                transaction.getName(),
-                transaction.getAmount(),
-                transaction.getDate(),
-                transaction.getType().name(),
-                transaction.getBankAccount().getId(),
-                transaction.getCategory().getId(),
-                transaction.getCreatedAt(),
-                transaction.getUpdatedAt()
-        );
+        var response = toResponse(transaction);
 
         URI location = URI.create("/api/transactions/" + transaction.getId());
         return ResponseEntity.created(location).body(response);
@@ -62,20 +53,21 @@ public class TransactionController {
         var transactions = transactionService.findAllByUserId(user.getId(), year, month, bankAccountId, type);
 
         List<TransactionResponse> response = transactions.stream()
-                .map(transaction -> new TransactionResponse(
-                        transaction.getId(),
-                        transaction.getName(),
-                        transaction.getAmount(),
-                        transaction.getDate(),
-                        transaction.getType().name(),
-                        transaction.getBankAccount().getId(),
-                        transaction.getCategory().getId(),
-                        transaction.getCreatedAt(),
-                        transaction.getUpdatedAt()
-                ))
+                .map(this::toResponse)
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/analytics/monthly-summary")
+    public ResponseEntity<MonthlySummaryResponse> getMonthlySummary(
+            @RequestParam int year,
+            @RequestParam int month,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        var summary = transactionService.getMonthlySummary(user.getId(), year, month);
+        return ResponseEntity.ok(summary);
     }
 
     @PutMapping("/{id}")
@@ -87,7 +79,11 @@ public class TransactionController {
         User user = (User) authentication.getPrincipal();
         var transaction = transactionService.update(id, request, user.getId());
 
-        var response = new TransactionResponse(
+        return ResponseEntity.ok(toResponse(transaction));
+    }
+
+    private TransactionResponse toResponse(Transaction transaction) {
+        return new TransactionResponse(
                 transaction.getId(),
                 transaction.getName(),
                 transaction.getAmount(),
@@ -95,11 +91,11 @@ public class TransactionController {
                 transaction.getType().name(),
                 transaction.getBankAccount().getId(),
                 transaction.getCategory().getId(),
+                transaction.getIsRecurring() != null ? transaction.getIsRecurring() : false,
+                transaction.getFrequency() != null ? transaction.getFrequency().name() : null,
                 transaction.getCreatedAt(),
                 transaction.getUpdatedAt()
         );
-
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
