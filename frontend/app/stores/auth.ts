@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useCookie } from '#imports'
 import { defineStore } from 'pinia'
+import { useQueryClient } from '@tanstack/vue-query'
 
 export interface User {
   id: string
@@ -38,8 +39,34 @@ export const useAuthStore = defineStore('auth', () => {
     tokenCookie.value = null
   }
 
+  function resetDashboardState() {
+    if (import.meta.server) return
+    useState('transactionFilters').value = undefined
+    useState('isNewTransactionModalOpen').value = false
+    useState('newTransactionType').value = null
+    useState('isEditTransactionModalOpen').value = false
+    useState('transactionBeingEdited').value = null
+    useState('isNewAccountModalOpen').value = false
+    useState('isNewGoalModalOpen').value = false
+    useState('isNewGoalValueModalOpen').value = false
+    useState('goalInteractionType').value = 'DEPOSIT'
+    useState('isEditGoalModalOpen').value = false
+    useState('goalBeingEdited').value = null
+    useState('goalForValueAddition').value = null
+    useState('isConfirmDeleteModalOpen').value = false
+    useState('confirmDeleteEntityType').value = null
+    useState('confirmDeleteEntityId').value = null
+    useState('isMonthlySummaryModalOpen').value = false
+    useState('isEditProfileModalOpen').value = false
+  }
+
   async function logout() {
     clearAuth()
+    if (import.meta.client) {
+      const queryClient = useQueryClient()
+      queryClient.clear()
+      resetDashboardState()
+    }
     await navigateTo('/login')
   }
 

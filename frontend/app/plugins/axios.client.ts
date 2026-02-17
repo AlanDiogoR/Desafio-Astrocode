@@ -6,6 +6,7 @@ export default defineNuxtPlugin(() => {
 
   const api = axios.create({
     baseURL: config.public.apiBase,
+    timeout: 30_000, // 30 segundos - evita loading infinito se o servidor não responder
   })
 
   api.interceptors.request.use(

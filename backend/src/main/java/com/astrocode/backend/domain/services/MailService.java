@@ -29,17 +29,22 @@ public class MailService {
             log.info("[DEV] Código de recuperação para {}: {}", toEmail, code);
             return;
         }
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("Grivy - Código de recuperação de senha");
-        message.setText(String.format(
-                "Olá!\n\nSeu código de recuperação de senha é: %s\n\n" +
-                "Este código expira em 15 minutos.\n\n" +
-                "Se você não solicitou esta alteração, ignore este e-mail.\n\n" +
-                "Grivy - Controle Financeiro",
-                code
-        ));
-        mailSender.send(message);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Grivy - Código de recuperação de senha");
+            message.setText(String.format(
+                    "Olá!\n\nSeu código de recuperação de senha é: %s\n\n" +
+                    "Este código expira em 15 minutos.\n\n" +
+                    "Se você não solicitou esta alteração, ignore este e-mail.\n\n" +
+                    "Grivy - Controle Financeiro",
+                    code
+            ));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Falha ao enviar e-mail de recuperação para {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Não foi possível enviar o e-mail. Verifique as configurações de SMTP.", e);
+        }
     }
 }

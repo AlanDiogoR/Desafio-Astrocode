@@ -80,6 +80,10 @@ export function useDashboard() {
   }
 
   function openGoalInteractionModal(type: GoalInteractionType, goal?: SavingsGoal) {
+    if (!hasAccounts.value) {
+      toast.error('Você precisa cadastrar uma conta bancária primeiro!')
+      return
+    }
     goalInteractionType.value = type
     goalForValueAddition.value = goal ?? null
     isNewGoalValueModalOpen.value = true

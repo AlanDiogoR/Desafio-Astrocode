@@ -35,7 +35,9 @@ export function getErrorMessage(error: unknown, fallback = DEFAULT_MESSAGE): str
 
   if (status && STATUS_MESSAGES[status]) return STATUS_MESSAGES[status]
   if (axiosError.code === 'ERR_NETWORK') return 'Falha ao conectar com o servidor.'
-  if (axiosError.message?.toLowerCase().includes('timeout')) return 'Tempo limite excedido. Tente novamente.'
+  if (axiosError.code === 'ECONNABORTED' || axiosError.message?.toLowerCase().includes('timeout')) {
+    return 'Tempo limite excedido. Tente novamente.'
+  }
 
   return fallback
 }
