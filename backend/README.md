@@ -265,6 +265,13 @@ JWT_SECRET=uma_chave_segura_com_pelo_menos_32_caracteres_aleatorios
 **☁️ Configuração em Serviços de Cloud**:
 Ao fazer deploy em serviços de Cloud (como Render, Railway ou Heroku), configure as variáveis de ambiente diretamente no painel do serviço. Não é necessário criar o arquivo `.env` manualmente - as variáveis de ambiente configuradas no serviço serão automaticamente utilizadas pela aplicação.
 
+**📧 Recuperação de senha (Railway)**:
+Use **Brevo** (API HTTP, funciona sem domínio):
+1. Crie conta em [brevo.com](https://www.brevo.com)
+2. Configurações > Remetentes > Adicione e verifique o e-mail (ex: grivycontrolefinanceiro@gmail.com)
+3. Configurações > API Keys > Gere uma chave
+4. No Railway: `BREVO_API_KEY=xkeysib_xxx` e `MAIL_FROM=grivycontrolefinanceiro@gmail.com`
+
 ### Configuração do Banco de Dados
 
 1. Crie um banco de dados PostgreSQL:
