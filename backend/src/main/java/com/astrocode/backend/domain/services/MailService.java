@@ -43,8 +43,11 @@ public class MailService {
             ));
             mailSender.send(message);
         } catch (Exception e) {
-            log.error("Falha ao enviar e-mail de recuperação para {}: {}", toEmail, e.getMessage());
-            throw new RuntimeException("Não foi possível enviar o e-mail. Verifique as configurações de SMTP.", e);
+            log.error("Falha ao enviar e-mail de recuperação para {}: {}. Código (recupere nos logs): {}",
+                    toEmail, e.getMessage(), code);
+            log.warn("[FALLBACK] SMTP falhou. Código de recuperação para {}: {} (expira em 15 min)",
+                    toEmail, code);
+            // Não relançar: retorna 200, código salvo no DB e nos logs para recuperação
         }
     }
 }
