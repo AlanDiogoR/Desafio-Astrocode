@@ -133,7 +133,8 @@ Crie um arquivo `.env` na raiz do frontend baseado no `.env.example`:
 NUXT_PUBLIC_API_BASE=http://localhost:8080/api
 ```
 
-Para produção, defina a URL do backend (ex: `https://seu-backend.railway.app/api`).
+Para produção (Netlify), configure em Site settings > Environment variables:
+- `NUXT_PUBLIC_API_BASE` = `https://desafio-astrocode-production.up.railway.app/api`
 
 ### Instalação
 

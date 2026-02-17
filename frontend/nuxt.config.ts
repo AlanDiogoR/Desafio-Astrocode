@@ -40,7 +40,7 @@ export default defineNuxtConfig({
   },
 
 
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@netlify/nuxt'],
 
   css: [
     '~/assets/design-tokens.scss',

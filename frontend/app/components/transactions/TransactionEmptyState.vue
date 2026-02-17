@@ -6,7 +6,7 @@
     class="transaction-list__empty d-flex flex-column align-center justify-center flex-grow-1"
   >
     <img
-      src="/images/transacoesGeral.svg"
+      src="/images/Ilustra.png"
       alt="Sem transações"
       class="transaction-list__empty-img"
     >

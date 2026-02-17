@@ -31,6 +31,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@netlify/nuxt": "^0.2.22",
     "sass-embedded": "^1.97.3",
     "vite-plugin-vuetify": "^2.1.3"
   }

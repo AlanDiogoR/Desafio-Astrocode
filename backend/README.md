@@ -552,6 +552,8 @@ backend/
 ### Configuração de CORS
 
 O backend está configurado para aceitar requisições de:
+- `https://grivy.netlify.app` (produção)
+- `https://www.grivy.netlify.app`
 - `http://localhost:3000`
 - `http://localhost:5173`
 
