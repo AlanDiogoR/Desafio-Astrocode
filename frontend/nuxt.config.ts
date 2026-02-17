@@ -23,10 +23,22 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/vuetify')) return 'vuetify'
+            if (id.includes('node_modules/@radix-icons') || id.includes('node_modules/radix-vue')) return 'radix'
+          },
+        },
+      },
+    },
     optimizeDeps: {
       include: ['@vuepic/vue-datepicker'],
     },
   },
+
 
   modules: ['@pinia/nuxt'],
 

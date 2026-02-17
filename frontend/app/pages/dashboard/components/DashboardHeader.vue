@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ExitIcon } from '@radix-icons/vue'
 import AppLogo from '~/components/ui/AppLogo.vue'
-import AppDropdown from '~/components/ui/AppDropdown.vue'
 import { useAuthStore } from '~/stores/auth'
+import { useDashboard } from '~/composables/useDashboard'
 
 const authStore = useAuthStore()
+const { openEditProfileModal } = useDashboard()
 
 const userInitials = computed(() => {
   const name = authStore.user?.name
@@ -15,14 +15,6 @@ const userInitials = computed(() => {
   }
   return name.slice(0, 2).toUpperCase()
 })
-
-const dropdownItems = computed(() => [
-  {
-    label: 'Sair',
-    icon: ExitIcon,
-    action: () => authStore.logout(),
-  },
-])
 </script>
 
 <template>
@@ -33,16 +25,19 @@ const dropdownItems = computed(() => [
         :size="28"
       />
     </div>
-    <AppDropdown :items="dropdownItems">
-      <template #trigger>
-        <v-avatar
-          class="dashboard-header__avatar cursor-pointer"
-          size="40"
-        >
-          <span class="avatar-initials">{{ userInitials }}</span>
-        </v-avatar>
-      </template>
-    </AppDropdown>
+    <button
+      type="button"
+      class="dashboard-header__avatar-btn"
+      aria-label="Editar perfil"
+      @click="openEditProfileModal"
+    >
+      <v-avatar
+        class="dashboard-header__avatar"
+        size="40"
+      >
+        <span class="avatar-initials">{{ userInitials }}</span>
+      </v-avatar>
+    </button>
   </header>
 </template>
 
@@ -63,6 +58,15 @@ const dropdownItems = computed(() => [
 
 .dashboard-header__logo :deep(.app-logo) {
   width: auto;
+}
+
+.dashboard-header__avatar-btn {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
 }
 
 .dashboard-header__avatar {

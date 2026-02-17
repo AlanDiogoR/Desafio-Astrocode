@@ -44,6 +44,13 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
       </div>
     </div>
     <div v-if="isLoading" class="goals-skeleton">
+      <div class="goals-skeleton__spinner">
+        <v-progress-circular
+          indeterminate
+          color="white"
+          size="48"
+        />
+      </div>
       <v-skeleton-loader
         type="list-item-avatar-two-line"
         class="goals-skeleton__item"
@@ -105,6 +112,16 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
   display: flex;
   gap: 16px;
   padding-bottom: 8px;
+  position: relative;
+}
+
+.goals-skeleton__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 0.95;
 }
 
 .goals-skeleton__item {

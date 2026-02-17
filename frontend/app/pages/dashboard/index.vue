@@ -3,6 +3,7 @@ import AccountOverview from './components/AccountOverview.vue'
 import DashboardHeader from './components/DashboardHeader.vue'
 import TransactionList from './components/TransactionList.vue'
 import ConfirmDeleteModal from '~/components/modals/ConfirmDeleteModal.vue'
+import EditProfileModal from '~/components/modals/EditProfileModal.vue'
 
 definePageMeta({
   layout: 'dashboard',
@@ -26,6 +27,7 @@ const { handleConfirm } = useConfirmDelete()
       :on-confirm="handleConfirm"
       :on-close="closeConfirmDeleteModal"
     />
+    <EditProfileModal />
     <DashboardHeader />
     <div class="dashboard-grid">
       <div class="dashboard-col dashboard-col--left">

@@ -86,7 +86,7 @@ watch(() => props.open, (open) => {
       <DialogOverlay class="summary-modal-overlay" />
       <DialogContent
         class="summary-modal-content"
-        aria-describedby="summary-desc"
+        :aria-describedby="undefined"
         @pointer-down-outside="close"
       >
         <header class="summary-modal-header">
@@ -130,7 +130,18 @@ watch(() => props.open, (open) => {
 
         <div id="summary-desc" class="summary-modal-body">
           <div v-if="isPending" class="summary-modal-loading">
-            <v-progress-circular indeterminate color="primary" size="48" />
+            <v-progress-circular
+              indeterminate
+              color="primary"
+              size="48"
+              class="summary-modal-loading__spinner"
+            />
+            <div class="summary-modal-loading-skeleton">
+              <v-skeleton-loader type="image" height="120" class="mb-4" />
+              <v-skeleton-loader type="list-item-two-line" class="mb-3" />
+              <v-skeleton-loader type="list-item-two-line" class="mb-3" />
+              <v-skeleton-loader type="list-item-two-line" />
+            </div>
           </div>
           <template v-else>
             <ExpenseChart
@@ -277,10 +288,22 @@ watch(() => props.open, (open) => {
 }
 
 .summary-modal-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   min-height: 200px;
+}
+
+.summary-modal-loading__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 0.95;
+}
+
+.summary-modal-loading-skeleton {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .summary-modal-list {

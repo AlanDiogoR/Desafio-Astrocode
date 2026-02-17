@@ -1,5 +1,6 @@
 package com.astrocode.backend.api.controllers;
 
+import com.astrocode.backend.api.dto.user.UpdateProfileRequest;
 import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
 import com.astrocode.backend.api.dto.user.UserResponse;
 import com.astrocode.backend.domain.entities.User;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,15 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(userService.toResponse(user));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateMe(@AuthenticationPrincipal User user,
+                                                  @RequestBody @Valid UpdateProfileRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(userService.updateProfile(user, request));
     }
 
     @PostMapping

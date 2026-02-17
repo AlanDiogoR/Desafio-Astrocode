@@ -33,10 +33,16 @@ function togglePrivacy() {
         <p class="balance-label ma-0 mb-2">
           Saldo total
         </p>
-        <div class="d-flex align-center">
-          <p v-if="isLoading" class="balance-skeleton ma-0">
-            <v-skeleton-loader type="text" width="140" />
-          </p>
+        <div class="d-flex align-center balance-section__row">
+          <div v-if="isLoading" class="balance-skeleton-wrapper">
+            <v-progress-circular
+              indeterminate
+              color="white"
+              size="36"
+              class="balance-skeleton__spinner"
+            />
+            <v-skeleton-loader type="text" width="140" class="balance-skeleton ma-0" />
+          </div>
           <p v-else class="balance-value ma-0">
             {{ formattedTotalBalance }}
           </p>
@@ -86,6 +92,13 @@ function togglePrivacy() {
           v-if="isLoading"
           class="accounts-skeleton"
         >
+          <div class="accounts-skeleton__spinner">
+            <v-progress-circular
+              indeterminate
+              color="white"
+              size="48"
+            />
+          </div>
           <v-skeleton-loader
             type="list-item-avatar-two-line"
             class="accounts-skeleton__item"
@@ -155,6 +168,24 @@ function togglePrivacy() {
   margin: 0 0 4px 0;
 }
 
+.balance-skeleton-wrapper {
+  position: relative;
+  min-width: 140px;
+}
+
+.balance-skeleton__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 0.95;
+}
+
+.balance-skeleton-wrapper .balance-skeleton {
+  opacity: 0.5;
+}
+
 .balance-skeleton :deep(.v-skeleton-loader__text) {
   background: rgba(255, 255, 255, 0.3);
 }
@@ -197,6 +228,16 @@ function togglePrivacy() {
   display: flex;
   gap: 16px;
   padding-bottom: 8px;
+  position: relative;
+}
+
+.accounts-skeleton__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 0.95;
 }
 
 .accounts-skeleton__item {

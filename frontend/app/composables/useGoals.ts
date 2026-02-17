@@ -63,6 +63,7 @@ export function useGoals() {
       return (data as SavingsGoalApiResponse[]).map(mapApiToSavingsGoal)
     },
     enabled: computed(() => !!authStore.token),
+    refetchOnMount: false,
   })
 
   if (import.meta.client) {

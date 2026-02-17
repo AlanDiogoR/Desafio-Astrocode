@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 
-export interface BankAccount {
+interface AccountsQueryItem {
   id: string
   name: string
   initialBalance: number
@@ -23,14 +23,14 @@ export function useAccounts() {
     refetch,
   } = useQuery({
     queryKey: ACCOUNTS_QUERY_KEY,
-    queryFn: async (): Promise<BankAccount[]> => {
-      const { data } = await $api.get<BankAccount[]>('/accounts')
+    queryFn: async (): Promise<AccountsQueryItem[]> => {
+      const { data } = await $api.get<AccountsQueryItem[]>('/accounts')
       return data ?? []
     },
     enabled: computed(() => !!authStore.token),
   })
 
-  const accounts = computed<BankAccount[]>(() => accountsData.value ?? [])
+  const accounts = computed<AccountsQueryItem[]>(() => accountsData.value ?? [])
 
   function invalidateAccounts() {
     queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })

@@ -100,6 +100,13 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
     </div>
     <div class="transaction-list__scroll">
       <div v-if="isPending" class="transaction-list__skeleton">
+        <div class="transaction-list__skeleton-spinner">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="48"
+          />
+        </div>
         <v-skeleton-loader type="list-item-avatar-three-line" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" />
@@ -196,6 +203,16 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
 
 .transaction-list__skeleton {
   padding: 8px 0;
+  position: relative;
+}
+
+.transaction-list__skeleton-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  opacity: 0.95;
 }
 
 @media (max-width: 959px) {

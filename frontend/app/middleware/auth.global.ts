@@ -3,7 +3,7 @@ interface FetchError {
   response?: { status?: number }
 }
 
-const PUBLIC_PATHS = ['/login', '/register'] as const
+const PUBLIC_PATHS = ['/login', '/register', '/forgot-password'] as const
 
 function isPublicRoute(path: string): path is (typeof PUBLIC_PATHS)[number] {
   return PUBLIC_PATHS.includes(path as (typeof PUBLIC_PATHS)[number])

@@ -1,10 +1,12 @@
 package com.astrocode.backend.domain.services;
 
+import com.astrocode.backend.api.dto.user.UpdateProfileRequest;
 import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
 import com.astrocode.backend.api.dto.user.UserResponse;
 import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
+import com.astrocode.backend.domain.exceptions.InvalidPasswordException;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
@@ -26,6 +28,29 @@ public class UserService {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    public UserResponse updateProfile(User user, UpdateProfileRequest request) {
+        boolean updatingName = request.name() != null && !request.name().isBlank();
+        boolean updatingPassword = request.newPassword() != null && !request.newPassword().isBlank();
+
+        if (updatingPassword) {
+            if (request.currentPassword() == null || request.currentPassword().isBlank()) {
+                throw new InvalidPasswordException("Informe a senha atual para alterar");
+            }
+            if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+                throw new InvalidPasswordException();
+            }
+        }
+
+        if (updatingName) {
+            user.setName(request.name().trim());
+        }
+        if (updatingPassword) {
+            user.setPassword(passwordEncoder.encode(request.newPassword()));
+        }
+
+        return toResponse(userRepository.save(user));
     }
 
     public UserResponse toResponse(User user) {

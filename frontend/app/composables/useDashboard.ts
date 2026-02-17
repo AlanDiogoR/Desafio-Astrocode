@@ -35,6 +35,7 @@ export function useDashboard() {
   const confirmDeleteEntityType = useState<ConfirmDeleteEntityType | null>('confirmDeleteEntityType', () => null)
   const confirmDeleteEntityId = useState<string | null>('confirmDeleteEntityId', () => null)
   const isMonthlySummaryModalOpen = useState<boolean>('isMonthlySummaryModalOpen', () => false)
+  const isEditProfileModalOpen = useState<boolean>('isEditProfileModalOpen', () => false)
   const { hasAccounts } = useBankAccounts()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -120,6 +121,14 @@ export function useDashboard() {
     isMonthlySummaryModalOpen.value = false
   }
 
+  function openEditProfileModal() {
+    isEditProfileModalOpen.value = true
+  }
+
+  function closeEditProfileModal() {
+    isEditProfileModalOpen.value = false
+  }
+
   return {
     transactionFilters,
     isNewTransactionModalOpen,
@@ -153,5 +162,8 @@ export function useDashboard() {
     isMonthlySummaryModalOpen,
     openMonthlySummaryModal,
     closeMonthlySummaryModal,
+    isEditProfileModalOpen,
+    openEditProfileModal,
+    closeEditProfileModal,
   }
 }

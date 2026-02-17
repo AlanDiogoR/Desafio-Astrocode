@@ -52,7 +52,7 @@ async function onSubmit() {
           :type="showPassword ? 'text' : 'password'"
           :field-error="passwordErrorDisplay"
           :disabled="isPending"
-          class="mb-6"
+          class="mb-2"
           @clear-error="clearFieldError('password')"
           @blur="markAsTouched('password')"
         >
@@ -64,6 +64,14 @@ async function onSubmit() {
           />
         </template>
         </AppInput>
+        <div class="text-right mb-6">
+          <NuxtLink
+            to="/forgot-password"
+            class="forgot-password-link"
+          >
+            Esqueceu a senha?
+          </NuxtLink>
+        </div>
       </ClientOnly>
 
       <AppButton
@@ -113,6 +121,17 @@ async function onSubmit() {
 }
 
 .footer-link:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-link {
+  font-size: 14px;
+  color: #087F5B;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-password-link:hover {
   text-decoration: underline;
 }
 

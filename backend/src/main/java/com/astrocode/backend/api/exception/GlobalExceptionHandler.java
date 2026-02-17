@@ -5,6 +5,8 @@ import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
+import com.astrocode.backend.domain.exceptions.InvalidPasswordException;
+import com.astrocode.backend.domain.exceptions.InvalidResetCodeException;
 import com.astrocode.backend.domain.exceptions.InvalidTokenException;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
@@ -41,6 +43,26 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPasswordException(InvalidPasswordException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidResetCodeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidResetCodeException(InvalidResetCodeException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler({InvalidTokenException.class, JwtException.class})

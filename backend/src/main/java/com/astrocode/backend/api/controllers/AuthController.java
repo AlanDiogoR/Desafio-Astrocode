@@ -1,7 +1,9 @@
 package com.astrocode.backend.api.controllers;
 
+import com.astrocode.backend.api.dto.auth.ForgotPasswordRequest;
 import com.astrocode.backend.api.dto.auth.LoginRequest;
 import com.astrocode.backend.api.dto.auth.LoginResponse;
+import com.astrocode.backend.api.dto.auth.ResetPasswordRequest;
 import com.astrocode.backend.domain.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<LoginResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        LoginResponse response = authService.resetPasswordWithCode(request);
         return ResponseEntity.ok(response);
     }
 }

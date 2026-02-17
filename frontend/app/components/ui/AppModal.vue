@@ -25,7 +25,7 @@ function close() {
 
 function onPointerDownOutside(e: { preventDefault?: () => void; detail?: { originalEvent?: { target?: EventTarget } }; target?: EventTarget }) {
   const target = (e.detail as { originalEvent?: { target?: EventTarget } } | undefined)?.originalEvent?.target ?? e.target
-  if (target instanceof HTMLElement && target.closest('[data-modal-ignore-close]')) {
+  if (target instanceof HTMLElement && (target.closest('[data-modal-ignore-close]') || target.closest('.dropdown-content'))) {
     e.preventDefault?.()
   } else {
     close()
