@@ -280,14 +280,14 @@ public class TransactionService {
         var startDate = LocalDate.of(year, month, 1);
         var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        var totalExpense = transactionRepository.sumTotalByUserIdAndTypeAndDateRange(
-                userId, TransactionType.EXPENSE, startDate, endDate
+        var totalExpense = transactionRepository.sumTotalExpensesExcludingGoalsByUserIdAndDateRange(
+                userId, startDate, endDate
         );
         if (totalExpense == null) {
             totalExpense = BigDecimal.ZERO;
         }
 
-        var byCategoryRaw = transactionRepository.sumExpensesByCategoryForDateRange(userId, TransactionType.EXPENSE, startDate, endDate);
+        var byCategoryRaw = transactionRepository.sumExpensesByCategoryExcludingGoalsForDateRange(userId, startDate, endDate);
         var byCategory = byCategoryRaw.stream()
                 .map(row -> new CategoryExpenseItem(
                         (UUID) row[0],

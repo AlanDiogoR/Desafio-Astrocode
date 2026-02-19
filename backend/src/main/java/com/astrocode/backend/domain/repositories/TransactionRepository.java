@@ -84,10 +84,24 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("endDate") LocalDate endDate
     );
 
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.id = :userId AND t.type = 'EXPENSE' AND t.goal IS NULL AND t.date >= :startDate AND t.date <= :endDate")
+    BigDecimal sumTotalExpensesExcludingGoalsByUserIdAndDateRange(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     @Query("SELECT t.category.id, t.category.name, SUM(t.amount) FROM Transaction t WHERE t.user.id = :userId AND t.type = :type AND t.date >= :startDate AND t.date <= :endDate GROUP BY t.category.id, t.category.name ORDER BY SUM(t.amount) DESC")
     List<Object[]> sumExpensesByCategoryForDateRange(
             @Param("userId") UUID userId,
             @Param("type") TransactionType type,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("SELECT t.category.id, t.category.name, SUM(t.amount) FROM Transaction t WHERE t.user.id = :userId AND t.type = 'EXPENSE' AND t.goal IS NULL AND t.date >= :startDate AND t.date <= :endDate GROUP BY t.category.id, t.category.name ORDER BY SUM(t.amount) DESC")
+    List<Object[]> sumExpensesByCategoryExcludingGoalsForDateRange(
+            @Param("userId") UUID userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );

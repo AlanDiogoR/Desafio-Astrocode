@@ -1,8 +1,10 @@
 package com.astrocode.backend.domain.jobs;
 
 import com.astrocode.backend.domain.entities.Transaction;
+import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
 import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
+import com.astrocode.backend.domain.services.MailService;
 import com.astrocode.backend.domain.services.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +12,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Job que executa diariamente para gerar transações filhas a partir de transações pai recorrentes.
@@ -23,15 +29,21 @@ public class RecurringTransactionJob {
 
     private static final Logger log = LoggerFactory.getLogger(RecurringTransactionJob.class);
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final NumberFormat CURRENCY_FORMATTER = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+
     private final TransactionRepository transactionRepository;
     private final TransactionService transactionService;
+    private final MailService mailService;
 
     public RecurringTransactionJob(
             TransactionRepository transactionRepository,
-            TransactionService transactionService
+            TransactionService transactionService,
+            MailService mailService
     ) {
         this.transactionRepository = transactionRepository;
         this.transactionService = transactionService;
+        this.mailService = mailService;
     }
 
     @Scheduled(cron = "0 5 0 * * ?")
@@ -77,9 +89,25 @@ public class RecurringTransactionJob {
                 );
 
                 if (!exists) {
-                    transactionService.createRecurringChild(parent, targetDate);
-                    generated++;
-                    log.debug("Transação recorrente gerada: {} (pai: {})", targetDate, parent.getId());
+                    try {
+                        transactionService.createRecurringChild(parent, targetDate);
+                        generated++;
+                        log.debug("Transação recorrente gerada: {} (pai: {})", targetDate, parent.getId());
+                    } catch (InsufficientBalanceException e) {
+                        var user = parent.getUser();
+                        var toEmail = user != null ? user.getEmail() : null;
+                        if (toEmail != null) {
+                            var amountFormatted = CURRENCY_FORMATTER.format(parent.getAmount() != null ? parent.getAmount() : BigDecimal.ZERO);
+                            var dateFormatted = targetDate.format(DATE_FORMATTER);
+                            mailService.sendRecurringExpenseNotAddedDueToInsufficientBalance(
+                                    toEmail,
+                                    parent.getName(),
+                                    amountFormatted,
+                                    dateFormatted
+                            );
+                        }
+                        log.warn("Transação recorrente não registrada (saldo insuficiente) para pai {}: {} | email enviado para {}", parent.getId(), parent.getName(), toEmail);
+                    }
                 }
             } catch (Exception e) {
                 log.warn("Erro ao gerar transação recorrente para pai {}: {}", parent.getId(), e.getMessage());

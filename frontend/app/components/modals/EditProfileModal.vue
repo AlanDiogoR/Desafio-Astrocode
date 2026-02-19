@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExitIcon, EyeOpenIcon, EyeClosedIcon } from '@radix-icons/vue'
+import { ExitIcon } from '@radix-icons/vue'
 import AppModal from '~/components/ui/AppModal.vue'
 import AppInput from '~/components/ui/AppInput.vue'
 import AppButton from '~/components/ui/AppButton.vue'
@@ -106,16 +106,11 @@ watch(isEditProfileModalOpen, (open) => {
             @blur="markTouched('currentPassword')"
           >
             <template #append-inner>
-              <button
-                type="button"
-                class="password-toggle-btn"
-                aria-label="Alternar visibilidade da senha"
-                tabindex="-1"
+              <v-icon
+                :icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                class="password-toggle-icon"
                 @click="togglePasswordVisibility('current')"
-              >
-                <EyeOpenIcon v-if="showCurrentPassword" width="20" height="20" />
-                <EyeClosedIcon v-else width="20" height="20" />
-              </button>
+              />
             </template>
           </AppInput>
           <AppInput
@@ -127,16 +122,11 @@ watch(isEditProfileModalOpen, (open) => {
             @blur="markTouched('newPassword')"
           >
             <template #append-inner>
-              <button
-                type="button"
-                class="password-toggle-btn"
-                aria-label="Alternar visibilidade da senha"
-                tabindex="-1"
+              <v-icon
+                :icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                class="password-toggle-icon"
                 @click="togglePasswordVisibility('new')"
-              >
-                <EyeOpenIcon v-if="showNewPassword" width="20" height="20" />
-                <EyeClosedIcon v-else width="20" height="20" />
-              </button>
+              />
             </template>
           </AppInput>
           <AppInput
@@ -148,16 +138,11 @@ watch(isEditProfileModalOpen, (open) => {
             @blur="markTouched('confirmPassword')"
           >
             <template #append-inner>
-              <button
-                type="button"
-                class="password-toggle-btn"
-                aria-label="Alternar visibilidade da senha"
-                tabindex="-1"
+              <v-icon
+                :icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                class="password-toggle-icon"
                 @click="togglePasswordVisibility('confirm')"
-              >
-                <EyeOpenIcon v-if="showConfirmPassword" width="20" height="20" />
-                <EyeClosedIcon v-else width="20" height="20" />
-              </button>
+              />
             </template>
           </AppInput>
         </div>
@@ -223,20 +208,13 @@ watch(isEditProfileModalOpen, (open) => {
   background-color: #fef2f2;
 }
 
-.password-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: none;
+.password-toggle-icon {
   cursor: pointer;
   color: #6b7280;
-  border-radius: 4px;
   transition: color 0.2s;
 }
 
-.password-toggle-btn:hover {
+.password-toggle-icon:hover {
   color: #087f5b;
 }
 </style>

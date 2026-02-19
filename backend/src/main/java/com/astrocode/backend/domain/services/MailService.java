@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Service
 public class MailService {
@@ -17,6 +18,7 @@ public class MailService {
 
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
     private static final String SUBJECT = "Grivy - Código de recuperação de senha";
+    private static final String RECURRING_INSUFFICIENT_BALANCE_SUBJECT = "Grivy - Despesa recorrente não registrada";
     private static final String BODY_TEMPLATE = """
             Olá!
 
@@ -25,6 +27,14 @@ public class MailService {
             Este código expira em 15 minutos.
 
             Se você não solicitou esta alteração, ignore este e-mail.
+
+            Grivy - Controle Financeiro""";
+    private static final String RECURRING_INSUFFICIENT_BALANCE_TEMPLATE = """
+            Olá!
+
+            Sua despesa recorrente "%s" no valor de %s (data prevista: %s) não pôde ser registrada porque não há saldo suficiente na conta vinculada.
+
+            Por favor, adicione fundos à sua conta para que as próximas cobranças sejam processadas automaticamente.
 
             Grivy - Controle Financeiro""";
 
@@ -52,15 +62,27 @@ public class MailService {
             return;
         }
 
-        sendViaBrevo(toEmail, code, body);
+        sendViaBrevo(toEmail, SUBJECT, body, (e) ->
+                log.warn("[FALLBACK] Brevo falhou. Código de recuperação para {}: {} (expira em 15 min)", toEmail, code));
     }
 
-    private void sendViaBrevo(String toEmail, String code, String body) {
+    public void sendRecurringExpenseNotAddedDueToInsufficientBalance(String toEmail, String expenseName, String amountFormatted, String date) {
+        String body = String.format(RECURRING_INSUFFICIENT_BALANCE_TEMPLATE, expenseName, amountFormatted, date);
+
+        if (brevoApiKey.isBlank()) {
+            log.info("[DEV] Despesa recorrente não registrada para {}: {} | {} | {}", toEmail, expenseName, amountFormatted, date);
+            return;
+        }
+
+        sendViaBrevo(toEmail, RECURRING_INSUFFICIENT_BALANCE_SUBJECT, body, null);
+    }
+
+    private void sendViaBrevo(String toEmail, String subject, String body, Consumer<Exception> onFailure) {
         try {
             Map<String, Object> payload = Map.of(
                     "sender", Map.of("name", "Grivy", "email", fromEmail),
                     "to", List.of(Map.of("email", toEmail)),
-                    "subject", SUBJECT,
+                    "subject", subject,
                     "textContent", body
             );
 
@@ -69,10 +91,10 @@ public class MailService {
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {
-            log.error("Falha ao enviar e-mail via Brevo para {}: {}. Código (recupere nos logs): {}",
-                    toEmail, e.getMessage(), code);
-            log.warn("[FALLBACK] Brevo falhou. Código de recuperação para {}: {} (expira em 15 min)",
-                    toEmail, code);
+            log.error("Falha ao enviar e-mail via Brevo para {}: {}", toEmail, e.getMessage());
+            if (onFailure != null) {
+                onFailure.accept(e);
+            }
         }
     }
 }
