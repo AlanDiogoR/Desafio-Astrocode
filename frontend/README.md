@@ -54,9 +54,10 @@ NUXT_PUBLIC_API_BASE=http://localhost:8080/api
 - **Pinia** (`stores/auth.ts`): Estado de autenticação (token, user). O cookie `auth_token` persiste o JWT.
 - **Vue Query**: Cache de dados (transações, contas, metas, categorias, resumo mensal). Queries principais:
   - `['transactions']` — lista de transações
+  - `['dashboard']` — resumo consolidado (saldo total, receitas/despesas do mês)
   - `['monthly-summary', year, month]` — resumo de gastos (SpendingAlert)
   - `['monthly-summary-modal', year, month]` — resumo no modal
-  - `['categories']`, `['accounts']`, `['goals']` — listas por domínio
+  - `['categories']`, `['bankAccounts']`, `['goals']`, `['dashboard']` — listas e resumos por domínio
 - **Invalidação**: Ao criar/editar/deletar transação ou contribuir/sacar em meta, as queries `transactions`, `monthly-summary` e `monthly-summary-modal` são invalidadas para refletir mudanças imediatas.
 
 ---
@@ -69,7 +70,8 @@ NUXT_PUBLIC_API_BASE=http://localhost:8080/api
 | `useAuth` / `useAuthStore` | Autenticação: login, logout, token, usuário |
 | `useTransactions` | Lista de transações com filtros, paginação e query key |
 | `useCategories` | Lista de categorias filtrada por tipo (INCOME/EXPENSE) |
-| `useBankAccounts` / `useAccounts` | Contas bancárias e invalidação |
+| `useBankAccounts` | Contas bancárias e invalidação |
+| `useDashboardData` | Saldo total e totais do mês (GET /api/dashboard) |
 | `useGoals` | Metas de poupança e invalidação |
 | `useInsightsController` | Resumo mensal e SpendingAlert (alerta de categoria com alta % de gastos) |
 | `useNewTransactionModalController` | Formulário e criação de transação |
@@ -150,7 +152,7 @@ frontend/
 │   ├── composables/
 │   │   ├── useAuthForm.ts, useFieldValidation.ts, useUser.ts
 │   │   ├── useAppLoading.ts, useCarousel.ts, useMonthSelector.ts
-│   │   ├── useTransactions.ts, useGoals.ts, useBankAccounts.ts, useAccounts.ts
+│   │   ├── useTransactions.ts, useGoals.ts, useBankAccounts.ts
 │   │   ├── useDashboard.ts, useCategories.ts, useDashboardController.ts
 │   │   ├── useInsightsController.ts
 │   │   ├── useNewTransactionModalController.ts, useEditTransactionModalController.ts
@@ -180,4 +182,5 @@ frontend/
 - [Nuxt](https://nuxt.com/docs)
 - [Vuetify](https://vuetifyjs.com/)
 - [Radix Vue](https://www.radix-vue.com/)
-- [Backend API](../backend/README.md)
+- [Backend API](../backend/README.md) - API REST, endpoints e configuração
+- [Swagger UI](http://localhost:8080/swagger-ui.html) - Documentação interativa da API (requer backend rodando)

@@ -7,6 +7,11 @@ import com.astrocode.backend.api.dto.goal.SavingsGoalResponse;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.services.SavingsGoalService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +23,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Metas de poupança", description = "CRUD de metas, contribuição e saque")
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 @RequestMapping("/api/goals")
 public class SavingsGoalController {
@@ -28,6 +35,11 @@ public class SavingsGoalController {
         this.savingsGoalService = savingsGoalService;
     }
 
+    @Operation(summary = "Criar meta", description = "Cria nova meta de poupança")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Meta criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    })
     @PostMapping
     public ResponseEntity<SavingsGoalResponse> create(
             @RequestBody @Valid SavingsGoalRequest request,
@@ -41,6 +53,8 @@ public class SavingsGoalController {
         return ResponseEntity.created(location).body(response);
     }
 
+    @Operation(summary = "Listar metas", description = "Lista todas as metas de poupança do usuário")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Lista de metas")})
     @GetMapping
     public ResponseEntity<List<SavingsGoalResponse>> getAll(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
@@ -53,6 +67,11 @@ public class SavingsGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Atualizar meta", description = "Atualiza meta de poupança existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Meta atualizada"),
+            @ApiResponse(responseCode = "404", description = "Meta não encontrada")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<SavingsGoalResponse> update(
             @PathVariable UUID id,
@@ -66,6 +85,12 @@ public class SavingsGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Contribuir", description = "Transfere valor da conta bancária para a meta")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contribuição realizada"),
+            @ApiResponse(responseCode = "400", description = "Saldo insuficiente"),
+            @ApiResponse(responseCode = "404", description = "Meta ou conta não encontrada")
+    })
     @PatchMapping("/{id}/contribute")
     public ResponseEntity<SavingsGoalResponse> contribute(
             @PathVariable UUID id,
@@ -79,6 +104,12 @@ public class SavingsGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Sacar", description = "Transfere valor da meta de volta para a conta bancária")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Saque realizado"),
+            @ApiResponse(responseCode = "400", description = "Valor inválido ou superior ao saldo da meta"),
+            @ApiResponse(responseCode = "404", description = "Meta ou conta não encontrada")
+    })
     @PatchMapping("/{id}/withdraw")
     public ResponseEntity<SavingsGoalResponse> withdraw(
             @PathVariable UUID id,
@@ -92,6 +123,11 @@ public class SavingsGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Excluir meta", description = "Exclui meta de poupança")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Meta excluída"),
+            @ApiResponse(responseCode = "404", description = "Meta não encontrada")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID id,

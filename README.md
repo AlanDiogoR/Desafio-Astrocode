@@ -127,6 +127,7 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 | Java 21 | Linguagem de programação |
 | Spring Boot 4 | Framework para APIs REST |
 | Spring Security 6 | Autenticação e autorização |
+| SpringDoc OpenAPI | Documentação da API via Swagger UI |
 | PostgreSQL 16 | Banco de dados relacional |
 | JWT 0.13 | Autenticação stateless |
 | Flyway | Migrações de banco de dados |
@@ -166,6 +167,7 @@ Desafio-Astrocode/
 
 - [Backend](backend/README.md) - API REST, endpoints e configuração
 - [Frontend](frontend/README.md) - Setup, estrutura e design tokens
+- **Documentação interativa da API** (Swagger UI): quando o backend estiver rodando, acesse [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ---
 
@@ -199,6 +201,10 @@ npm run dev
 ```
 
 Interface em `http://localhost:3000`
+
+### Documentação da API (opcional)
+
+Com o backend rodando, acesse a documentação interativa em: **http://localhost:8080/swagger-ui.html**
 
 ---
 

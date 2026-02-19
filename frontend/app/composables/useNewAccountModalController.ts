@@ -34,6 +34,7 @@ const ACCOUNT_TYPE_OPTIONS: SelectOption[] = [
 export function useNewAccountModalController() {
   const { closeNewAccountModal } = useDashboard()
   const { invalidateBankAccounts } = useBankAccounts()
+  const { invalidateDashboard } = useDashboardData()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   const balance = ref<number | null>(null)
@@ -65,7 +66,8 @@ export function useNewAccountModalController() {
         color: payload.color ?? null,
       })
       toast.success('Conta criada com sucesso!')
-      invalidateBankAccounts()
+      await invalidateBankAccounts()
+      await invalidateDashboard()
       closeNewAccountModal()
       resetForm()
     } catch (err: unknown) {

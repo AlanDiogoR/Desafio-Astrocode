@@ -30,6 +30,7 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
 - **JWT 0.13.0** - Autenticação stateless com tokens JSON Web Token
 - **PostgreSQL 16** - Banco de dados relacional
 - **Flyway** - Versionamento e migração automática do banco de dados
+- **SpringDoc OpenAPI 3** - Documentação da API via Swagger UI
 - **Lombok** - Redução de boilerplate com anotações
 - **Maven 3.6+** - Gerenciamento de dependências e build
 
@@ -198,7 +199,23 @@ GET    /api/dashboard           → Resumo (saldo, receitas/despesas do mês)
 
 ---
 
+## 📖 Documentação da API (SpringDoc)
+
+A API possui documentação interativa via **SpringDoc OpenAPI 3**. Com o backend rodando:
+
+| Recurso | URL |
+|---------|-----|
+| **Swagger UI** (interface interativa) | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
+| **OpenAPI JSON** | [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs) |
+| **OpenAPI YAML** | [http://localhost:8080/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml) |
+
+**Endpoints protegidos**: exigem JWT. No Swagger UI, use o botão **"Authorize"** e informe o Bearer token obtido no login (`/api/auth/login`), no formato `Bearer <seu-token>`.
+
+---
+
 ## 📡 Guia de Endpoints
+
+> **Nota**: A documentação completa e interativa de todos os endpoints está disponível em [Swagger UI](http://localhost:8080/swagger-ui.html). Os exemplos curl abaixo servem como referência rápida.
 
 ### 🔓 Endpoints Públicos
 

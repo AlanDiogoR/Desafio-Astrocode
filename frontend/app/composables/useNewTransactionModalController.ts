@@ -30,6 +30,7 @@ export function useNewTransactionModalController() {
   const queryClient = useQueryClient()
 
   const { accounts, invalidateBankAccounts } = useBankAccounts()
+  const { invalidateDashboard } = useDashboardData()
   const { categories: categoriesComputed } = useCategories(type)
 
   const amount = ref<number | null>(null)
@@ -78,7 +79,8 @@ export function useNewTransactionModalController() {
         frequency: payload.isRecurring ? 'MONTHLY' : undefined,
       })
       toast.success('Transação salva com sucesso!')
-      invalidateBankAccounts()
+      await invalidateBankAccounts()
+      await invalidateDashboard()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })

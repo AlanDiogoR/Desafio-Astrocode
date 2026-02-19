@@ -56,6 +56,7 @@ export function useBankAccounts() {
       return data.map(mapApiToBankAccount)
     },
     enabled: computed(() => !!authStore.token),
+    staleTime: 0,
   })
 
   const accounts = computed<BankAccount[]>(() => accountsData.value ?? [])
@@ -66,8 +67,8 @@ export function useBankAccounts() {
     accounts.value.reduce((sum, a) => sum + a.balance, 0)
   )
 
-  function invalidateBankAccounts() {
-    queryClient.invalidateQueries({ queryKey: BANK_ACCOUNTS_QUERY_KEY })
+  async function invalidateBankAccounts() {
+    await queryClient.refetchQueries({ queryKey: BANK_ACCOUNTS_QUERY_KEY })
   }
 
   if (import.meta.client) {

@@ -21,6 +21,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
   const queryClient = useQueryClient()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
+  const { invalidateDashboard } = useDashboardData()
   const { categories: categoriesComputed } = useCategories(
     computed(() => (transaction.value?.type === 'income' ? 'INCOME' : 'EXPENSE')),
   )
@@ -97,7 +98,8 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
         frequency: result.data.isRecurring ? 'MONTHLY' : undefined,
       })
       toast.success('Transação atualizada!')
-      invalidateBankAccounts()
+      await invalidateBankAccounts()
+      await invalidateDashboard()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })

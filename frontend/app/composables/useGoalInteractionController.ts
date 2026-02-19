@@ -28,6 +28,7 @@ export function useGoalInteractionController() {
   const { closeNewGoalValueModal, goalForValueAddition, goalInteractionType } = useDashboard()
   const { goals, invalidateGoals } = useGoals()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
+  const { invalidateDashboard } = useDashboardData()
   const queryClient = useQueryClient()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -139,7 +140,8 @@ export function useGoalInteractionController() {
       }
 
       invalidateGoals()
-      invalidateBankAccounts()
+      await invalidateBankAccounts()
+      await invalidateDashboard()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
