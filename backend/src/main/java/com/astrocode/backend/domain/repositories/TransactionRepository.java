@@ -15,30 +15,30 @@ import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserId(@Param("userId") UUID userId);
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndDateBetween(
             @Param("userId") UUID userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndDateYearAndDateMonth(
             @Param("userId") UUID userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountId(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountIdAndDateYearAndDateMonth(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId,
@@ -46,13 +46,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("endDate") LocalDate endDate
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndType(
             @Param("userId") UUID userId,
             @Param("type") TransactionType type
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndDateYearAndDateMonthAndType(
             @Param("userId") UUID userId,
             @Param("startDate") LocalDate startDate,
@@ -60,14 +60,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("type") TransactionType type
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountIdAndType(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId,
             @Param("type") TransactionType type
     );
 
-    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountIdAndDateYearAndDateMonthAndType(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId,

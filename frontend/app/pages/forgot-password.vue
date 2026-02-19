@@ -86,9 +86,9 @@ async function handleResetPassword() {
     })
     authStore.setToken(response.token)
     authStore.setUser({
-      id: '',
+      id: response.id,
       name: response.name,
-      email: email.value.trim(),
+      email: response.email,
     })
     toast.success('Senha alterada com sucesso!')
     toast.success('Entrando...', { duration: 1000 })
@@ -164,6 +164,9 @@ function goBack() {
           <AppInput
             v-model="code"
             label="Código (6 caracteres)"
+            type="text"
+            inputmode="text"
+            autocomplete="one-time-code"
             :field-error="codeError"
             :disabled="isResetting"
             class="mb-4"

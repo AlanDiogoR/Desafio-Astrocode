@@ -1,7 +1,11 @@
 package com.astrocode.backend.api.dto.auth;
 
+import java.util.UUID;
+
 public record LoginResponse(
         String token,
-        String name
+        UUID id,
+        String name,
+        String email
 ) {
 }

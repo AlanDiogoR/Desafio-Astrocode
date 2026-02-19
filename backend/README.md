@@ -289,6 +289,7 @@ JWT_SECRET=uma_chave_segura_com_pelo_menos_32_caracteres_aleatorios
 ```
 
 **⚠️ Importante**: 
+- O `JWT_SECRET` é **obrigatório**: sem ele a aplicação não inicia. Em produção, configure sempre uma chave segura.
 - O `JWT_SECRET` deve ter pelo menos 32 caracteres para segurança adequada
 - Nunca commite o arquivo `.env` no repositório (já está no `.gitignore`)
 
@@ -314,6 +315,11 @@ CREATE DATABASE nome_do_banco;
 ---
 
 ## 🚀 Como Executar
+
+### Perfis Spring
+
+- **Produção** (padrão): `show-sql=false`. Log de SQL desativado.
+- **Desenvolvimento**: use `-Dspring.profiles.active=dev` ou `SPRING_PROFILES_ACTIVE=dev` para habilitar `show-sql=true`.
 
 ### Opção 1: Maven Spring Boot Plugin
 
@@ -381,7 +387,9 @@ curl -X POST http://localhost:8080/api/auth/login \
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "name": "João Silva"
+  "id": "uuid-do-usuario",
+  "name": "João Silva",
+  "email": "joao@example.com"
 }
 ```
 

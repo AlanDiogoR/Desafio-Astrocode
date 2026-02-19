@@ -5,7 +5,9 @@ interface LoginPayload {
 
 interface LoginResponse {
   token: string
+  id: string
   name: string
+  email: string
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {

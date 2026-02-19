@@ -6,7 +6,9 @@ interface ResetPasswordPayload {
 
 interface ResetPasswordResponse {
   token: string
+  id: string
   name: string
+  email: string
 }
 
 export async function resetPassword(payload: ResetPasswordPayload): Promise<ResetPasswordResponse> {

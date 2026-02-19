@@ -24,7 +24,7 @@ public class JwtService {
 
     private final SecretKey secretKey;
 
-    public JwtService(@Value("${jwt.secret:default_secret_key_32_characters_long_here_change_in_production}") String secret) {
+    public JwtService(@Value("${jwt.secret}") String secret) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("JWT secret não pode ser vazio. Configure a variável de ambiente JWT_SECRET.");
         }

@@ -12,9 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
-    
-    List<Category> findByType(TransactionType type);
-    
+
     @Query("SELECT c FROM Category c WHERE c.user.id = :userId")
     List<Category> findByUserId(@Param("userId") UUID userId);
 

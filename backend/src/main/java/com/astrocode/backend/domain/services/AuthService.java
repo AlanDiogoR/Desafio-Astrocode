@@ -54,7 +54,7 @@ public class AuthService {
 
         String token = jwtService.generateToken(user.getId(), user.getEmail());
 
-        return new LoginResponse(token, user.getName());
+        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail());
     }
 
     @Transactional(readOnly = false)
@@ -108,7 +108,7 @@ public class AuthService {
         resetCodeRepository.delete(resetCode);
 
         String token = jwtService.generateToken(user.getId(), user.getEmail());
-        return new LoginResponse(token, user.getName());
+        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail());
     }
 
     private String generateAlphanumericCode() {

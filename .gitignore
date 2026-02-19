@@ -45,6 +45,11 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# --- MÍDIA (arquivos grandes) ---
+*.mp4
+*.mov
+*.avi
+
 # --- AMBIENTE & SEGURANÇA ---
 .env
 .env.local

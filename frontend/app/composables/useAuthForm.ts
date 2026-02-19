@@ -158,9 +158,9 @@ export function useAuthForm() {
     onSuccess: (data) => {
       authStore.setToken(data.token)
       authStore.setUser({
-        id: '',
+        id: data.id,
         name: data.name,
-        email: email.value,
+        email: data.email,
       })
       toast.success('Bem-vindo(a) ao Grivy!')
     },
@@ -175,9 +175,9 @@ export function useAuthForm() {
     onSuccess: (data) => {
       authStore.setToken(data.token)
       authStore.setUser({
-        id: '',
+        id: data.id,
         name: data.name,
-        email: email.value,
+        email: data.email,
       })
       toast.success('Bem-vindo ao Grivy!')
     },

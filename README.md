@@ -24,13 +24,21 @@
 
 ---
 
+## 🎬 Demonstração do Projeto
+
+Confira o vídeo de demonstração do **Grivy** em funcionamento:
+
+[![Assistir no YouTube](https://img.shields.io/badge/YouTube-Demo_Grivy-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/ZRDuhOfDv9A)
+
+---
+
 ## 📋 Descrição
 
 Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas práticas de segurança. Permite aos usuários gerenciar suas finanças de forma organizada, controlando contas bancárias, categorizando transações, definindo metas de economia e acompanhando o progresso financeiro.
 
 ### Funcionalidades Principais
 
-- 🔐 **Autenticação Segura**: Cadastro e login com JWT e criptografia BCrypt
+- 🔐 **Autenticação Segura**: Cadastro, login e recuperação de senha com JWT e criptografia BCrypt
 - 💳 **Gestão de Contas**: Múltiplas contas bancárias isoladas por usuário
 - 📊 **Categorização**: Sistema de categorias para receitas e despesas
 - 🎯 **Metas de Economia**: Definição e acompanhamento de objetivos financeiros
