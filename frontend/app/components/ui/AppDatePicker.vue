@@ -1,10 +1,12 @@
 <script setup lang="ts">
 interface Props {
+  /** Label que flutua ao clicar (ex: "Data limite") */
+  label?: string
   placeholder?: string
   errorText?: string
 }
 
-const { placeholder, errorText } = defineProps<Props>()
+const { label, placeholder, errorText } = defineProps<Props>()
 
 const modelValue = defineModel<Date | null>()
 
@@ -17,7 +19,7 @@ const AppDatePickerClient = defineAsyncComponent(
   <ClientOnly>
     <AppDatePickerClient
       v-model="modelValue"
-      :placeholder="placeholder"
+      :label="label ?? placeholder"
       :error-text="errorText"
       v-bind="$attrs"
     />

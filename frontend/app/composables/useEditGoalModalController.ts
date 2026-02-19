@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
 import { getErrorMessage } from '~/utils/errorHandler'
-import { updateGoal, deleteGoal as deleteGoalApi } from '~/services/goals'
+import { updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '~/services/goals'
 
 const editGoalSchema = z.object({
   goalId: z.string().min(1, 'Selecione uma meta'),
@@ -70,7 +70,7 @@ export function useEditGoalModalController() {
       const endDate = payload.deadline
         ? payload.deadline.toISOString().slice(0, 10)
         : null
-      await updateGoal(payload.goalId, {
+      await updateGoalApi(payload.goalId, {
         name: payload.name.trim(),
         targetAmount: payload.targetAmount,
         endDate,
@@ -114,6 +114,7 @@ export function useEditGoalModalController() {
   }
 
   function handleSubmit() {
+    if (isLoading.value) return
     submittedOnce.value = true
     Object.keys(errors).forEach((key) => delete errors[key])
 

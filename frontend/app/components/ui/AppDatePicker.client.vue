@@ -8,12 +8,13 @@ import '@vuepic/vue-datepicker/dist/main.css'
 
 interface Props {
   modelValue?: Date | null
-  placeholder?: string
+  /** Label que flutua ao clicar */
+  label?: string
   errorText?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: 'Data',
+  label: 'Data',
   errorText: '',
 })
 
@@ -43,7 +44,7 @@ function closePicker() {
             'app-datepicker__trigger--error': !!props.errorText,
           }"
           aria-haspopup="dialog"
-          :aria-label="placeholder"
+          :aria-label="props.label"
         >
           <span
             :class="{
@@ -51,11 +52,11 @@ function closePicker() {
               'app-datepicker__label--float': isFloating,
             }"
           >
-            {{ placeholder }}
+            {{ props.label }}
           </span>
           <span class="app-datepicker__value">
             <CalendarIcon class="app-datepicker__icon" />
-            {{ displayText || placeholder }}
+            {{ displayText }}
           </span>
         </button>
       </PopoverTrigger>

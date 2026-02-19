@@ -86,7 +86,7 @@ function handleTrashClick() {
         />
         <AppDatePicker
           v-model="deadline"
-          placeholder="Data limite"
+          label="Data limite"
         />
         <AppColorDropdown
           v-model="color"

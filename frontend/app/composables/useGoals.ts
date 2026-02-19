@@ -68,7 +68,12 @@ export function useGoals() {
 
   if (import.meta.client) {
     watch(isError, (v) => {
-      if (v) toast.error(getErrorMessage(error.value ?? new Error(), 'Erro ao carregar metas.'))
+      // Só exibe toast quando o erro é no fetch inicial (sem dados em cache).
+      // Evita toast redundante quando o refetch após invalidateGoals() falha
+      // (ex.: após editar meta com sucesso).
+      if (v && goalsData.value === undefined) {
+        toast.error(getErrorMessage(error.value ?? new Error(), 'Erro ao carregar metas.'))
+      }
     })
   }
 
