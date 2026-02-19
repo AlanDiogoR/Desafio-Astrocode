@@ -5,7 +5,9 @@ import AppInput from '~/components/ui/AppInput.vue'
 import AppButton from '~/components/ui/AppButton.vue'
 import AppDropdown from '~/components/ui/AppDropdown.vue'
 import { useEditProfileModalController } from '~/composables/useEditProfileModalController'
-import { useAuthStore } from '~/stores/auth'
+import { useLogout } from '~/composables/useLogout'
+
+const { performLogout } = useLogout()
 
 const {
   name,
@@ -25,15 +27,13 @@ const {
   closeEditProfileModal,
 } = useDashboard()
 
-const authStore = useAuthStore()
-
 const logoutItems = [
   {
     label: 'Sair',
     icon: ExitIcon,
     danger: true,
-    action: async () => {
-      await authStore.logout()
+    action: () => {
+      performLogout()
     },
   },
 ]

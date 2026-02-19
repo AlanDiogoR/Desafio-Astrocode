@@ -39,6 +39,7 @@ export function useAuthForm() {
   const hasAttemptedSubmit = ref(false)
 
   const authStore = useAuthStore()
+  const router = useRouter()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   function markAsTouched(field: 'email' | 'password' | 'name') {
@@ -162,7 +163,6 @@ export function useAuthForm() {
         email: email.value,
       })
       toast.success('Bem-vindo(a) ao Grivy!')
-      navigateTo('/dashboard')
     },
     onError: handleLoginError,
   })
@@ -180,23 +180,32 @@ export function useAuthForm() {
         email: email.value,
       })
       toast.success('Bem-vindo ao Grivy!')
-      navigateTo('/dashboard')
     },
     onError: handleRegisterError,
   })
 
-  function handleLogin() {
+  async function handleLogin() {
     if (!validateLogin()) return
-    loginMutation.mutate({ email: email.value, password: password.value })
+    try {
+      await loginMutation.mutateAsync({ email: email.value, password: password.value })
+      router.replace('/dashboard')
+    } catch {
+      /* onError já tratou */
+    }
   }
 
-  function handleRegister() {
+  async function handleRegister() {
     if (!validateRegister()) return
-    registerMutation.mutate({
-      name: name.value,
-      email: email.value,
-      password: password.value,
-    })
+    try {
+      await registerMutation.mutateAsync({
+        name: name.value,
+        email: email.value,
+        password: password.value,
+      })
+      router.replace('/dashboard')
+    } catch {
+      /* onError já tratou */
+    }
   }
 
   watch(email, () => {
