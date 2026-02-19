@@ -38,6 +38,67 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 
 ---
 
+## 🏗️ Arquitetura
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Cliente (Browser)                         │
+└─────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Frontend (Nuxt 4)                                                │
+│  • Vue 3 + Composition API + TypeScript                          │
+│  • Vuetify 3 (UI) + Radix Vue (acessibilidade)                    │
+│  • Pinia (estado global) + Vue Query (cache/dados)                │
+│  • Porta: 3000                                                    │
+└─────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │  HTTP / REST
+                                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Backend (Spring Boot 4)                                          │
+│  • API REST + Spring Security + JWT                               │
+│  • Camadas: Controller → Service → Repository                     │
+│  • Porta: 8080                                                    │
+└─────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  PostgreSQL 16                                                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Fluxo de Desenvolvimento
+
+1. **Backend primeiro**: Suba o banco PostgreSQL e a API antes do frontend.
+2. **Configure `.env`** em `backend/` e `frontend/` (veja `.env.example` em cada pasta).
+3. **Frontend**: O Nuxt consome a API via `NUXT_PUBLIC_API_BASE`. Em dev, use `http://localhost:8080/api`.
+
+---
+
+## 📐 Convenções do Projeto
+
+- **Nomenclatura**: camelCase em TS/JS; kebab-case em componentes Vue; PascalCase em componentes; snake_case em DB.
+- **Estrutura**: `composables/` para lógica reutilizável; `services/` para chamadas HTTP; `stores/` para estado global (auth).
+- **Componentes**: prefixo `App` para UI base; modais em `modals/`; páginas em `pages/` com layout por rota.
+
+---
+
+## 🚨 Troubleshooting
+
+| Problema | Solução |
+|----------|---------|
+| **Porta em uso** | Backend: 8080. Frontend: 3000. Use `netstat` ou altere em `application.properties` / `nuxt.config.ts`. |
+| **401 / JWT inválido** | Faça login novamente. Token expira em 14 dias. Verifique `JWT_SECRET` no backend. |
+| **CORS** | Backend permite `localhost:3000` e `localhost:5173`. Em produção, adicione a origem em `SecurityConfig`. |
+| **Variáveis de ambiente** | Sem `.env` o app falha. Copie `.env.example` para `.env` e preencha. |
+| **Banco não conecta** | Verifique `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`. PostgreSQL deve estar rodando. |
+
+---
+
 ## 🚀 Tech Stacks
 
 ### Frontend

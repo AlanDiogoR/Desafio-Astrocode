@@ -11,7 +11,7 @@ import {
 interface DropdownItem {
   label: string
   icon?: Component
-  action?: () => void
+  action?: () => void | Promise<void>
   danger?: boolean
 }
 
@@ -41,8 +41,8 @@ const contentStyle = computed(() => {
   return Object.keys(style).length ? style : undefined
 })
 
-function handleSelect(item: DropdownItem) {
-  item.action?.()
+async function handleSelect(item: DropdownItem) {
+  await item.action?.()
 }
 </script>
 

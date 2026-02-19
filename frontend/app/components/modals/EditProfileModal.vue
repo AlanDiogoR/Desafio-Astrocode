@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExitIcon } from '@radix-icons/vue'
+import { ExitIcon, EyeOpenIcon, EyeClosedIcon } from '@radix-icons/vue'
 import AppModal from '~/components/ui/AppModal.vue'
 import AppInput from '~/components/ui/AppInput.vue'
 import AppButton from '~/components/ui/AppButton.vue'
@@ -32,15 +32,24 @@ const logoutItems = [
     label: 'Sair',
     icon: ExitIcon,
     danger: true,
-    action: () => {
-      closeEditProfileModal()
-      authStore.logout()
+    action: async () => {
+      await authStore.logout()
     },
   },
 ]
 
 function handleOpenChange(v: boolean) {
   if (!v) closeEditProfileModal()
+}
+
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+function togglePasswordVisibility(field: 'current' | 'new' | 'confirm') {
+  if (field === 'current') showCurrentPassword.value = !showCurrentPassword.value
+  else if (field === 'new') showNewPassword.value = !showNewPassword.value
+  else showConfirmPassword.value = !showConfirmPassword.value
 }
 
 function submit() {
@@ -91,27 +100,66 @@ watch(isEditProfileModalOpen, (open) => {
           <AppInput
             v-model="currentPassword"
             label="Senha atual"
-            type="password"
+            :type="showCurrentPassword ? 'text' : 'password'"
             :field-error="shouldShowError('currentPassword') ? errors.currentPassword : ''"
             :disabled="isLoading"
             @blur="markTouched('currentPassword')"
-          />
+          >
+            <template #append-inner>
+              <button
+                type="button"
+                class="password-toggle-btn"
+                aria-label="Alternar visibilidade da senha"
+                tabindex="-1"
+                @click="togglePasswordVisibility('current')"
+              >
+                <EyeOpenIcon v-if="showCurrentPassword" width="20" height="20" />
+                <EyeClosedIcon v-else width="20" height="20" />
+              </button>
+            </template>
+          </AppInput>
           <AppInput
             v-model="newPassword"
             label="Nova senha"
-            type="password"
+            :type="showNewPassword ? 'text' : 'password'"
             :field-error="shouldShowError('newPassword') ? errors.newPassword : ''"
             :disabled="isLoading"
             @blur="markTouched('newPassword')"
-          />
+          >
+            <template #append-inner>
+              <button
+                type="button"
+                class="password-toggle-btn"
+                aria-label="Alternar visibilidade da senha"
+                tabindex="-1"
+                @click="togglePasswordVisibility('new')"
+              >
+                <EyeOpenIcon v-if="showNewPassword" width="20" height="20" />
+                <EyeClosedIcon v-else width="20" height="20" />
+              </button>
+            </template>
+          </AppInput>
           <AppInput
             v-model="confirmPassword"
             label="Confirmar nova senha"
-            type="password"
+            :type="showConfirmPassword ? 'text' : 'password'"
             :field-error="shouldShowError('confirmPassword') ? errors.confirmPassword : ''"
             :disabled="isLoading"
             @blur="markTouched('confirmPassword')"
-          />
+          >
+            <template #append-inner>
+              <button
+                type="button"
+                class="password-toggle-btn"
+                aria-label="Alternar visibilidade da senha"
+                tabindex="-1"
+                @click="togglePasswordVisibility('confirm')"
+              >
+                <EyeOpenIcon v-if="showConfirmPassword" width="20" height="20" />
+                <EyeClosedIcon v-else width="20" height="20" />
+              </button>
+            </template>
+          </AppInput>
         </div>
       </div>
       <AppButton
@@ -173,5 +221,22 @@ watch(isEditProfileModalOpen, (open) => {
 .edit-profile-logout-btn:hover {
   color: #b91c1c;
   background-color: #fef2f2;
+}
+
+.password-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: #087f5b;
 }
 </style>

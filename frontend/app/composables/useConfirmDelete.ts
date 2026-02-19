@@ -30,6 +30,8 @@ export function useConfirmDelete() {
       toast.success('Transação excluída com sucesso!')
       invalidateBankAccounts()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
     }
   }
 

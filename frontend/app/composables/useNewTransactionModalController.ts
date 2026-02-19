@@ -80,6 +80,8 @@ export function useNewTransactionModalController() {
       toast.success('Transação salva com sucesso!')
       invalidateBankAccounts()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
       closeNewTransactionModal()
       resetForm()
     } catch (err: unknown) {

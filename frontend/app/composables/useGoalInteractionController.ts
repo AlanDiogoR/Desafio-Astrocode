@@ -141,6 +141,8 @@ export function useGoalInteractionController() {
       invalidateGoals()
       invalidateBankAccounts()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
       closeNewGoalValueModal()
       resetForm()
     } catch (err: unknown) {

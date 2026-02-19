@@ -99,6 +99,8 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
       toast.success('Transação atualizada!')
       invalidateBankAccounts()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
       closeEditTransactionModal()
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, 'Erro ao atualizar transação.'))

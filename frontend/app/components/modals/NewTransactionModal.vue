@@ -67,7 +67,7 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
             v-model="category"
             label="Categoria"
             :options="categories"
-            placeholder="Categoria"
+            placeholder="Selecione uma categoria"
             :error-text="errors.category"
             :scrollable="newTransactionType === 'EXPENSE'"
           />

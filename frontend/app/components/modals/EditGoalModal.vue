@@ -74,7 +74,6 @@ function handleTrashClick() {
         <AppInput
           v-model="name"
           label="Nome da meta"
-          placeholder="Ex: Comprar Carro"
           :error-text="shouldShowError('name') ? errors.name : ''"
           @blur="markTouched('name')"
         />

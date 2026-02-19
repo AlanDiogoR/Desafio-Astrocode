@@ -79,7 +79,7 @@ O backend está totalmente operacional com sistema de autenticação JWT, gerenc
   - Validação de saldo insuficiente para despesas
   - Validação de propriedade de conta e categoria pelo usuário
 - **Transações Recorrentes**:
-  - Marcação de transações como recorrentes (mensal ou anual)
+  - Marcação de transações como recorrentes mensal
   - Job agendado diário (00:05) gera automaticamente as transações do período atual
   - Transações filhas vinculadas ao pai via `parent_transaction_id`
   - Evita duplicatas verificando se já existe filha para o mês/ano
@@ -165,6 +165,36 @@ api/dto/
 - ✅ Escalabilidade: Fácil adicionar novos DTOs sem poluir o pacote raiz
 - ✅ Clareza: Estrutura reflete a organização do domínio de negócio
 - ✅ Reutilização: Imports mais claros e organizados
+
+---
+
+## 📡 Diagrama de Endpoints
+
+```
+POST   /api/auth/login          → JWT
+POST   /api/users               → Cadastro
+
+GET    /api/accounts            → Lista contas
+POST   /api/accounts            → Cria conta
+PUT    /api/accounts/{id}       → Atualiza conta
+DELETE /api/accounts/{id}       → Exclui conta
+
+GET    /api/categories          → Lista categorias
+
+GET    /api/transactions        → Lista transações (?year, ?month, ?bankAccountId, ?type)
+POST   /api/transactions        → Cria transação
+PUT    /api/transactions/{id}   → Atualiza transação
+DELETE /api/transactions/{id}   → Exclui transação
+
+GET    /api/goals               → Lista metas
+POST   /api/goals               → Cria meta
+PUT    /api/goals/{id}          → Atualiza meta
+PATCH  /api/goals/{id}/contribute → Contribui para meta
+PATCH  /api/goals/{id}/withdraw   → Saca da meta
+DELETE /api/goals/{id}          → Exclui meta
+
+GET    /api/dashboard           → Resumo (saldo, receitas/despesas do mês)
+```
 
 ---
 
@@ -470,6 +500,19 @@ curl -X GET http://localhost:8080/api/dashboard \
   "totalExpenseMonth": 1200.00
 }
 ```
+
+---
+
+## 🚨 Troubleshooting
+
+| Problema | Causa provável | Solução |
+|----------|----------------|---------|
+| **401 Unauthorized** | Token JWT inválido ou expirado | Refaça login. Verifique se o header é `Authorization: Bearer <token>`. |
+| **Token inválido ao iniciar** | `JWT_SECRET` alterado ou diferente entre deploys | Use a mesma chave em todos os ambientes. Mínimo 32 caracteres. |
+| **CORS bloqueando requisições** | Frontend em origem não permitida | Adicione a origem em `SecurityConfig` (allowedOrigins). |
+| **Banco não conecta** | PostgreSQL indisponível ou credenciais incorretas | Verifique `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`. Teste conexão com `psql`. |
+| **Flyway / migração falha** | Schema inconsistente ou migração antiga quebrada | Revise `db/migration/`. Em dev, pode ser necessário recriar o banco. |
+| **Porta 8080 em uso** | Outro processo usando a porta | Altere `server.port` em `application.properties` ou mate o processo. |
 
 ---
 
