@@ -14,10 +14,26 @@ const transactionSchema = z.object({
   date: z.date(),
   type: z.enum(['INCOME', 'EXPENSE']),
   isRecurring: z.boolean().optional(),
-}).refine(
-  (data) => (data.bankAccountId != null) !== (data.creditCardId != null),
-  { message: 'Selecione conta (débito) ou cartão (crédito)', path: ['bankAccountId'] }
-)
+})
+  .refine(
+    (data) => (data.bankAccountId != null) !== (data.creditCardId != null),
+    { message: 'Selecione conta (débito) ou cartão (crédito)', path: ['bankAccountId'] }
+  )
+  .refine(
+    (data, ctx) => {
+      if (!data.creditCardId || !data.amount) return true
+      try {
+        const { creditCards } = useCreditCards()
+        const card = creditCards.value.find((c: { id: string; creditLimit?: number; currentBillAmount?: number }) => c.id === data.creditCardId)
+        if (!card) return true
+        const available = (card.creditLimit ?? 0) - (card.currentBillAmount ?? 0)
+        return data.amount <= available
+      } catch {
+        return true
+      }
+    },
+    { message: 'Valor excede o limite disponível do cartão', path: ['amount'] }
+  )
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 

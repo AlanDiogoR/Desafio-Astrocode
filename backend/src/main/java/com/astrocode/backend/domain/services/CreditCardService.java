@@ -168,7 +168,7 @@ public class CreditCardService {
                     createInitialBill(creditCard);
                     return creditCardBillRepository.findFirstByCreditCardIdAndStatusOrderByYearDescMonthDesc(
                                     creditCardId, BillStatus.OPEN)
-                            .orElseThrow();
+                            .orElseThrow(() -> new ResourceNotFoundException("Fatura ativa não encontrada para o cartão"));
                 });
     }
 

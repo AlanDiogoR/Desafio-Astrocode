@@ -7,6 +7,8 @@ public record UpdateProfileRequest(
         String name,
 
         String currentPassword,
+
+        @Size(min = 8, max = 255, message = "Senha deve ter no mínimo 8 caracteres")
         String newPassword
 ) {
 }

@@ -86,7 +86,7 @@ watch(() => props.open, (open) => {
       <DialogOverlay class="summary-modal-overlay" />
       <DialogContent
         class="summary-modal-content"
-        :aria-describedby="undefined"
+        aria-describedby="summary-desc"
         @pointer-down-outside="close"
       >
         <header class="summary-modal-header">

@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 
@@ -99,7 +101,9 @@ public class AuthService {
         PasswordResetCode resetCode = resetCodeRepository.findFirstByEmailOrderByCreatedAtDesc(normalizedEmail)
                 .orElseThrow(InvalidResetCodeException::new);
 
-        if (!resetCode.getCode().equals(request.code())) {
+        if (!MessageDigest.isEqual(
+                resetCode.getCode().getBytes(StandardCharsets.UTF_8),
+                request.code().getBytes(StandardCharsets.UTF_8))) {
             throw new InvalidResetCodeException();
         }
         if (OffsetDateTime.now().isAfter(resetCode.getExpiresAt())) {

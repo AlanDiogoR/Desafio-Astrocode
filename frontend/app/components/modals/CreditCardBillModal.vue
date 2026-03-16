@@ -75,6 +75,10 @@ async function handlePaySubmit() {
     payErrors.amount = 'Informe o valor'
     return
   }
+  if (payAmount.value > bill.totalAmount) {
+    payErrors.amount = `Valor máximo: ${formatCurrency(bill.totalAmount)}`
+    return
+  }
 
   const result = await payBill(bill.id, {
     bankAccountId: payAccountId.value,

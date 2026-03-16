@@ -44,8 +44,8 @@ public class DashboardService {
             totalIncome = BigDecimal.ZERO;
         }
 
-        BigDecimal totalExpense = transactionRepository.sumTotalByUserIdAndTypeAndDateRange(
-                userId, TransactionType.EXPENSE, startDate, endDate
+        BigDecimal totalExpense = transactionRepository.sumTotalExpensesExcludingGoalsByUserIdAndDateRange(
+                userId, startDate, endDate
         );
         if (totalExpense == null) {
             totalExpense = BigDecimal.ZERO;

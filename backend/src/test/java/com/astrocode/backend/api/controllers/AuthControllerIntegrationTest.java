@@ -55,7 +55,7 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/auth/login deve retornar token quando credenciais válidas")
+    @DisplayName("POST /api/auth/login deve retornar cookie auth_token quando credenciais válidas")
     void loginShouldReturnTokenWhenValid() throws Exception {
         Map<String, String> body = new HashMap<>();
         body.put("email", savedUser.getEmail());
@@ -65,8 +65,8 @@ class AuthControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", not(blankOrNullString())))
-                .andExpect(jsonPath("$.name").value("Controller Test User"));
+                .andExpect(jsonPath("$.name").value("Controller Test User"))
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("auth_token=")));
     }
 
     @Test

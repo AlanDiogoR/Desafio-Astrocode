@@ -6,6 +6,8 @@ import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.model.enums.TransactionType;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
 import com.astrocode.backend.domain.services.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,8 +88,8 @@ class RecurringTransactionJobTest {
     @Test
     @DisplayName("Deve criar transação filha quando pai recorrente existe e não há filha no mês atual")
     void shouldCreateChildWhenParentExistsAndNoChildForCurrentMonth() {
-        when(transactionRepository.findParentRecurringTransactions())
-                .thenReturn(List.of(parentTransaction));
+        when(transactionRepository.findParentRecurringTransactions(any()))
+                .thenReturn(new PageImpl<>(List.of(parentTransaction), PageRequest.of(0, 100), 1));
         when(transactionRepository.existsChildForParentInDateRange(
                 eq(parentTransaction.getId()),
                 any(LocalDate.class),
@@ -108,8 +110,8 @@ class RecurringTransactionJobTest {
     @Test
     @DisplayName("Não deve criar transação quando já existe filha no período")
     void shouldNotCreateChildWhenChildAlreadyExists() {
-        when(transactionRepository.findParentRecurringTransactions())
-                .thenReturn(List.of(parentTransaction));
+        when(transactionRepository.findParentRecurringTransactions(any()))
+                .thenReturn(new PageImpl<>(List.of(parentTransaction), PageRequest.of(0, 100), 1));
         when(transactionRepository.existsChildForParentInDateRange(
                 eq(parentTransaction.getId()),
                 any(LocalDate.class),
@@ -124,8 +126,8 @@ class RecurringTransactionJobTest {
     @Test
     @DisplayName("Não deve fazer nada quando não há transações pai recorrentes")
     void shouldDoNothingWhenNoParentRecurringTransactions() {
-        when(transactionRepository.findParentRecurringTransactions())
-                .thenReturn(Collections.emptyList());
+        when(transactionRepository.findParentRecurringTransactions(any()))
+                .thenReturn(new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 100), 0));
 
         job.generateRecurringTransactions();
 

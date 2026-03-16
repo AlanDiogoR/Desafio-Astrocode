@@ -340,14 +340,16 @@ public class TransactionService {
 
     private void updateCreditCardTransaction(Transaction transaction, TransactionUpdateRequest request,
                                              UUID userId, BigDecimal oldAmount, BigDecimal newAmount) {
-        var bill = transaction.getCreditCardBill();
         var creditCard = transaction.getCreditCard();
+        var bill = transaction.getCreditCardBill();
 
         if (!creditCard.getUser().getId().equals(userId)) {
             throw new AccountNotOwnedException("Você não tem permissão para acessar esta transação");
         }
 
-        bill.setTotalAmount(bill.getTotalAmount().subtract(oldAmount).add(newAmount));
+        if (bill != null) {
+            bill.setTotalAmount(bill.getTotalAmount().subtract(oldAmount).add(newAmount));
+        }
         creditCard.setCurrentBillAmount(creditCard.getCurrentBillAmount().subtract(oldAmount).add(newAmount));
 
         var newCategory = transaction.getCategory();
@@ -378,11 +380,13 @@ public class TransactionService {
         }
 
         if (transaction.getCreditCard() != null) {
-            var bill = transaction.getCreditCardBill();
             var creditCard = transaction.getCreditCard();
-            var newBillTotal = bill.getTotalAmount().subtract(transaction.getAmount()).max(BigDecimal.ZERO);
+            var bill = transaction.getCreditCardBill();
+            if (bill != null) {
+                var newBillTotal = bill.getTotalAmount().subtract(transaction.getAmount()).max(BigDecimal.ZERO);
+                bill.setTotalAmount(newBillTotal);
+            }
             var newCurrentAmount = creditCard.getCurrentBillAmount().subtract(transaction.getAmount()).max(BigDecimal.ZERO);
-            bill.setTotalAmount(newBillTotal);
             creditCard.setCurrentBillAmount(newCurrentAmount);
         } else {
             var bankAccount = bankAccountRepository.findByIdForUpdate(transaction.getBankAccount().getId())

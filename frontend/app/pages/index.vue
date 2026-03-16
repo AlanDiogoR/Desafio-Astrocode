@@ -3,9 +3,7 @@ definePageMeta({
   layout: 'default',
 })
 
-onMounted(() => {
-  navigateTo('/dashboard', { replace: true })
-})
+await navigateTo('/dashboard', { replace: true })
 </script>
 
 <template>

@@ -22,7 +22,7 @@ export function useNewGoalModalController() {
 
   const name = ref('')
   const targetAmount = ref<number | null>(null)
-  const deadline = ref<Date | null>(new Date())
+  const deadline = ref<Date | null>(null)
   const color = ref<string | null>(null)
   const errors = reactive<Record<string, string>>({})
   const touched = reactive<Record<string, boolean>>({})
@@ -63,7 +63,7 @@ export function useNewGoalModalController() {
   function resetForm() {
     name.value = ''
     targetAmount.value = null
-    deadline.value = new Date()
+    deadline.value = null
     color.value = null
     Object.keys(errors).forEach((key) => delete errors[key])
     Object.keys(touched).forEach((key) => delete touched[key as keyof typeof touched])

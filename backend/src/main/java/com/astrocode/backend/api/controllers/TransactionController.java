@@ -19,14 +19,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.constraints.Max;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Transações", description = "CRUD de transações financeiras com filtros")
 @SecurityRequirement(name = "bearer-jwt")
+@Validated
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
@@ -65,7 +68,7 @@ public class TransactionController {
             @RequestParam(required = false) UUID bankAccountId,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "20") @Max(100) int size,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();

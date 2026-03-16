@@ -27,6 +27,13 @@ export function useDashboardData() {
     return queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY })
   }
 
+  watch(isError, (hasError) => {
+    if (hasError) {
+      const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+      toast.error('Não foi possível carregar os dados do dashboard. Tente novamente.')
+    }
+  })
+
   return {
     totalBalance,
     totalIncomeMonth,

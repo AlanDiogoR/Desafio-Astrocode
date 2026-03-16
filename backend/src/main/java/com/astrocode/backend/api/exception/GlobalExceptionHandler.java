@@ -23,7 +23,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import jakarta.validation.ConstraintViolationException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -200,6 +202,23 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String msg = String.format("Valor inválido '%s' para o parâmetro '%s'", ex.getValue(), ex.getName());
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, msg, OffsetDateTime.now()));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        String msg = ex.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .findFirst()
+                .orElse("Erro de validação");
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, msg, OffsetDateTime.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

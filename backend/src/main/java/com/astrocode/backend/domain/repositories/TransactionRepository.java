@@ -180,6 +180,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("SELECT t FROM Transaction t WHERE t.isRecurring = true AND t.parentTransaction IS NULL")
     List<Transaction> findParentRecurringTransactions();
 
+    @Query(value = "SELECT t FROM Transaction t WHERE t.isRecurring = true AND t.parentTransaction IS NULL")
+    Page<Transaction> findParentRecurringTransactions(Pageable pageable);
+
     @Query("SELECT COUNT(t) > 0 FROM Transaction t WHERE t.parentTransaction.id = :parentId AND t.date >= :startDate AND t.date <= :endDate")
     boolean existsChildForParentInDateRange(
             @Param("parentId") UUID parentId,

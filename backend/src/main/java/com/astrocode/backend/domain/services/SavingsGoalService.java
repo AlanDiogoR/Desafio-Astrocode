@@ -54,7 +54,7 @@ public class SavingsGoalService {
     @Transactional
     public SavingsGoal create(SavingsGoalRequest request, UUID userId) {
         var user = userRepository.findByIdWithSubscription(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (!user.isPro()) {
             long activeCount = savingsGoalRepository.countActiveByUserId(userId);

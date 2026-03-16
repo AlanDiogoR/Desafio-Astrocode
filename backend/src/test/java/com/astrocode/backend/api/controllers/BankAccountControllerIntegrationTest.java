@@ -73,8 +73,12 @@ class BankAccountControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String response = result.getResponse().getContentAsString();
-        return objectMapper.readTree(response).get("token").asText();
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        if (setCookie != null && setCookie.contains("auth_token=")) {
+            String cookiePart = setCookie.split(";")[0];
+            return cookiePart.substring("auth_token=".length());
+        }
+        throw new IllegalStateException("Token não encontrado no Set-Cookie");
     }
 
     @Test

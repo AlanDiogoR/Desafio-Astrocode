@@ -8,6 +8,9 @@ import com.astrocode.backend.domain.services.MailService;
 import com.astrocode.backend.domain.services.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +20,6 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -51,18 +53,23 @@ public class RecurringTransactionJob {
     public void generateRecurringTransactions() {
         log.info("Iniciando job de geração de transações recorrentes");
 
-        var parents = transactionRepository.findParentRecurringTransactions();
-        if (parents.isEmpty()) {
-            log.debug("Nenhuma transação pai recorrente encontrada");
-            return;
-        }
-
         var today = LocalDate.now();
         int currentYear = today.getYear();
         int currentMonth = today.getMonthValue();
         int generated = 0;
+        int pageNum = 0;
+        Page<Transaction> page;
 
-        for (Transaction parent : parents) {
+        do {
+            page = transactionRepository.findParentRecurringTransactions(
+                    PageRequest.of(pageNum++, 100, Sort.by("id")));
+            var parents = page.getContent();
+            if (parents.isEmpty() && pageNum == 1) {
+                log.debug("Nenhuma transação pai recorrente encontrada");
+                break;
+            }
+
+            for (Transaction parent : parents) {
             try {
                 var frequency = parent.getFrequency() != null ? parent.getFrequency() : RecurrenceFrequency.MONTHLY;
                 LocalDate targetDate;
@@ -116,7 +123,8 @@ public class RecurringTransactionJob {
             } catch (Exception e) {
                 log.warn("Erro ao gerar transação recorrente para pai {}: {}", parent.getId(), e.getMessage());
             }
-        }
+            }
+        } while (page.hasNext());
 
         log.info("Job concluído. {} transação(ões) recorrente(s) gerada(s)", generated);
     }

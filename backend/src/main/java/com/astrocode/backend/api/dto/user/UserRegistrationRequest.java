@@ -2,6 +2,7 @@ package com.astrocode.backend.api.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 
@@ -16,7 +17,8 @@ public record UserRegistrationRequest(
         String email,
 
         @NotBlank(message = "Senha é obrigatória")
-        @Size(min = 6, max = 255, message = "Senha deve ter entre 6 e 255 caracteres")
+        @Size(min = 8, max = 255, message = "Senha deve ter no mínimo 8 caracteres")
+        @Pattern(regexp = ".*[0-9].*", message = "Senha deve conter ao menos 1 número")
         String password
 ) {
 }

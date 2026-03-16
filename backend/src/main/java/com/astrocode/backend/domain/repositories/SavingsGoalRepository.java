@@ -1,11 +1,13 @@
 package com.astrocode.backend.domain.repositories;
 
 import com.astrocode.backend.domain.entities.SavingsGoal;
+import com.astrocode.backend.domain.model.enums.GoalStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,4 +20,9 @@ public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, UUID> 
 
     @Query("SELECT COUNT(sg) FROM SavingsGoal sg WHERE sg.user.id = :userId AND sg.deletedAt IS NULL AND sg.status = 'ACTIVE'")
     long countActiveByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.status = :status AND sg.endDate < :date AND sg.deletedAt IS NULL")
+    List<SavingsGoal> findByStatusAndEndDateBeforeAndDeletedAtIsNull(
+            @Param("status") GoalStatus status,
+            @Param("date") LocalDate date);
 }

@@ -61,13 +61,13 @@ async function handleConfirm() {
       <DialogOverlay class="confirm-delete-overlay" />
       <DialogContent
         class="confirm-delete-content"
-        :aria-describedby="undefined"
+        aria-describedby="confirm-delete-desc"
         @pointer-down-outside="(e) => e.preventDefault()"
       >
         <DialogTitle class="confirm-delete-title">
           {{ title }}
         </DialogTitle>
-        <div class="confirm-delete-body">
+        <div id="confirm-delete-desc" class="confirm-delete-body">
           <div class="confirm-delete-icon-wrap">
             <img
               src="/images/Nome=Deletar.svg"

@@ -4,10 +4,11 @@ import { getMonthlySummary } from '~/services/transactions'
 const INSIGHT_THRESHOLD = 0.4
 
 export function useInsightsController(year: Ref<number>, month: Ref<number>) {
+  const authStore = useAuthStore()
   const { data: summary, isPending } = useQuery({
     queryKey: ['monthly-summary', year, month],
     queryFn: () => getMonthlySummary(year.value, month.value),
-    enabled: computed(() => !!year.value && !!month.value),
+    enabled: computed(() => !!authStore.user && !!year.value && !!month.value),
   })
 
   const topCategory = computed(() => {

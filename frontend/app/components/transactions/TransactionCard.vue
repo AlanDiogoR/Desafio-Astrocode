@@ -59,9 +59,9 @@ const formattedDate = computed(() => {
     elevation="0"
     role="button"
     tabindex="0"
-    @click="emit('click', transaction as any)"
-    @keydown.enter="emit('click', transaction as any)"
-    @keydown.space.prevent="emit('click', transaction as any)"
+    @click="emit('click', transaction)"
+    @keydown.enter="emit('click', transaction)"
+    @keydown.space.prevent="emit('click', transaction)"
   >
       <v-avatar
         size="56"

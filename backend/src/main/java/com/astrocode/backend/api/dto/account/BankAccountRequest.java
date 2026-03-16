@@ -1,6 +1,7 @@
 package com.astrocode.backend.api.dto.account;
 
 import com.astrocode.backend.domain.model.enums.AccountType;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,6 +14,7 @@ public record BankAccountRequest(
         String name,
 
         @NotNull(message = "Saldo inicial é obrigatório")
+        @DecimalMin(value = "0.0", message = "Saldo inicial não pode ser negativo")
         BigDecimal initialBalance,
 
         @NotNull(message = "Tipo da conta é obrigatório")
