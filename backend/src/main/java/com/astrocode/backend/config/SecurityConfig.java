@@ -23,9 +23,15 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorrelationIdFilter correlationIdFilter;
+    private final OriginValidationFilter originValidationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          CorrelationIdFilter correlationIdFilter,
+                          OriginValidationFilter originValidationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.correlationIdFilter = correlationIdFilter;
+        this.originValidationFilter = originValidationFilter;
     }
 
     @Bean
@@ -35,6 +41,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(correlationIdFilter, org.springframework.security.web.context.SecurityContextPersistenceFilter.class)
+                .addFilterAfter(originValidationFilter, CorrelationIdFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/users").permitAll()
@@ -43,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/config/public").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/api/subscription/plans").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll()
                         .requestMatchers("/error").permitAll()

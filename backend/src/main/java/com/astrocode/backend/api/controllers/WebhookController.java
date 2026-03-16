@@ -1,11 +1,14 @@
 package com.astrocode.backend.api.controllers;
 
+import com.astrocode.backend.domain.entities.WebhookProcessedEvent;
+import com.astrocode.backend.domain.repositories.WebhookProcessedEventRepository;
 import com.astrocode.backend.domain.services.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
@@ -13,6 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Map;
 
@@ -23,19 +27,40 @@ public class WebhookController {
     private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
 
     private final SubscriptionService subscriptionService;
+    private final WebhookProcessedEventRepository webhookProcessedEventRepository;
 
     @Value("${mp.webhook-secret:}")
     private String webhookSecret;
 
-    public WebhookController(SubscriptionService subscriptionService) {
+    public WebhookController(SubscriptionService subscriptionService,
+                              WebhookProcessedEventRepository webhookProcessedEventRepository) {
         this.subscriptionService = subscriptionService;
+        this.webhookProcessedEventRepository = webhookProcessedEventRepository;
     }
 
     @PostMapping("/mercadopago")
+    @Transactional
     public ResponseEntity<Void> handleMercadoPago(@RequestBody Map<String, Object> payload,
                                                   @RequestHeader(value = "x-signature", required = false) String signature,
                                                   @RequestHeader(value = "x-request-id", required = false) String requestId) {
         try {
+            boolean secretConfigured = webhookSecret != null && !webhookSecret.isBlank();
+
+            if (secretConfigured) {
+                if (signature == null || signature.isBlank()) {
+                    log.warn("Webhook Mercado Pago: assinatura obrigatória quando MP_WEBHOOK_SECRET está configurado");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                }
+                if (requestId == null || requestId.isBlank()) {
+                    log.warn("Webhook Mercado Pago: x-request-id obrigatório para validação");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                }
+                if (!validateSignature(payload, signature, requestId)) {
+                    log.warn("Webhook Mercado Pago: assinatura inválida");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                }
+            }
+
             String type = (String) payload.get("type");
             if (!"payment".equals(type)) {
                 return ResponseEntity.ok().build();
@@ -53,14 +78,14 @@ public class WebhookController {
             }
 
             Long paymentId = idObj instanceof Number ? ((Number) idObj).longValue() : Long.parseLong(idObj.toString());
+            String effectiveRequestId = (requestId != null && !requestId.isBlank()) ? requestId : "legacy-" + paymentId;
 
-            if (webhookSecret != null && !webhookSecret.isBlank() && signature != null && !signature.isBlank()) {
-                if (!validateSignature(payload, signature, requestId)) {
-                    log.warn("Webhook Mercado Pago: assinatura inválida");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-                }
+            if (webhookProcessedEventRepository.existsByPaymentIdAndRequestId(paymentId, effectiveRequestId)) {
+                log.debug("Webhook Mercado Pago: evento já processado (idempotência) paymentId={} requestId={}", paymentId, effectiveRequestId);
+                return ResponseEntity.ok().build();
             }
 
+            webhookProcessedEventRepository.save(new WebhookProcessedEvent(paymentId, effectiveRequestId));
             subscriptionService.handlePaymentApproved(paymentId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -68,6 +93,8 @@ public class WebhookController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    private static final long REPLAY_WINDOW_SECONDS = 300;
 
     private boolean validateSignature(Map<String, Object> payload, String xSignature, String requestId) {
         try {
@@ -86,6 +113,18 @@ public class WebhookController {
                 }
             }
             if (ts == null || v1 == null || requestId == null) {
+                return false;
+            }
+
+            long signatureTs;
+            try {
+                signatureTs = Long.parseLong(ts);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            long now = Instant.now().getEpochSecond();
+            if (Math.abs(now - signatureTs) > REPLAY_WINDOW_SECONDS) {
+                log.warn("Webhook Mercado Pago: timestamp fora da janela anti-replay (ts={} now={})", ts, now);
                 return false;
             }
 

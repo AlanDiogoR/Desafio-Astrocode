@@ -25,7 +25,18 @@ const userInitials = computed(() => {
         :size="28"
       />
     </div>
-    <button
+    <div class="dashboard-header__actions d-flex align-center gap-2">
+      <v-btn
+        v-if="!authStore.isProUser"
+        size="small"
+        color="primary"
+        variant="flat"
+        :to="'/planos'"
+        class="dashboard-header__upgrade-btn"
+      >
+        Upgrade Pro
+      </v-btn>
+      <button
       type="button"
       class="dashboard-header__avatar-btn"
       aria-label="Editar perfil"
@@ -38,6 +49,7 @@ const userInitials = computed(() => {
         <span class="avatar-initials">{{ userInitials }}</span>
       </v-avatar>
     </button>
+    </div>
   </header>
 </template>
 
@@ -54,6 +66,14 @@ const userInitials = computed(() => {
 
 .dashboard-header__logo {
   flex-shrink: 0;
+}
+
+.dashboard-header__actions {
+  flex-shrink: 0;
+}
+
+.dashboard-header__upgrade-btn {
+  font-weight: 600;
 }
 
 .dashboard-header__logo :deep(.app-logo) {

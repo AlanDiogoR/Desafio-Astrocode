@@ -45,16 +45,12 @@ public class BackendApplication {
 		}
 		
 		if (dotenv != null) {
-			dotenv.entries().forEach(entry -> {
-				String key = entry.getKey();
-				String value = entry.getValue();
-				System.setProperty(key, value);
-				if (!key.contains("PASSWORD")) {
-					System.out.println("Loaded: " + key + " = " + value);
-				} else {
-					System.out.println("Loaded: " + key + " = ***");
-				}
-			});
+			int count = 0;
+			for (var entry : dotenv.entries()) {
+				System.setProperty(entry.getKey(), entry.getValue());
+				count++;
+			}
+			System.out.println("Loaded .env: " + count + " variables (values nunca logados por segurança)");
 		} else {
 			System.err.println("WARNING: Arquivo .env não encontrado! Usando variáveis de ambiente do sistema.");
 		}

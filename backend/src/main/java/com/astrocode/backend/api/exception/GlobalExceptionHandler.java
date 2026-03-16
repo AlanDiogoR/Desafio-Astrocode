@@ -1,5 +1,6 @@
 package com.astrocode.backend.api.exception;
 
+import com.astrocode.backend.config.CorrelationIdFilter;
 import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
 import com.astrocode.backend.domain.exceptions.DuplicateAccountNameException;
 import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
@@ -16,6 +17,8 @@ import com.astrocode.backend.domain.exceptions.PlanUpgradeRequiredException;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import io.jsonwebtoken.JwtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -32,6 +35,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
@@ -194,6 +199,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
         var errorResponse = new ErrorResponse(
@@ -241,10 +256,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        String correlationId = org.slf4j.MDC.get(CorrelationIdFilter.CORRELATION_ID);
+        log.error("5xx erro interno correlationId={} exception={} mensagem={}", correlationId,
+                ex.getClass().getSimpleName(), ex.getMessage(), ex);
         var errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Erro interno do servidor",
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                correlationId
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
@@ -252,8 +271,12 @@ public class GlobalExceptionHandler {
     public record ErrorResponse(
             int status,
             String message,
-            OffsetDateTime timestamp
+            OffsetDateTime timestamp,
+            String correlationId
     ) {
+        public ErrorResponse(int status, String message, OffsetDateTime timestamp) {
+            this(status, message, timestamp, null);
+        }
     }
 
     public record PlanUpgradeErrorResponse(

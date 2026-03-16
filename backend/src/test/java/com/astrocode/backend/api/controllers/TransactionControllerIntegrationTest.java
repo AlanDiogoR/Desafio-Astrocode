@@ -137,6 +137,16 @@ class TransactionControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /api/transactions?page=-1 → 400 Bad Request")
+    void getTransactions_negativePage_returns400() throws Exception {
+        mockMvc.perform(get("/api/transactions")
+                        .header("Authorization", "Bearer " + authToken)
+                        .param("page", "-1")
+                        .param("size", "20"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("GET /api/transactions?type=INVALIDO → 400 Bad Request")
     void getTransactions_invalidType_returns400() throws Exception {
         mockMvc.perform(get("/api/transactions")

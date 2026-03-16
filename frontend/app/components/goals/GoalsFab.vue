@@ -59,7 +59,7 @@ function handleSelect(action: () => void) {
 
 <template>
   <AppDropdown
-    class="goals-fab-dropdown"
+    class="goals-fab-dropdown goals-fab-dropdown--pos"
     content-side="top"
     content-align="end"
     :content-z-index="2500"
@@ -89,6 +89,28 @@ function handleSelect(action: () => void) {
 </template>
 
 <style scoped>
+@media (max-width: 959px) {
+  .goals-fab-dropdown--pos {
+    position: fixed;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    z-index: 100;
+  }
+
+  .goals-fab-dropdown--pos .fab-minimalist {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #087f5b !important;
+    box-shadow: 0 4px 12px rgba(8, 127, 91, 0.4);
+    padding: 0;
+  }
+
+  .goals-fab-dropdown--pos .fab-minimalist__icon {
+    color: white;
+  }
+}
+
 .fab-minimalist {
   background: transparent !important;
   border: none;

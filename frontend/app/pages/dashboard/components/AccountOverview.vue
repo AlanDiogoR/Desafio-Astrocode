@@ -80,7 +80,7 @@ function togglePrivacy() {
       />
       <section class="accounts-section">
         <div class="accounts-header d-flex align-center justify-space-between mb-4">
-          <h3 class="accounts-title d-flex align-center gap-1">
+          <h3 class="accounts-title accounts-title--primary d-flex align-center gap-1">
             Minhas contas
             <v-btn
               icon
@@ -324,6 +324,15 @@ function togglePrivacy() {
   font-weight: 600;
   margin: 0;
   opacity: 0.95;
+}
+
+.accounts-title--primary {
+  flex: 1;
+  min-width: 0;
+}
+
+.accounts-title__add-btn {
+  flex-shrink: 0;
 }
 
 .accounts-section {

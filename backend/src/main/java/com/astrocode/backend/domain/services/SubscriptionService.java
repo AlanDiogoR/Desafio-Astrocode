@@ -87,7 +87,7 @@ public class SubscriptionService {
 
         Subscription subscription = getOrCreateFree(user);
         BigDecimal amount = getPrice(request.planType());
-        String externalRef = "sub:" + subscription.getId();
+        String externalRef = "sub:" + subscription.getId() + ":" + request.planType().name();
 
         var payerBuilder = PaymentPayerRequest.builder()
                 .email(request.payerEmail());
@@ -159,13 +159,24 @@ public class SubscriptionService {
             return;
         }
 
-        UUID subId = UUID.fromString(externalRef.substring(4));
+        String[] parts = externalRef.split(":");
+        UUID subId = UUID.fromString(parts[1]);
         Subscription subscription = subscriptionRepository.findById(subId).orElse(null);
         if (subscription == null) {
             return;
         }
 
-        PlanType planType = inferPlanFromAmount(payment.getTransactionAmount());
+        PlanType planType;
+        if (parts.length >= 3) {
+            try {
+                planType = PlanType.valueOf(parts[2]);
+            } catch (IllegalArgumentException e) {
+                planType = inferPlanFromAmount(payment.getTransactionAmount());
+            }
+        } else {
+            planType = inferPlanFromAmount(payment.getTransactionAmount());
+        }
+
         activatePaidPlan(subscription, planType,
                 payment.getTransactionAmount() != null ? payment.getTransactionAmount() : BigDecimal.ZERO,
                 payment.getId());

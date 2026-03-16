@@ -71,6 +71,9 @@ public class TransactionController {
             @RequestParam(defaultValue = "20") @Max(100) int size,
             Authentication authentication
     ) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("page deve ser >= 0 e size entre 1 e 100");
+        }
         User user = (User) authentication.getPrincipal();
         var pageable = PageRequest.of(page, size, Sort.by("date").descending().and(Sort.by("createdAt").descending()));
         var result = transactionService.findAllByUserIdPaginated(user.getId(), year, month, bankAccountId, type, pageable);
