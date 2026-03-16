@@ -16,6 +16,7 @@ import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import org.springframework.stereotype.Service;
@@ -112,7 +113,7 @@ public class SubscriptionService {
         Payment payment;
         try {
             payment = paymentClient.create(paymentRequest);
-        } catch (MPException e) {
+        } catch (MPException | MPApiException e) {
             throw new PaymentRejectedException("Erro ao processar pagamento: " + e.getMessage(), e);
         }
 
