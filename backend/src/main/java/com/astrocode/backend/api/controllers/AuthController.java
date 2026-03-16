@@ -57,7 +57,7 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "None");
         httpResponse.addCookie(cookie);
         return ResponseEntity.ok(response.withoutToken());
     }
@@ -87,7 +87,7 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "None");
         httpResponse.addCookie(cookie);
         return ResponseEntity.ok(response.withoutToken());
     }
@@ -103,7 +103,7 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "None");
         httpResponse.addCookie(cookie);
         return ResponseEntity.ok().build();
     }

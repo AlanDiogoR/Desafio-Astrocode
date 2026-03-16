@@ -40,13 +40,7 @@ USER springboot
 # Expor porta da aplicação
 EXPOSE 8080
 
-# Variáveis de ambiente (podem ser sobrescritas no docker run)
-ENV DB_HOST=localhost
-ENV DB_PORT=5432
-ENV DB_NAME=backend_db
-ENV DB_USERNAME=postgres
-ENV DB_PASSWORD=
-ENV JWT_SECRET=
+# Variáveis vêm EXCLUSIVAMENTE do painel Railway → Variables (DB_*, JWT_SECRET, MP_*, etc.)
 
 # Executar aplicação
 ENTRYPOINT ["java", "-jar", "app.jar"]
