@@ -84,11 +84,14 @@ async function handleResetPassword() {
       code: code.value.trim(),
       newPassword: newPassword.value,
     })
-    authStore.setToken(response.token)
     authStore.setUser({
       id: response.id,
       name: response.name,
       email: response.email,
+      plan: (response.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+      isPro: response.isPro ?? false,
+      isElite: response.isElite ?? false,
+      planExpiresAt: response.planExpiresAt ?? null,
     })
     toast.success('Senha alterada com sucesso!')
     toast.success('Entrando...', { duration: 1000 })

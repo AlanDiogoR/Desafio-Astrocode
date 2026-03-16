@@ -3,11 +3,15 @@ interface LoginPayload {
   password: string
 }
 
-interface LoginResponse {
-  token: string
+export interface LoginResponse {
+  token?: string | null
   id: string
   name: string
   email: string
+  plan: string
+  isPro: boolean
+  isElite: boolean
+  planExpiresAt: string | null
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {

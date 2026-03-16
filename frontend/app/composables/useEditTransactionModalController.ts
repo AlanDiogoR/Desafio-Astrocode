@@ -11,7 +11,7 @@ const transactionSchema = z.object({
   amount: z.number().min(0.01, 'Valor inválido'),
   name: z.string().min(1, 'Nome é obrigatório'),
   categoryId: z.string().min(1, 'Categoria é obrigatória'),
-  bankAccountId: z.string().min(1, 'Conta é obrigatória'),
+  bankAccountId: z.string().optional().nullable(),
   date: z.date(),
   type: z.enum(['INCOME', 'EXPENSE']),
   isRecurring: z.boolean().optional(),
@@ -22,6 +22,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
   const queryClient = useQueryClient()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
+  const { invalidateCreditCards } = useCreditCards()
   const { invalidateDashboard } = useDashboardData()
   const { categories: categoriesComputed } = useCategories(
     computed(() => (transaction.value?.type === 'income' ? 'INCOME' : 'EXPENSE')),
@@ -65,15 +66,20 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
     if (!t) return
 
     Object.keys(errors).forEach((key) => delete errors[key])
+    const isCreditCard = !!t.creditCardId
     const result = transactionSchema.safeParse({
       amount: amount.value ?? 0,
       name: name.value.trim(),
       categoryId: categoryId.value ?? '',
-      bankAccountId: bankAccountId.value ?? '',
+      bankAccountId: isCreditCard ? null : (bankAccountId.value ?? ''),
       date: date.value,
       type: t.type === 'income' ? 'INCOME' : 'EXPENSE',
       isRecurring: isRecurring.value,
     })
+    if (result.success && !isCreditCard && !result.data.bankAccountId) {
+      errors.account = 'Conta é obrigatória'
+      return
+    }
 
     if (!result.success) {
       result.error.issues.forEach((issue) => {
@@ -93,13 +99,14 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
         amount: result.data.amount,
         date: toDateString(result.data.date),
         type: result.data.type,
-        bankAccountId: result.data.bankAccountId,
+        bankAccountId: t.creditCardId ? undefined : result.data.bankAccountId ?? undefined,
         categoryId: result.data.categoryId,
         isRecurring: result.data.isRecurring ?? false,
         frequency: result.data.isRecurring ? 'MONTHLY' : undefined,
       })
       toast.success('Transação atualizada!')
       await invalidateBankAccounts()
+      await invalidateCreditCards()
       await invalidateDashboard()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
@@ -119,6 +126,9 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
     openConfirmDeleteModal('TRANSACTION', t.id)
   }
 
+  const isCreditCardTransaction = computed(() => !!transaction.value?.creditCardId)
+  const creditCardName = computed(() => transaction.value?.creditCardName ?? '')
+
   return {
     amount,
     name,
@@ -131,6 +141,8 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
     categories,
     accounts: accountsOptions,
     valueColor,
+    isCreditCardTransaction,
+    creditCardName,
     save,
     handleDelete,
   }

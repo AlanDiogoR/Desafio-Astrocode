@@ -1,11 +1,17 @@
 import { useQueryClient } from '@tanstack/vue-query'
+import { logout as logoutApi } from '~/services/auth/logout'
 
 export function useLogout() {
   const authStore = useAuthStore()
   const queryClient = useQueryClient()
   const router = useRouter()
 
-  function performLogout() {
+  async function performLogout() {
+    try {
+      await logoutApi()
+    } catch {
+      /* ignora erro - cookie pode já estar expirado */
+    }
     authStore.clearAuth()
     if (import.meta.client) {
       queryClient.clear()
@@ -15,6 +21,8 @@ export function useLogout() {
       useState('isEditTransactionModalOpen').value = false
       useState('transactionBeingEdited').value = null
       useState('isNewAccountModalOpen').value = false
+      useState('isEditAccountModalOpen').value = false
+      useState('accountBeingEdited').value = null
       useState('isNewGoalModalOpen').value = false
       useState('isNewGoalValueModalOpen').value = false
       useState('goalInteractionType').value = 'DEPOSIT'
@@ -26,6 +34,11 @@ export function useLogout() {
       useState('confirmDeleteEntityId').value = null
       useState('isMonthlySummaryModalOpen').value = false
       useState('isEditProfileModalOpen').value = false
+      useState('isNewCreditCardModalOpen').value = false
+      useState('isEditCreditCardModalOpen').value = false
+      useState('creditCardBeingEdited').value = null
+      useState('creditCardForBillModal').value = null
+      useState('dashboard-areValuesVisible').value = true
     }
     router.replace('/login')
   }

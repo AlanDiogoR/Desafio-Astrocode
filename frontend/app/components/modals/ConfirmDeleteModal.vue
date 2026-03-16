@@ -25,13 +25,17 @@ const confirmTextMap: Record<ConfirmDeleteEntityType, string> = {
   ACCOUNT: 'Tem certeza que deseja excluir esta conta?',
   TRANSACTION: 'Tem certeza que deseja excluir esta transação?',
   GOAL: 'Tem certeza que deseja excluir esta meta?',
+  CREDIT_CARD: 'Tem certeza que deseja excluir este cartão de crédito?',
 }
 
 const accountWarning =
   'Ao excluir a conta, também serão excluídos todos os registros de receita e despesas relacionados.'
+const creditCardWarning =
+  'O cartão só pode ser excluído se não houver despesas na fatura em aberto.'
 
 const confirmText = computed(() => confirmTextMap[props.entityType])
 const showAccountWarning = computed(() => props.entityType === 'ACCOUNT')
+const showCreditCardWarning = computed(() => props.entityType === 'CREDIT_CARD')
 
 const isLoading = ref(false)
 
@@ -79,6 +83,12 @@ async function handleConfirm() {
             class="confirm-delete-warning"
           >
             {{ accountWarning }}
+          </p>
+          <p
+            v-else-if="showCreditCardWarning"
+            class="confirm-delete-warning"
+          >
+            {{ creditCardWarning }}
           </p>
         </div>
         <div class="confirm-delete-actions">

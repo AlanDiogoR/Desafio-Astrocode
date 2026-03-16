@@ -10,6 +10,7 @@ import com.astrocode.backend.domain.exceptions.InvalidPasswordException;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +23,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, CategoryRepository categoryRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
+                       SubscriptionRepository subscriptionRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.subscriptionRepository = subscriptionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -54,10 +58,16 @@ public class UserService {
     }
 
     public UserResponse toResponse(User user) {
+        var sub = user.getSubscription();
+        var planType = sub != null ? sub.getPlanType() : com.astrocode.backend.domain.model.enums.PlanType.FREE;
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                planType.name(),
+                user.isPro(),
+                user.isElite(),
+                sub != null ? sub.getExpiresAt() : null,
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
@@ -77,7 +87,15 @@ public class UserService {
         var savedUser = userRepository.save(user);
         createDefaultCategories(savedUser);
 
-        return toResponse(savedUser);
+        subscriptionRepository.save(
+                com.astrocode.backend.domain.entities.Subscription.builder()
+                        .user(savedUser)
+                        .planType(com.astrocode.backend.domain.model.enums.PlanType.FREE)
+                        .status(com.astrocode.backend.domain.model.enums.SubscriptionStatus.ACTIVE)
+                        .build()
+        );
+
+        return toResponse(userRepository.findByIdWithSubscription(savedUser.getId()).orElse(savedUser));
     }
 
     private void createDefaultCategories(User user) {

@@ -1,26 +1,34 @@
 <script setup lang="ts">
 import AccountCard from './AccountCard.vue'
 import AccountsEmpty from '~/components/accounts/AccountsEmpty.vue'
+import CreditCardCard from '~/components/cards/CreditCardCard.vue'
 import GoalsList from '~/components/goals/GoalsList.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewGoalModal from '~/components/modals/NewGoalModal.vue'
 import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
 import EditGoalModal from '~/components/modals/EditGoalModal.vue'
 import EditAccountModal from '~/components/modals/EditAccountModal.vue'
+import NewCreditCardModal from '~/components/modals/NewCreditCardModal.vue'
+import EditCreditCardModal from '~/components/modals/EditCreditCardModal.vue'
+import CreditCardBillModal from '~/components/modals/CreditCardBillModal.vue'
 import { useCarousel } from '~/composables/useCarousel'
 
-const { openNewAccountModal } = useDashboard()
+const { openNewAccountModal, openNewCreditCardModal } = useDashboard()
 const {
   accounts,
   goals,
+  creditCards,
   formattedTotalBalance,
   areValuesVisible,
   isLoading,
 } = useDashboardController()
 
 const { carouselRef, scroll } = useCarousel()
+const { carouselRef: creditCardsCarouselRef, scroll: creditCardsScroll } = useCarousel()
 const isEmpty = computed(() => accounts.value.length === 0)
 const hasCarousel = computed(() => accounts.value.length >= 3)
+const isEmptyCreditCards = computed(() => creditCards.value.length === 0)
+const hasCreditCardsCarousel = computed(() => creditCards.value.length >= 3)
 
 function togglePrivacy() {
   areValuesVisible.value = !areValuesVisible.value
@@ -141,9 +149,84 @@ function togglePrivacy() {
           />
         </div>
       </section>
+      <v-divider
+        v-if="!isEmpty || !isEmptyCreditCards || goals.length > 0"
+        class="accounts-section-divider"
+        color="rgba(255, 255, 255, 0.35)"
+      />
+      <section class="accounts-section">
+        <div class="accounts-header d-flex align-center justify-space-between mb-4">
+          <h3 class="accounts-title d-flex align-center gap-1">
+            Meus cartões
+            <v-btn
+              icon
+              variant="text"
+              density="compact"
+              color="white"
+              size="small"
+              aria-label="Novo cartão"
+              class="accounts-title__add-btn"
+              @click="openNewCreditCardModal()"
+            >
+              <v-icon icon="mdi-plus" size="20" />
+            </v-btn>
+          </h3>
+          <div
+            v-if="hasCreditCardsCarousel"
+            class="accounts-nav d-flex ga-1"
+          >
+            <v-btn
+              icon="mdi-chevron-left"
+              variant="text"
+              density="compact"
+              color="white"
+              @click="creditCardsScroll(-1)"
+            />
+            <v-btn
+              icon="mdi-chevron-right"
+              variant="text"
+              density="compact"
+              color="white"
+              @click="creditCardsScroll(1)"
+            />
+          </div>
+        </div>
+        <div
+          v-if="isLoading"
+          class="accounts-skeleton d-flex ga-4"
+        >
+          <div class="accounts-skeleton__spinner">
+            <v-progress-circular indeterminate color="white" size="48" />
+          </div>
+          <v-skeleton-loader type="list-item-avatar-two-line" class="accounts-skeleton__item" />
+        </div>
+        <div
+          v-else-if="!isEmptyCreditCards"
+          ref="creditCardsCarouselRef"
+          class="accounts-carousel"
+        >
+          <CreditCardCard
+            v-for="cc in creditCards"
+            :key="cc.id"
+            :credit-card="cc"
+            :show-privacy="areValuesVisible"
+            class="account-card-item"
+          />
+        </div>
+        <p
+          v-else
+          class="text-body-2 text-medium-emphasis py-2"
+          @click="openNewCreditCardModal"
+        >
+          Nenhum cartão cadastrado. Clique para adicionar.
+        </p>
+      </section>
     </div>
     <NewAccountModal />
     <EditAccountModal />
+    <NewCreditCardModal />
+    <EditCreditCardModal />
+    <CreditCardBillModal />
     <NewGoalModal />
     <GoalInteractionModal />
     <EditGoalModal />

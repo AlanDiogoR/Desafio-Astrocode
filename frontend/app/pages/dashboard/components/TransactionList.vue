@@ -84,8 +84,10 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
     date: transaction.date,
     type: transaction.type,
     bankAccountId: transaction.bankAccountId,
+    creditCardId: transaction.creditCardId,
     categoryId: transaction.categoryId,
     bankName: transaction.bankName,
+    creditCardName: transaction.creditCardName,
     categoryName: transaction.categoryName,
     isRecurring: transaction.isRecurring,
   })

@@ -10,8 +10,10 @@ interface TransactionItem {
   date: string
   type: 'income' | 'expense'
   bankAccountId: string
+  creditCardId?: string | null
   categoryId: string
   bankName: string
+  creditCardName?: string
   categoryName: string
   isRecurring?: boolean
 }
@@ -31,10 +33,15 @@ function handleIconError() {
   emit('iconError', props.transaction.id)
 }
 
+const isCreditCard = computed(() => !!props.transaction.creditCardId)
+const accountOrCardName = computed(() =>
+  isCreditCard.value ? props.transaction.creditCardName : props.transaction.bankName
+)
+
 function getTransactionIcon() {
   const catPath = getTransactionCategoryIconPath(props.transaction.categoryName, props.transaction.type)
   if (props.transaction.categoryName) return catPath
-  return getBankIconPath(props.transaction.bankName, props.transaction.type)
+  return getBankIconPath(props.transaction.bankName || props.transaction.creditCardName || '', props.transaction.type)
 }
 
 const formattedDate = computed(() => {
@@ -63,7 +70,14 @@ const formattedDate = computed(() => {
         color="transparent"
         class="transaction-avatar"
       >
-        <template v-if="iconLoadFailed.get(transaction.id)">
+        <template v-if="isCreditCard">
+          <v-icon
+            icon="mdi-credit-card-outline"
+            color="primary"
+            size="40"
+          />
+        </template>
+        <template v-else-if="iconLoadFailed.get(transaction.id)">
           <v-icon
             icon="mdi-cash"
             :color="transaction.type === 'income' ? 'green-700' : 'red-700'"
@@ -79,15 +93,29 @@ const formattedDate = computed(() => {
         >
       </v-avatar>
       <div class="flex-grow-1 d-flex flex-column">
-        <div class="d-flex align-center ga-1">
+        <div class="d-flex align-center ga-1 flex-wrap">
           <span class="transaction-title font-weight-bold">{{ transaction.name }}</span>
+          <v-chip
+            v-if="isCreditCard"
+            size="x-small"
+            variant="outlined"
+            color="primary"
+            class="transaction-credit-badge"
+          >
+            Crédito
+          </v-chip>
           <UpdateIcon
             v-if="transaction.isRecurring"
             class="transaction-recurring-icon"
             aria-label="Transação recorrente"
           />
         </div>
-        <span class="transaction-subtitle text-caption">{{ formattedDate }}</span>
+        <span class="transaction-subtitle text-caption">
+          {{ formattedDate }}
+          <template v-if="accountOrCardName">
+            · {{ accountOrCardName }}
+          </template>
+        </span>
       </div>
       <span
         :class="[
@@ -138,6 +166,10 @@ const formattedDate = computed(() => {
   width: 14px;
   height: 14px;
   color: #868e96;
+  flex-shrink: 0;
+}
+
+.transaction-credit-badge {
   flex-shrink: 0;
 }
 

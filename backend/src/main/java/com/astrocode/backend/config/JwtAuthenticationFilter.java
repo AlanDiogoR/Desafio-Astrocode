@@ -5,6 +5,7 @@ import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,18 +32,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    private static final String AUTH_COOKIE_NAME = "auth_token";
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String token = null;
         var authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            token = authHeader.substring(BEARER_PREFIX.length());
+        } else if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if (AUTH_COOKIE_NAME.equals(c.getName())) {
+                    token = c.getValue();
+                    break;
+                }
+            }
+        }
 
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+        if (token == null || token.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        var token = authHeader.substring(BEARER_PREFIX.length());
 
         try {
             if (jwtService.isTokenValid(token)) {
@@ -50,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 var userId = jwtService.extractUserId(token);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    var userOpt = userRepository.findById(userId);
+                    var userOpt = userRepository.findByIdWithSubscription(userId);
 
                     if (userOpt.isPresent()) {
                         var user = userOpt.get();

@@ -3,7 +3,8 @@ interface CreateTransactionPayload {
   amount: number
   date: string
   type: string
-  bankAccountId: string
+  bankAccountId?: string
+  creditCardId?: string
   categoryId: string
   isRecurring?: boolean
   frequency?: string

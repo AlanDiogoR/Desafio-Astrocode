@@ -21,6 +21,8 @@ const {
   categories,
   accounts,
   valueColor,
+  isCreditCardTransaction,
+  creditCardName,
   save,
   handleDelete,
 } = useEditTransactionModalController(transactionBeingEdited)
@@ -68,12 +70,17 @@ function handleOpenChange(v: boolean) {
             :error-text="errors.category"
           />
           <AppSelect
+            v-if="!isCreditCardTransaction"
             v-model="account"
             label="Conta"
             :options="accounts"
             placeholder="Conta"
             :error-text="errors.account"
           />
+          <div v-if="isCreditCardTransaction" class="edit-transaction__readonly-field">
+            <span class="edit-transaction__readonly-label">Cartão</span>
+            <span class="edit-transaction__readonly-value">{{ creditCardName }}</span>
+          </div>
         </div>
         <AppDatePicker
           v-model="date"
@@ -122,5 +129,24 @@ function handleOpenChange(v: boolean) {
 
 .edit-transaction-form__submit {
   width: 100%;
+}
+
+.edit-transaction__readonly-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-transaction__readonly-label {
+  font-size: 12px;
+  color: #087f5b;
+}
+
+.edit-transaction__readonly-value {
+  font-size: 16px;
+  color: #1f2937;
+  padding: 12px 16px;
+  background: #f3f4f6;
+  border-radius: 16px;
 }
 </style>

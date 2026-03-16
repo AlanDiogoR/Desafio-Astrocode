@@ -1,12 +1,13 @@
 export function useDashboardController() {
   const { accounts, isPending: accountsPending } = useBankAccounts()
   const { goals, isPending: goalsPending } = useGoals()
+  const { creditCards, isPending: creditCardsPending } = useCreditCards()
   const { totalBalance, isPending: dashboardPending } = useDashboardData()
 
   const areValuesVisible = useState<boolean>('dashboard-areValuesVisible', () => true)
 
   const isLoading = computed(
-    () => accountsPending.value || goalsPending.value || dashboardPending.value
+    () => accountsPending.value || goalsPending.value || creditCardsPending.value || dashboardPending.value
   )
 
   const formattedTotalBalance = computed(() => {
@@ -20,6 +21,7 @@ export function useDashboardController() {
   return {
     accounts,
     goals,
+    creditCards,
     totalBalance,
     formattedTotalBalance,
     areValuesVisible,

@@ -4,9 +4,11 @@ import com.astrocode.backend.api.dto.account.BankAccountRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.DuplicateAccountNameException;
+import com.astrocode.backend.domain.exceptions.PlanUpgradeRequiredException;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
+import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,18 +20,36 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class BankAccountService {
 
+    private static final int FREE_PLAN_ACCOUNT_LIMIT = 2;
+
     private final BankAccountRepository bankAccountRepository;
     private final UserRepository userRepository;
+    private final TransactionService transactionService;
+    private final SavingsGoalRepository savingsGoalRepository;
 
-    public BankAccountService(BankAccountRepository bankAccountRepository, UserRepository userRepository) {
+    public BankAccountService(BankAccountRepository bankAccountRepository,
+                              UserRepository userRepository,
+                              TransactionService transactionService,
+                              SavingsGoalRepository savingsGoalRepository) {
         this.bankAccountRepository = bankAccountRepository;
         this.userRepository = userRepository;
+        this.transactionService = transactionService;
+        this.savingsGoalRepository = savingsGoalRepository;
     }
 
     @Transactional
     public BankAccount create(BankAccountRequest request, UUID userId) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        var user = userRepository.findByIdWithSubscription(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        if (!user.isPro()) {
+            var count = bankAccountRepository.findByUserId(userId).size();
+            if (count >= FREE_PLAN_ACCOUNT_LIMIT) {
+                throw new PlanUpgradeRequiredException(
+                        "Você atingiu o limite de " + FREE_PLAN_ACCOUNT_LIMIT + " contas no plano gratuito. Faça upgrade para continuar.",
+                        "accounts");
+            }
+        }
 
         var existing = bankAccountRepository.findByUserIdAndNameIgnoreCase(userId, request.name().trim());
         if (!existing.isEmpty()) {
@@ -68,8 +88,10 @@ public class BankAccountService {
             throw new DuplicateAccountNameException(request.name().trim());
         }
 
-        account.setName(request.name());
+        var balanceDiff = request.initialBalance().subtract(account.getInitialBalance());
+        account.setCurrentBalance(account.getCurrentBalance().add(balanceDiff));
         account.setInitialBalance(request.initialBalance());
+        account.setName(request.name());
         account.setType(request.type());
         account.setColor(request.color());
 
@@ -84,6 +106,14 @@ public class BankAccountService {
         if (!account.getUser().getId().equals(user.getId())) {
             throw new ResourceAccessDeniedException("Você não tem permissão para acessar esta conta");
         }
+
+        // Reverter currentAmount das metas antes do cascade (que não passa pelo TransactionService.delete)
+        account.getTransactions().forEach(t -> {
+            if (t.getGoal() != null) {
+                transactionService.revertGoalAmount(t.getGoal(), t.getAmount(), t.getType());
+                savingsGoalRepository.save(t.getGoal());
+            }
+        });
 
         bankAccountRepository.delete(account);
     }

@@ -12,17 +12,23 @@ const {
   name,
   category,
   account,
+  creditCard,
   date,
   isRecurring,
   errors,
   isLoading,
   categories,
   accounts,
+  creditCardsOptions,
+  sourceMode,
   title,
   valueColor,
   valueLabel,
   accountLabel,
   accountPlaceholder,
+  showAccountSelector,
+  showCreditCardSelector,
+  availableLimit,
   resetForm,
   handleSubmit,
 } = useNewTransactionModalController()
@@ -71,13 +77,37 @@ watch(isNewTransactionModalOpen, (open: boolean) => {
             :error-text="errors.category"
             :scrollable="newTransactionType === 'EXPENSE'"
           />
+          <v-radio-group
+            v-if="newTransactionType === 'EXPENSE'"
+            v-model="sourceMode"
+            inline
+            density="compact"
+            hide-details
+            class="mt-0 mb-0"
+          >
+            <v-radio label="Débito" value="DEBIT" />
+            <v-radio label="Crédito" value="CREDIT" />
+          </v-radio-group>
           <AppSelect
+            v-if="showAccountSelector"
             v-model="account"
             :label="accountLabel"
             :options="accounts"
             :placeholder="accountPlaceholder"
             :error-text="errors.account"
           />
+          <template v-if="showCreditCardSelector">
+            <AppSelect
+              v-model="creditCard"
+              :label="accountLabel"
+              :options="creditCardsOptions"
+              :placeholder="accountPlaceholder"
+              :error-text="errors.account"
+            />
+            <p v-if="availableLimit > 0" class="text-caption text-medium-emphasis mt-n2">
+              Limite disponível: {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(availableLimit) }}
+            </p>
+          </template>
         </div>
         <AppDatePicker
           v-model="date"

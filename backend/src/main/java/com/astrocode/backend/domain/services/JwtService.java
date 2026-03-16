@@ -1,6 +1,7 @@
 package com.astrocode.backend.domain.services;
 
 import com.astrocode.backend.domain.exceptions.InvalidTokenException;
+import com.astrocode.backend.domain.model.enums.PlanType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,8 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.util.Base64;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
@@ -18,9 +23,11 @@ import java.util.UUID;
 @Service
 public class JwtService {
 
-    private static final int JWT_EXPIRATION_DAYS = 14;
+    private static final int JWT_EXPIRATION_DAYS = 7;
     private static final String USER_ID_CLAIM = "user_id";
     private static final String EMAIL_CLAIM = "email";
+    private static final String PLAN_CLAIM = "plan";
+    private static final String PLAN_EXPIRES_AT_CLAIM = "plan_expires_at";
 
     private final SecretKey secretKey;
 
@@ -28,16 +35,27 @@ public class JwtService {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("JWT secret não pode ser vazio. Configure a variável de ambiente JWT_SECRET.");
         }
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        byte[] decoded = Base64.getDecoder().decode(secret);
+        if (decoded.length < 32) {
+            throw new IllegalArgumentException("JWT secret deve ter pelo menos 32 bytes (Base64 decodificado). Gere com SecureRandom.");
+        }
+        this.secretKey = Keys.hmacShaKeyFor(decoded);
     }
 
-    public String generateToken(UUID userId, String email) {
+    public String generateToken(UUID userId, String email, PlanType planType, OffsetDateTime planExpiresAt) {
         Instant now = Instant.now();
         Instant expiration = now.plus(JWT_EXPIRATION_DAYS, ChronoUnit.DAYS);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .claim(USER_ID_CLAIM, userId.toString())
                 .claim(EMAIL_CLAIM, email)
+                .claim(PLAN_CLAIM, planType.name());
+
+        if (planExpiresAt != null) {
+            builder.claim(PLAN_EXPIRES_AT_CLAIM, planExpiresAt.toInstant().toEpochMilli());
+        }
+
+        return builder
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(secretKey)
@@ -76,6 +94,18 @@ public class JwtService {
             throw new InvalidTokenException("Token não contém email");
         }
         return email;
+    }
+
+    public String extractPlan(String token) {
+        Claims claims = extractClaims(token);
+        String plan = claims.get(PLAN_CLAIM, String.class);
+        return plan != null ? plan : PlanType.FREE.name();
+    }
+
+    public OffsetDateTime extractPlanExpiresAt(String token) {
+        Claims claims = extractClaims(token);
+        Long epochMilli = claims.get(PLAN_EXPIRES_AT_CLAIM, Long.class);
+        return epochMilli != null ? OffsetDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneOffset.UTC) : null;
     }
 
     public boolean isTokenValid(String token) {

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -18,4 +19,11 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     @Query("SELECT c FROM Category c WHERE c.user.id = :userId AND c.type = :type")
     List<Category> findByUserIdAndType(@Param("userId") UUID userId, @Param("type") TransactionType type);
+
+    @Query("SELECT c FROM Category c WHERE c.user.id = :userId AND c.type = :type AND LOWER(c.name) = LOWER(:name)")
+    Optional<Category> findByUserIdAndTypeAndNameIgnoreCase(
+            @Param("userId") UUID userId,
+            @Param("type") TransactionType type,
+            @Param("name") String name
+    );
 }

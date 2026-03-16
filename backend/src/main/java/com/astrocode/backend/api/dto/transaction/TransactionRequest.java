@@ -26,11 +26,12 @@ public record TransactionRequest(
         @NotNull(message = "Tipo da transação é obrigatório")
         TransactionType type,
 
-        @NotNull(message = "ID da conta bancária é obrigatório")
         UUID bankAccountId,
 
         @NotNull(message = "ID da categoria é obrigatório")
         UUID categoryId,
+
+        UUID creditCardId,
 
         Boolean isRecurring,
 

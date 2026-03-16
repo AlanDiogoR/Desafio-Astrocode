@@ -12,8 +12,10 @@ export interface TransactionForEdit {
   date: string
   type: 'income' | 'expense'
   bankAccountId: string
+  creditCardId?: string | null
   categoryId: string
   bankName: string
+  creditCardName?: string
   categoryName: string
   isRecurring?: boolean
 }
@@ -38,12 +40,18 @@ export function useDashboard() {
   const confirmDeleteEntityId = useState<string | null>('confirmDeleteEntityId', () => null)
   const isMonthlySummaryModalOpen = useState<boolean>('isMonthlySummaryModalOpen', () => false)
   const isEditProfileModalOpen = useState<boolean>('isEditProfileModalOpen', () => false)
+  const isNewCreditCardModalOpen = useState<boolean>('isNewCreditCardModalOpen', () => false)
+  const isEditCreditCardModalOpen = useState<boolean>('isEditCreditCardModalOpen', () => false)
+  const creditCardBeingEdited = useState<import('~/types/creditCard').CreditCard | null>('creditCardBeingEdited', () => null)
+  const creditCardForBillModal = useState<import('~/types/creditCard').CreditCard | null>('creditCardForBillModal', () => null)
   const { hasAccounts } = useBankAccounts()
+  const { hasCreditCards } = useCreditCards()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
   function openNewTransactionModal(type: TransactionModalType) {
-    if (!hasAccounts.value) {
-      toast.error('Você precisa cadastrar uma conta primeiro!')
+    const needAccount = type === 'INCOME' ? hasAccounts.value : (hasAccounts.value || hasCreditCards.value)
+    if (!needAccount) {
+      toast.error(type === 'INCOME' ? 'Você precisa cadastrar uma conta primeiro!' : 'Cadastre uma conta ou um cartão de crédito para registrar despesas.')
       return
     }
     newTransactionType.value = type
@@ -146,6 +154,32 @@ export function useDashboard() {
     isEditProfileModalOpen.value = false
   }
 
+  function openNewCreditCardModal() {
+    isNewCreditCardModalOpen.value = true
+  }
+
+  function closeNewCreditCardModal() {
+    isNewCreditCardModalOpen.value = false
+  }
+
+  function openEditCreditCardModal(card?: import('~/types/creditCard').CreditCard) {
+    creditCardBeingEdited.value = card ?? null
+    isEditCreditCardModalOpen.value = true
+  }
+
+  function closeEditCreditCardModal() {
+    isEditCreditCardModalOpen.value = false
+    creditCardBeingEdited.value = null
+  }
+
+  function openCreditCardBillModal(card: import('~/types/creditCard').CreditCard) {
+    creditCardForBillModal.value = card
+  }
+
+  function closeCreditCardBillModal() {
+    creditCardForBillModal.value = null
+  }
+
   return {
     transactionFilters,
     isNewTransactionModalOpen,
@@ -186,5 +220,15 @@ export function useDashboard() {
     isEditProfileModalOpen,
     openEditProfileModal,
     closeEditProfileModal,
+    isNewCreditCardModalOpen,
+    openNewCreditCardModal,
+    closeNewCreditCardModal,
+    isEditCreditCardModalOpen,
+    creditCardBeingEdited,
+    openEditCreditCardModal,
+    closeEditCreditCardModal,
+    creditCardForBillModal,
+    openCreditCardBillModal,
+    closeCreditCardBillModal,
   }
 }

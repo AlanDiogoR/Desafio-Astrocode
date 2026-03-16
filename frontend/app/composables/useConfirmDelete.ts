@@ -3,6 +3,7 @@ import { getErrorMessage } from '~/utils/errorHandler'
 import { deleteBankAccount } from '~/services/bankAccounts'
 import { deleteGoal } from '~/services/goals'
 import { deleteTransaction } from '~/services/transactions'
+import { deleteCreditCard } from '~/services/creditCards'
 import { TRANSACTIONS_QUERY_KEY } from '~/composables/useTransactions'
 
 export function useConfirmDelete() {
@@ -10,6 +11,7 @@ export function useConfirmDelete() {
   const { confirmDeleteEntityType, confirmDeleteEntityId, closeConfirmDeleteModal, transactionFilters } = useDashboard()
   const { invalidateBankAccounts } = useBankAccounts()
   const { invalidateGoals } = useGoals()
+  const { invalidateCreditCards } = useCreditCards()
   const { invalidateDashboard } = useDashboardData()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -43,6 +45,14 @@ export function useConfirmDelete() {
       await deleteTransaction(id)
       toast.success('Transação excluída com sucesso!')
       await invalidateBankAccounts()
+      await invalidateDashboard()
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary-modal'] })
+    } else if (type === 'CREDIT_CARD') {
+      await deleteCreditCard(id)
+      toast.success('Cartão de crédito excluído com sucesso!')
+      await invalidateCreditCards()
       await invalidateDashboard()
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] })

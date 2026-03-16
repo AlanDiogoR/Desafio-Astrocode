@@ -4,7 +4,6 @@ import type { User } from '~/stores/auth'
 const STALE_TIME_MS = 5 * 60 * 1000
 
 export function useUser() {
-  const config = useRuntimeConfig()
   const authStore = useAuthStore()
 
   const queryKey = ['user', 'me'] as const
@@ -18,15 +17,11 @@ export function useUser() {
   } = useQuery({
     queryKey,
     queryFn: async (): Promise<User> => {
-      const token = authStore.token
-      if (!token) throw new Error('No token')
-
-      const url = `${config.public.apiBase}/users/me`
-      return $fetch<User>(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const { $api } = useNuxtApp()
+      const { data } = await $api.get<User>('/users/me')
+      return data
     },
-    enabled: computed(() => !!authStore.token),
+    enabled: computed(() => true),
     staleTime: STALE_TIME_MS,
     refetchOnWindowFocus: true,
   })
@@ -37,6 +32,10 @@ export function useUser() {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        plan: (newUser.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+        isPro: newUser.isPro ?? false,
+        isElite: newUser.isElite ?? false,
+        planExpiresAt: newUser.planExpiresAt ?? null,
       })
     }
   }, { immediate: true })

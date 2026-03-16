@@ -55,7 +55,7 @@ export function useBankAccounts() {
       const data = await listBankAccounts()
       return data.map(mapApiToBankAccount)
     },
-    enabled: computed(() => !!authStore.token),
+    enabled: computed(() => !!authStore.user),
     staleTime: 0,
   })
 

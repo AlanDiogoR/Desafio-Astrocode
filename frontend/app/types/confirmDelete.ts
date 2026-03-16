@@ -1,1 +1,1 @@
-export type ConfirmDeleteEntityType = 'ACCOUNT' | 'TRANSACTION' | 'GOAL'
+export type ConfirmDeleteEntityType = 'ACCOUNT' | 'TRANSACTION' | 'GOAL' | 'CREDIT_CARD'

@@ -122,14 +122,22 @@ public class TransactionController {
     }
 
     private TransactionResponse toResponse(Transaction transaction) {
+        var bankAccountId = transaction.getBankAccount() != null ? transaction.getBankAccount().getId() : null;
+        var creditCardId = transaction.getCreditCard() != null ? transaction.getCreditCard().getId() : null;
+        var creditCardName = transaction.getCreditCard() != null ? transaction.getCreditCard().getName() : null;
+        var creditCardBillId = transaction.getCreditCardBill() != null ? transaction.getCreditCardBill().getId() : null;
+
         return new TransactionResponse(
                 transaction.getId(),
                 transaction.getName(),
                 transaction.getAmount(),
                 transaction.getDate(),
                 transaction.getType().name(),
-                transaction.getBankAccount().getId(),
+                bankAccountId,
                 transaction.getCategory().getId(),
+                creditCardId,
+                creditCardName,
+                creditCardBillId,
                 transaction.getIsRecurring() != null ? transaction.getIsRecurring() : false,
                 transaction.getFrequency() != null ? transaction.getFrequency().name() : null,
                 transaction.getCreatedAt(),

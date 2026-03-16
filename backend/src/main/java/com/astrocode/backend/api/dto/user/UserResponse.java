@@ -7,6 +7,10 @@ public record UserResponse(
         UUID id,
         String name,
         String email,
+        String plan,
+        boolean isPro,
+        boolean isElite,
+        OffsetDateTime planExpiresAt,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

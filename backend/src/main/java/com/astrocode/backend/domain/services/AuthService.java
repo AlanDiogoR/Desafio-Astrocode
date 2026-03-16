@@ -8,6 +8,7 @@ import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
 import com.astrocode.backend.domain.exceptions.InvalidResetCodeException;
 import com.astrocode.backend.domain.repositories.PasswordResetCodeRepository;
+import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,14 +48,20 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(InvalidCredentialsException::new);
+        user = userRepository.findByIdWithSubscription(user.getId()).orElse(user);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new InvalidCredentialsException();
         }
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail());
+        var sub = user.getSubscription();
+        var planType = sub != null ? sub.getPlanType() : PlanType.FREE;
 
-        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail());
+        String token = jwtService.generateToken(user.getId(), user.getEmail(),
+                planType, sub != null ? sub.getExpiresAt() : null);
+
+        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail(),
+                planType.name(), user.isPro(), user.isElite(), sub != null ? sub.getExpiresAt() : null);
     }
 
     @Transactional(readOnly = false)
@@ -102,13 +109,19 @@ public class AuthService {
 
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(InvalidResetCodeException::new);
+        user = userRepository.findByIdWithSubscription(user.getId()).orElse(user);
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
         resetCodeRepository.delete(resetCode);
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail());
-        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail());
+        var sub = user.getSubscription();
+        var planType = sub != null ? sub.getPlanType() : PlanType.FREE;
+
+        String token = jwtService.generateToken(user.getId(), user.getEmail(),
+                planType, sub != null ? sub.getExpiresAt() : null);
+        return new LoginResponse(token, user.getId(), user.getName(), user.getEmail(),
+                planType.name(), user.isPro(), user.isElite(), sub != null ? sub.getExpiresAt() : null);
     }
 
     private String generateAlphanumericCode() {

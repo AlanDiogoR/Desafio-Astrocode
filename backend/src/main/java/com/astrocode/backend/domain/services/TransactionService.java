@@ -9,9 +9,13 @@ import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
+import com.astrocode.backend.domain.entities.CreditCard;
+import com.astrocode.backend.domain.entities.CreditCardBill;
 import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
 import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
+import com.astrocode.backend.domain.exceptions.InvalidTransactionSourceException;
+import com.astrocode.backend.domain.exceptions.PlanUpgradeRequiredException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.model.enums.RecurrenceFrequency;
 import com.astrocode.backend.domain.model.enums.TransactionType;
@@ -20,11 +24,13 @@ import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
+import com.astrocode.backend.domain.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -35,26 +41,115 @@ import java.util.UUID;
 @Service
 public class TransactionService {
 
+    private static final int FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH = 30;
+
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
     private final CategoryRepository categoryRepository;
     private final SavingsGoalRepository savingsGoalRepository;
+    private final CreditCardService creditCardService;
+    private final UserRepository userRepository;
 
     public TransactionService(
             TransactionRepository transactionRepository,
             BankAccountRepository bankAccountRepository,
             CategoryRepository categoryRepository,
-            SavingsGoalRepository savingsGoalRepository
+            SavingsGoalRepository savingsGoalRepository,
+            CreditCardService creditCardService,
+            UserRepository userRepository
     ) {
         this.transactionRepository = transactionRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.categoryRepository = categoryRepository;
         this.savingsGoalRepository = savingsGoalRepository;
+        this.creditCardService = creditCardService;
+        this.userRepository = userRepository;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Transaction create(TransactionRequest request, UUID userId) {
-        var bankAccount = bankAccountRepository.findById(request.bankAccountId())
+        boolean hasBankAccount = request.bankAccountId() != null;
+        boolean hasCreditCard = request.creditCardId() != null;
+
+        if (hasBankAccount == hasCreditCard) {
+            throw new InvalidTransactionSourceException();
+        }
+
+        checkFreePlanTransactionLimit(userId);
+
+        if (hasCreditCard) {
+            return createCreditCardTransaction(request, userId);
+        }
+
+        return createBankAccountTransaction(request, userId);
+    }
+
+    private void checkFreePlanTransactionLimit(UUID userId) {
+        var user = userRepository.findByIdWithSubscription(userId);
+        if (user.filter(u -> !u.isPro()).isEmpty()) {
+            return;
+        }
+        var now = LocalDate.now();
+        var startOfMonth = now.withDayOfMonth(1);
+        var endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
+        long count = transactionRepository.countByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
+        if (count >= FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH) {
+            throw new PlanUpgradeRequiredException(
+                    "Você atingiu o limite de " + FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH + " transações no mês no plano gratuito. Faça upgrade para continuar.",
+                    "transactions");
+        }
+    }
+
+    private Transaction createCreditCardTransaction(TransactionRequest request, UUID userId) {
+        if (request.type() != TransactionType.EXPENSE) {
+            throw new CategoryTypeMismatchException(
+                    "Transações no cartão de crédito devem ser do tipo EXPENSE (despesa)"
+            );
+        }
+
+        var creditCard = creditCardService.findById(request.creditCardId(), userId);
+        var bill = creditCardService.getOrCreateCurrentBill(request.creditCardId(), userId);
+
+        var newBillTotal = bill.getTotalAmount().add(request.amount());
+        if (newBillTotal.compareTo(creditCard.getCreditLimit()) > 0) {
+            var disponivel = creditCard.getCreditLimit().subtract(bill.getTotalAmount());
+            throw new InsufficientBalanceException(
+                    "Limite do cartão excedido. Disponível: R$ " + disponivel);
+        }
+
+        var category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+
+        validateCategoryOwnership(category, userId);
+        validateCategoryTypeMatch(request.type(), category.getType());
+
+        var isRecurring = request.isRecurring() != null && request.isRecurring();
+        var frequency = isRecurring && request.frequency() != null ? request.frequency() : RecurrenceFrequency.MONTHLY;
+
+        var transaction = Transaction.builder()
+                .user(creditCard.getUser())
+                .bankAccount(null)
+                .creditCard(creditCard)
+                .creditCardBill(bill)
+                .category(category)
+                .name(request.name())
+                .amount(request.amount())
+                .date(request.date())
+                .type(request.type())
+                .isRecurring(isRecurring)
+                .frequency(isRecurring ? frequency : null)
+                .build();
+
+        var savedTransaction = transactionRepository.save(transaction);
+
+        bill.setTotalAmount(bill.getTotalAmount().add(request.amount()));
+        creditCard.setCurrentBillAmount(creditCard.getCurrentBillAmount().add(request.amount()));
+
+        return savedTransaction;
+    }
+
+    private Transaction createBankAccountTransaction(TransactionRequest request, UUID userId) {
+        var bankAccount = bankAccountRepository.findByIdForUpdate(request.bankAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
 
         validateAccountOwnership(bankAccount, userId);
@@ -97,7 +192,10 @@ public class TransactionService {
             User user,
             SavingsGoal goal
     ) {
-        validateAccountOwnership(bankAccount, user.getId());
+        var account = bankAccountRepository.findByIdForUpdate(bankAccount.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
+        validateAccountOwnership(account, user.getId());
+        bankAccount = account;
         validateCategoryOwnership(category, user.getId());
         validateCategoryTypeMatch(type, category.getType());
 
@@ -170,15 +268,32 @@ public class TransactionService {
             throw new AccountNotOwnedException("Você não tem permissão para acessar esta transação");
         }
 
-        var oldBankAccount = transaction.getBankAccount();
         var oldAmount = transaction.getAmount();
-        var oldType = transaction.getType();
+        var newAmount = request.amount() != null ? request.amount() : oldAmount;
 
+        if (transaction.getCreditCard() != null) {
+            updateCreditCardTransaction(transaction, request, userId, oldAmount, newAmount);
+            return transactionRepository.save(transaction);
+        }
+
+        var oldBankAccount = bankAccountRepository.findByIdForUpdate(transaction.getBankAccount().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
+        if (!oldBankAccount.getUser().getId().equals(userId)) {
+            throw new AccountNotOwnedException("Você não tem permissão para acessar esta transação");
+        }
+        var oldType = transaction.getType();
         revertAccountBalance(oldBankAccount, oldAmount, oldType);
+
+        // Reverter goal antigo (se houver) antes de aplicar novos valores
+        var oldGoal = transaction.getGoal();
+        if (oldGoal != null) {
+            revertGoalAmount(oldGoal, oldAmount, oldType);
+            savingsGoalRepository.save(oldGoal);
+        }
 
         var newBankAccount = oldBankAccount;
         if (request.bankAccountId() != null && !request.bankAccountId().equals(oldBankAccount.getId())) {
-            newBankAccount = bankAccountRepository.findById(request.bankAccountId())
+            newBankAccount = bankAccountRepository.findByIdForUpdate(request.bankAccountId())
                     .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
             validateAccountOwnership(newBankAccount, userId);
         }
@@ -195,15 +310,9 @@ public class TransactionService {
             validateCategoryTypeMatch(newType, newCategory.getType());
         }
 
-        if (request.name() != null) {
-            transaction.setName(request.name());
-        }
-        if (request.amount() != null) {
-            transaction.setAmount(request.amount());
-        }
-        if (request.date() != null) {
-            transaction.setDate(request.date());
-        }
+        if (request.name() != null) transaction.setName(request.name());
+        if (request.amount() != null) transaction.setAmount(request.amount());
+        if (request.date() != null) transaction.setDate(request.date());
         if (request.isRecurring() != null) {
             transaction.setIsRecurring(request.isRecurring());
             transaction.setFrequency(request.isRecurring() && request.frequency() != null ? request.frequency() : null);
@@ -212,8 +321,14 @@ public class TransactionService {
         transaction.setBankAccount(newBankAccount);
         transaction.setCategory(newCategory);
 
-        var newAmount = request.amount() != null ? request.amount() : oldAmount;
         updateAccountBalance(newBankAccount, newAmount, newType);
+
+        // Aplicar novo goal (se houver, mesmo goal com valores atualizados)
+        var goal = transaction.getGoal();
+        if (goal != null) {
+            applyGoalAmount(goal, newAmount, newType);
+            savingsGoalRepository.save(goal);
+        }
 
         if (!oldBankAccount.getId().equals(newBankAccount.getId())) {
             bankAccountRepository.saveAndFlush(oldBankAccount);
@@ -221,6 +336,36 @@ public class TransactionService {
         bankAccountRepository.saveAndFlush(newBankAccount);
 
         return transactionRepository.save(transaction);
+    }
+
+    private void updateCreditCardTransaction(Transaction transaction, TransactionUpdateRequest request,
+                                             UUID userId, BigDecimal oldAmount, BigDecimal newAmount) {
+        var bill = transaction.getCreditCardBill();
+        var creditCard = transaction.getCreditCard();
+
+        if (!creditCard.getUser().getId().equals(userId)) {
+            throw new AccountNotOwnedException("Você não tem permissão para acessar esta transação");
+        }
+
+        bill.setTotalAmount(bill.getTotalAmount().subtract(oldAmount).add(newAmount));
+        creditCard.setCurrentBillAmount(creditCard.getCurrentBillAmount().subtract(oldAmount).add(newAmount));
+
+        var newCategory = transaction.getCategory();
+        if (request.categoryId() != null && !request.categoryId().equals(transaction.getCategory().getId())) {
+            newCategory = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+            validateCategoryOwnership(newCategory, userId);
+            validateCategoryTypeMatch(TransactionType.EXPENSE, newCategory.getType());
+        }
+
+        if (request.name() != null) transaction.setName(request.name());
+        if (request.amount() != null) transaction.setAmount(request.amount());
+        if (request.date() != null) transaction.setDate(request.date());
+        if (request.isRecurring() != null) {
+            transaction.setIsRecurring(request.isRecurring());
+            transaction.setFrequency(request.isRecurring() && request.frequency() != null ? request.frequency() : null);
+        }
+        transaction.setCategory(newCategory);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -232,9 +377,19 @@ public class TransactionService {
             throw new AccountNotOwnedException("Você não tem permissão para acessar esta transação");
         }
 
-        var bankAccount = transaction.getBankAccount();
-        revertAccountBalance(bankAccount, transaction.getAmount(), transaction.getType());
-        bankAccountRepository.saveAndFlush(bankAccount);
+        if (transaction.getCreditCard() != null) {
+            var bill = transaction.getCreditCardBill();
+            var creditCard = transaction.getCreditCard();
+            var newBillTotal = bill.getTotalAmount().subtract(transaction.getAmount()).max(BigDecimal.ZERO);
+            var newCurrentAmount = creditCard.getCurrentBillAmount().subtract(transaction.getAmount()).max(BigDecimal.ZERO);
+            bill.setTotalAmount(newBillTotal);
+            creditCard.setCurrentBillAmount(newCurrentAmount);
+        } else {
+            var bankAccount = bankAccountRepository.findByIdForUpdate(transaction.getBankAccount().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
+            revertAccountBalance(bankAccount, transaction.getAmount(), transaction.getType());
+            bankAccountRepository.saveAndFlush(bankAccount);
+        }
 
         var goal = transaction.getGoal();
         if (goal != null) {
@@ -310,9 +465,9 @@ public class TransactionService {
         return new MonthlySummaryResponse(totalExpense, byCategory);
     }
 
-    private void revertGoalAmount(SavingsGoal goal, BigDecimal amount, TransactionType type) {
+    public void revertGoalAmount(SavingsGoal goal, BigDecimal amount, TransactionType type) {
         if (type == TransactionType.EXPENSE) {
-            goal.setCurrentAmount(goal.getCurrentAmount().subtract(amount));
+            goal.setCurrentAmount(goal.getCurrentAmount().subtract(amount).max(BigDecimal.ZERO));
         } else {
             goal.setCurrentAmount(goal.getCurrentAmount().add(amount));
         }
@@ -322,12 +477,27 @@ public class TransactionService {
         }
     }
 
+    private void applyGoalAmount(SavingsGoal goal, BigDecimal amount, TransactionType type) {
+        if (type == TransactionType.INCOME) {
+            goal.setCurrentAmount(goal.getCurrentAmount().add(amount));
+        } else {
+            goal.setCurrentAmount(goal.getCurrentAmount().subtract(amount).max(BigDecimal.ZERO));
+        }
+        if (goal.getCurrentAmount().compareTo(goal.getTargetAmount()) >= 0) {
+            goal.setStatus(GoalStatus.COMPLETED);
+        }
+    }
+
     /**
      * Cria uma transação filha a partir de uma transação pai recorrente.
      * Usado pelo job de recorrência para gerar transações automaticamente.
+     * REQUIRES_NEW para que falha em um filho não reverta o lote inteiro.
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public Transaction createRecurringChild(Transaction parent, LocalDate targetDate) {
+        if (parent.getBankAccount() == null) {
+            return null;
+        }
         var child = Transaction.builder()
                 .user(parent.getUser())
                 .bankAccount(parent.getBankAccount())
@@ -342,8 +512,10 @@ public class TransactionService {
                 .build();
 
         var saved = transactionRepository.save(child);
-        updateAccountBalance(parent.getBankAccount(), parent.getAmount(), parent.getType());
-        bankAccountRepository.save(parent.getBankAccount());
+        var account = bankAccountRepository.findByIdForUpdate(parent.getBankAccount().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
+        updateAccountBalance(account, parent.getAmount(), parent.getType());
+        bankAccountRepository.save(account);
         return saved;
     }
 }

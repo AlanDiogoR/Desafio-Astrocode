@@ -7,6 +7,7 @@ import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.SavingsGoal;
 import com.astrocode.backend.domain.entities.User;
+import com.astrocode.backend.domain.exceptions.PlanUpgradeRequiredException;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.model.enums.GoalStatus;
@@ -48,10 +49,21 @@ public class SavingsGoalService {
         this.transactionService = transactionService;
     }
 
+    private static final int FREE_PLAN_GOAL_LIMIT = 2;
+
     @Transactional
     public SavingsGoal create(SavingsGoalRequest request, UUID userId) {
-        var user = userRepository.findById(userId)
+        var user = userRepository.findByIdWithSubscription(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!user.isPro()) {
+            long activeCount = savingsGoalRepository.countActiveByUserId(userId);
+            if (activeCount >= FREE_PLAN_GOAL_LIMIT) {
+                throw new PlanUpgradeRequiredException(
+                        "Você atingiu o limite de " + FREE_PLAN_GOAL_LIMIT + " metas ativas no plano gratuito. Faça upgrade para continuar.",
+                        "goals");
+            }
+        }
 
         if (request.targetAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valor alvo deve ser maior que zero");

@@ -156,11 +156,14 @@ export function useAuthForm() {
   const loginMutation = useMutation({
     mutationFn: (payload: { email: string; password: string }) => loginApi(payload),
     onSuccess: (data) => {
-      authStore.setToken(data.token)
       authStore.setUser({
         id: data.id,
         name: data.name,
         email: data.email,
+        plan: (data.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+        isPro: data.isPro ?? false,
+        isElite: data.isElite ?? false,
+        planExpiresAt: data.planExpiresAt ?? null,
       })
       toast.success('Bem-vindo(a) ao Grivy!')
     },
@@ -173,11 +176,14 @@ export function useAuthForm() {
       return loginApi({ email: payload.email, password: payload.password })
     },
     onSuccess: (data) => {
-      authStore.setToken(data.token)
       authStore.setUser({
         id: data.id,
         name: data.name,
         email: data.email,
+        plan: (data.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+        isPro: data.isPro ?? false,
+        isElite: data.isElite ?? false,
+        planExpiresAt: data.planExpiresAt ?? null,
       })
       toast.success('Bem-vindo ao Grivy!')
     },

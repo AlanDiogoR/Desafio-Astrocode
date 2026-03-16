@@ -4,8 +4,10 @@ export interface TransactionApiResponse {
   amount: number
   date: string
   type: string
-  bankAccountId: string
+  bankAccountId: string | null
   categoryId: string
+  creditCardId?: string | null
+  creditCardName?: string | null
   isRecurring?: boolean
   frequency?: string
   createdAt?: string

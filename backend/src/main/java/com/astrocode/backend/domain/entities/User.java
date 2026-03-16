@@ -1,5 +1,7 @@
 package com.astrocode.backend.domain.entities;
 
+import com.astrocode.backend.domain.model.enums.PlanType;
+import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -74,6 +76,30 @@ public class User {
     @Builder.Default
     @ToString.Exclude
     private List<SavingsGoal> savingsGoals = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<CreditCard> creditCards = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    @ToString.Exclude
+    private Subscription subscription;
+
+    public boolean isPro() {
+        if (subscription == null) return false;
+        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) return false;
+        if (subscription.getPlanType() == PlanType.FREE) return false;
+        if (subscription.getExpiresAt() != null
+                && java.time.OffsetDateTime.now().isAfter(subscription.getExpiresAt())) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isElite() {
+        return isPro() && subscription.getPlanType() == PlanType.ANNUAL;
+    }
 
     @PrePersist
     protected void onCreate() {

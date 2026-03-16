@@ -15,4 +15,7 @@ public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, UUID> 
     @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId AND sg.deletedAt IS NULL " +
            "ORDER BY sg.endDate ASC NULLS LAST, sg.createdAt DESC")
     List<SavingsGoal> findByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT COUNT(sg) FROM SavingsGoal sg WHERE sg.user.id = :userId AND sg.deletedAt IS NULL AND sg.status = 'ACTIVE'")
+    long countActiveByUserId(@Param("userId") UUID userId);
 }

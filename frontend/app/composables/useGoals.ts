@@ -62,7 +62,7 @@ export function useGoals() {
       const data = await listGoals()
       return (data as SavingsGoalApiResponse[]).map(mapApiToSavingsGoal)
     },
-    enabled: computed(() => !!authStore.token),
+    enabled: computed(() => !!authStore.user),
     refetchOnMount: false,
   })
 

@@ -97,6 +97,10 @@ export function useEditProfileModalController() {
         id: updated.id,
         name: updated.name,
         email: updated.email,
+        plan: (updated.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+        isPro: updated.isPro ?? false,
+        isElite: updated.isElite ?? false,
+        planExpiresAt: updated.planExpiresAt ?? null,
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt,
       })

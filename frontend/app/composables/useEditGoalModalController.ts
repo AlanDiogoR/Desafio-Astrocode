@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
 import { getErrorMessage } from '~/utils/errorHandler'
 import { toDateString, parseDateString } from '~/utils/format'
-import { updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '~/services/goals'
+import { updateGoal as updateGoalApi } from '~/services/goals'
 
 const editGoalSchema = z.object({
   goalId: z.string().min(1, 'Selecione uma meta'),
@@ -18,7 +18,7 @@ const editGoalSchema = z.object({
 export type EditGoalFormValues = z.infer<typeof editGoalSchema>
 
 export function useEditGoalModalController() {
-  const { closeEditGoalModal, goalBeingEdited } = useDashboard()
+  const { closeEditGoalModal, goalBeingEdited, openConfirmDeleteModal } = useDashboard()
   const { goals, invalidateGoals } = useGoals()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
@@ -143,7 +143,8 @@ export function useEditGoalModalController() {
 
   function handleDelete() {
     if (!goalId.value) return
-    deleteGoal(goalId.value)
+    openConfirmDeleteModal('GOAL', goalId.value)
+    closeEditGoalModal()
   }
 
   return {

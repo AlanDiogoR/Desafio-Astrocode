@@ -90,9 +90,13 @@ public class RecurringTransactionJob {
 
                 if (!exists) {
                     try {
-                        transactionService.createRecurringChild(parent, targetDate);
-                        generated++;
-                        log.debug("Transação recorrente gerada: {} (pai: {})", targetDate, parent.getId());
+                        var child = transactionService.createRecurringChild(parent, targetDate);
+                        if (child != null) {
+                            generated++;
+                            log.debug("Transação recorrente gerada: {} (pai: {})", targetDate, parent.getId());
+                        } else {
+                            log.warn("Skipping recurring child for credit card transaction id={}", parent.getId());
+                        }
                     } catch (InsufficientBalanceException e) {
                         var user = parent.getUser();
                         var toEmail = user != null ? user.getEmail() : null;

@@ -18,6 +18,7 @@ const DEFAULT_PAGE_SIZE = 20
 export function useTransactions(filters: Ref<TransactionFiltersState | undefined>) {
   const authStore = useAuthStore()
   const { accounts } = useBankAccounts()
+  const { creditCards } = useCreditCards()
   const { categoriesById } = useCategories()
 
   const currentPage = ref(0)
@@ -43,7 +44,7 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
   const { data: rawPage, isPending, isError, error, refetch } = useQuery({
     queryKey: [TRANSACTIONS_QUERY_KEY[0], apiFilters],
     queryFn: () => listTransactions(apiFilters.value ?? {}),
-    enabled: computed(() => !!authStore.token),
+    enabled: computed(() => !!authStore.user),
   })
 
   const rawTransactions = computed(() => rawPage.value?.content ?? [])
@@ -61,6 +62,11 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
     accounts.value.forEach((a) => { map[a.id] = a.name })
     return map
   })
+  const creditCardNameById = computed(() => {
+    const map: Record<string, string> = {}
+    creditCards.value.forEach((c) => { map[c.id] = c.name })
+    return map
+  })
 
   const transactions = computed(() => {
     const list = rawTransactions.value ?? []
@@ -70,9 +76,11 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
       amount: Number(t.amount),
       date: t.date,
       type: (t.type === 'INCOME' ? 'income' : 'expense') as 'income' | 'expense',
-      bankAccountId: t.bankAccountId,
+      bankAccountId: t.bankAccountId ?? '',
+      creditCardId: t.creditCardId ?? null,
       categoryId: t.categoryId,
-      bankName: accountNameById.value[t.bankAccountId] ?? '',
+      bankName: t.bankAccountId ? (accountNameById.value[t.bankAccountId] ?? '') : '',
+      creditCardName: t.creditCardName ?? (t.creditCardId ? (creditCardNameById.value[t.creditCardId] ?? '') : ''),
       categoryName: categoryNameById.value[t.categoryId] ?? '',
       isRecurring: t.isRecurring ?? false,
     }))

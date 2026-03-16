@@ -9,6 +9,10 @@ interface ResetPasswordResponse {
   id: string
   name: string
   email: string
+  plan: string
+  isPro: boolean
+  isElite: boolean
+  planExpiresAt: string | null
 }
 
 export async function resetPassword(payload: ResetPasswordPayload): Promise<ResetPasswordResponse> {

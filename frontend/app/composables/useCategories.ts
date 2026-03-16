@@ -29,7 +29,7 @@ export function useCategories(transactionType?: Ref<'INCOME' | 'EXPENSE' | undef
       const raw = await listCategories()
       return raw.map(mapApiToCategory)
     },
-    enabled: computed(() => !!authStore.token),
+    enabled: computed(() => !!authStore.user),
   })
 
   const categories = computed<{ label: string; value: string }[]>(() => {

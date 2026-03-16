@@ -1,42 +1,46 @@
 import { ref, computed } from 'vue'
-import { useCookie } from '#imports'
 import { defineStore } from 'pinia'
+
+export type PlanType = 'FREE' | 'MONTHLY' | 'SEMIANNUAL' | 'ANNUAL'
 
 export interface User {
   id: string
   name: string
   email: string
+  plan: PlanType
+  isPro: boolean
+  isElite: boolean
+  planExpiresAt: string | null
   createdAt?: string
   updatedAt?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const tokenCookie = useCookie<string | null>('auth_token', {
-    default: () => null,
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 14,
-  })
-
   const user = ref<User | null>(null)
 
-  const token = computed(() => tokenCookie.value)
-  const hasToken = computed(() => !!tokenCookie.value)
-  const isLoggedIn = computed(() => !!tokenCookie.value && !!user.value)
+  const hasToken = computed(() => !!user.value)
+  const isLoggedIn = computed(() => !!user.value)
   const getUser = computed(() => user.value)
+  const isProUser = computed(() => user.value?.isPro ?? false)
+  const isEliteUser = computed(() => user.value?.isElite ?? false)
+  const planLabel = computed(() => {
+    const p = user.value?.plan ?? 'FREE'
+    const labels: Record<PlanType, string> = {
+      FREE: 'Grátis',
+      MONTHLY: 'Premium Mensal',
+      SEMIANNUAL: 'Premium Semestral',
+      ANNUAL: 'Premium Anual',
+    }
+    return labels[p]
+  })
 
-  function setToken(newToken: string) {
-    tokenCookie.value = newToken
-  }
-
-  function setUser(newUser: User) {
+  function setUser(newUser: User | null) {
     user.value = newUser
   }
 
   function clearAuth() {
     user.value = null
-    tokenCookie.value = null
   }
 
-  return { user, token, hasToken, isLoggedIn, getUser, setToken, setUser, clearAuth }
+  return { user, hasToken, isLoggedIn, getUser, isProUser, isEliteUser, planLabel, setUser, clearAuth }
 })
