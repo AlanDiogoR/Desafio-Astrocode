@@ -6,6 +6,7 @@ definePageMeta({
 const route = useRoute()
 const authStore = useAuthStore()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+const { $api } = useNuxtApp()
 
 const planId = computed(() => (route.query.plano as string) || 'MONTHLY')
 const planLabel = computed(() => {
@@ -17,8 +18,46 @@ const planLabel = computed(() => {
   return labels[planId.value] ?? planId.value
 })
 
+const planPrices: Record<string, number> = {
+  MONTHLY: 9.9,
+  SEMIANNUAL: 49.9,
+  ANNUAL: 89.9,
+}
+const planAmount = computed(() => planPrices[planId.value] ?? 9.9)
+
+const mpPublicKey = ref('')
+const isLoadingConfig = ref(true)
 const success = ref(false)
 const errorMessage = ref<string | null>(null)
+const resultData = ref<unknown>(null)
+
+onMounted(async () => {
+  try {
+    const { data } = await $api.get<{ mpPublicKey: string }>('/config/public')
+    mpPublicKey.value = data?.mpPublicKey ?? ''
+  } catch {
+    errorMessage.value = 'Não foi possível carregar a configuração de pagamento.'
+  } finally {
+    isLoadingConfig.value = false
+  }
+})
+
+function handleSuccess(result: unknown) {
+  resultData.value = result
+  success.value = true
+  errorMessage.value = null
+  toast?.success('Assinatura ativada com sucesso!')
+}
+
+function handleError(msg: string) {
+  errorMessage.value = msg
+  toast?.error(msg)
+}
+
+function invalidateUser() {
+  const { refetch } = useUser()
+  refetch()
+}
 </script>
 
 <template>
@@ -38,25 +77,40 @@ const errorMessage = ref<string | null>(null)
         Checkout - {{ planLabel }}
       </h1>
 
-      <v-alert v-if="errorMessage" type="error" class="mb-4" closable>
+      <p class="checkout-page__amount text-h6 mb-4">
+        {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planAmount) }}
+      </p>
+
+      <v-alert v-if="errorMessage" type="error" class="mb-4" closable @click:close="errorMessage = null">
         {{ errorMessage }}
       </v-alert>
 
       <v-alert v-if="success" type="success" class="mb-4">
         Assinatura ativada com sucesso! Você já pode aproveitar os benefícios Pro.
+        <v-btn class="mt-2" color="primary" :to="'/dashboard'" @click="invalidateUser">
+          Ir para o Dashboard
+        </v-btn>
       </v-alert>
 
-      <v-card v-if="!success" variant="outlined" class="pa-6">
-        <p class="text-body-1 mb-4">
-          Para concluir sua assinatura, a integração com o formulário de cartão do Mercado Pago está em implantação.
-        </p>
-        <p class="text-body-2 text-medium-emphasis">
-          Entre em contato com o suporte ou tente novamente em breve.
-        </p>
-        <v-btn color="primary" class="mt-4" :to="'/planos'">
-          Voltar aos planos
-        </v-btn>
-      </v-card>
+      <ClientOnly>
+        <div v-if="!success && !isLoadingConfig && mpPublicKey" class="checkout-page__form">
+          <MercadoPagoCardForm
+            :public-key="mpPublicKey"
+            :plan-type="planId"
+            :amount="planAmount"
+            @success="handleSuccess"
+            @error="handleError"
+          />
+        </div>
+        <div v-else-if="!success && !isLoadingConfig && !mpPublicKey" class="checkout-page__fallback">
+          <v-alert type="warning">
+            Chave do Mercado Pago não configurada. Entre em contato com o suporte.
+          </v-alert>
+        </div>
+        <div v-else-if="!success" class="checkout-page__loading">
+          <v-progress-circular indeterminate color="primary" size="48" />
+        </div>
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -69,7 +123,7 @@ const errorMessage = ref<string | null>(null)
 }
 
 .checkout-page__container {
-  max-width: 480px;
+  max-width: 520px;
   margin: 0 auto;
 }
 
@@ -77,6 +131,21 @@ const errorMessage = ref<string | null>(null)
   font-size: 24px;
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 24px 0;
+  margin: 0 0 8px 0;
+}
+
+.checkout-page__amount {
+  color: #087f5b;
+  font-weight: 600;
+}
+
+.checkout-page__form {
+  margin-top: 16px;
+}
+
+.checkout-page__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
 }
 </style>

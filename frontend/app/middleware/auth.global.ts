@@ -16,6 +16,11 @@ function isUnauthorized(error: unknown): boolean {
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
+  const { isValid: hasApiConfig } = useApiConfig()
+
+  if (!hasApiConfig) {
+    return
+  }
 
   if (isPublicRoute(to.path)) {
     if (authStore.hasToken) return navigateTo('/dashboard')

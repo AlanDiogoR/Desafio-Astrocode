@@ -5,6 +5,7 @@ const STALE_TIME_MS = 5 * 60 * 1000
 
 export function useUser() {
   const authStore = useAuthStore()
+  const { isValid: hasApiConfig } = useApiConfig()
 
   const queryKey = ['user', 'me'] as const
 
@@ -21,7 +22,7 @@ export function useUser() {
       const { data } = await $api.get<User>('/users/me')
       return data
     },
-    enabled: computed(() => true),
+    enabled: computed(() => !!hasApiConfig),
     staleTime: STALE_TIME_MS,
     refetchOnWindowFocus: true,
   })
