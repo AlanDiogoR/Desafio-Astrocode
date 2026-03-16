@@ -86,7 +86,10 @@ public class TransactionService {
 
     private void checkFreePlanTransactionLimit(UUID userId) {
         var user = userRepository.findByIdWithSubscription(userId);
-        if (user.filter(u -> !u.isPro()).isEmpty()) {
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("Usuário não encontrado");
+        }
+        if (user.get().isPro()) {
             return;
         }
         var now = LocalDate.now();

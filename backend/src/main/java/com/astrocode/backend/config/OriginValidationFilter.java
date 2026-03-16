@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -65,11 +66,23 @@ public class OriginValidationFilter extends OncePerRequestFilter {
     }
 
     private boolean isAllowedOrigin(String origin) {
-        if (allowedOriginsConfig == null || allowedOriginsConfig.isBlank()) return true;
-        for (String allowed : allowedOriginsConfig.split(",")) {
-            if (allowed != null && origin.equals(allowed.trim())) return true;
+        List<String> allowed = getAllowedOriginsList();
+        return allowed.stream().anyMatch(o -> origin.equals(o));
+    }
+
+    private List<String> getAllowedOriginsList() {
+        if (allowedOriginsConfig != null && !allowedOriginsConfig.isBlank()) {
+            return Arrays.stream(allowedOriginsConfig.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
         }
-        return false;
+        return List.of(
+                "https://grivy.netlify.app",
+                "https://www.grivy.netlify.app",
+                "http://localhost:3000",
+                "http://localhost:5173"
+        );
     }
 
     @Override

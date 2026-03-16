@@ -201,22 +201,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        var errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                OffsetDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        String safeMessage = sanitizeSensitiveMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(400, safeMessage, OffsetDateTime.now()));
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
-        var errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                OffsetDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        String safeMessage = sanitizeSensitiveMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(400, safeMessage, OffsetDateTime.now()));
+    }
+
+    private String sanitizeSensitiveMessage(String message) {
+        if (message == null) return "Requisição inválida";
+        String lower = message.toLowerCase();
+        if (lower.contains("jwt") || lower.contains("secret") || lower.contains("base64") || lower.contains("token")) {
+            return "Configuração inválida. Verifique as variáveis de ambiente.";
+        }
+        return message;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -240,7 +243,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ValidationErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
+            String fieldName = error instanceof FieldError ? ((FieldError) error).getField() : error.getObjectName();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });

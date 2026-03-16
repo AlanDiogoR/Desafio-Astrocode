@@ -6,6 +6,7 @@ import com.astrocode.backend.domain.services.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.Map;
 
@@ -28,14 +30,17 @@ public class WebhookController {
 
     private final SubscriptionService subscriptionService;
     private final WebhookProcessedEventRepository webhookProcessedEventRepository;
+    private final Environment environment;
 
     @Value("${mp.webhook-secret:}")
     private String webhookSecret;
 
     public WebhookController(SubscriptionService subscriptionService,
-                              WebhookProcessedEventRepository webhookProcessedEventRepository) {
+                              WebhookProcessedEventRepository webhookProcessedEventRepository,
+                              Environment environment) {
         this.subscriptionService = subscriptionService;
         this.webhookProcessedEventRepository = webhookProcessedEventRepository;
+        this.environment = environment;
     }
 
     @PostMapping("/mercadopago")
@@ -45,6 +50,13 @@ public class WebhookController {
                                                   @RequestHeader(value = "x-request-id", required = false) String requestId) {
         try {
             boolean secretConfigured = webhookSecret != null && !webhookSecret.isBlank();
+            boolean isProd = Arrays.stream(environment.getActiveProfiles())
+                    .anyMatch(p -> "prod".equalsIgnoreCase(p) || "production".equalsIgnoreCase(p));
+
+            if (isProd && !secretConfigured) {
+                log.error("CRITICO: MP_WEBHOOK_SECRET não configurado em produção. Webhook rejeitado.");
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+            }
 
             if (secretConfigured) {
                 if (signature == null || signature.isBlank()) {
