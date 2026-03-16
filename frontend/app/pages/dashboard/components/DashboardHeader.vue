@@ -33,6 +33,7 @@ const userInitials = computed(() => {
         variant="flat"
         :to="'/planos'"
         class="dashboard-header__upgrade-btn"
+        prepend-icon="mdi-crown"
       >
         Upgrade Pro
       </v-btn>

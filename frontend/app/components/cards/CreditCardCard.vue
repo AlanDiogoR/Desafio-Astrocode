@@ -78,6 +78,8 @@ function getCardColor() {
   border-bottom: 4px solid transparent;
   color: #212529;
   transition: opacity 0.2s;
+  min-height: 140px;
+  min-width: 180px;
 }
 
 .credit-card-card:hover {

@@ -51,9 +51,7 @@ async function handleUpgradeClick(planId: string) {
     return navigateTo('/login?redirect=' + encodeURIComponent('/planos'))
   }
   selectedPlan.value = planId
-  if (authStore.isLoggedIn) {
-    navigateTo(`/planos/checkout?plano=${planId}`)
-  }
+  await navigateTo(`/planos/checkout?plano=${planId}`)
 }
 </script>
 
@@ -82,16 +80,27 @@ async function handleUpgradeClick(planId: string) {
 
       <div v-else class="planos-page__grid">
         <v-card
-          v-for="plan in plans"
+          v-for="plan in paidPlans"
           :key="plan.id"
           class="planos-page__card"
-          :class="{ 'planos-page__card--pro': plan.id !== 'FREE' }"
           variant="outlined"
         >
-          <v-card-title class="text-h6">
+          <div class="planos-page__card-header">
+            <v-icon icon="mdi-star-four-points" size="32" color="#087f5b" class="planos-page__card-icon" />
+            <v-chip
+              v-if="plan.id === 'MONTHLY' && paidPlans.length > 1"
+              size="small"
+              color="primary"
+              variant="flat"
+              class="planos-page__badge"
+            >
+              Mais popular
+            </v-chip>
+          </div>
+          <v-card-title class="text-h6 planos-page__card-title">
             {{ plan.name }}
           </v-card-title>
-          <v-card-subtitle v-if="plan.description" class="mt-1">
+          <v-card-subtitle v-if="plan.description" class="planos-page__card-desc">
             {{ plan.description }}
           </v-card-subtitle>
           <v-card-text>
@@ -102,15 +111,9 @@ async function handleUpgradeClick(planId: string) {
           </v-card-text>
           <v-card-actions>
             <v-btn
-              v-if="plan.id === 'FREE'"
-              variant="outlined"
-              color="primary"
-              disabled
-            >
-              Plano atual
-            </v-btn>
-            <v-btn
-              v-else-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
+              v-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
+              block
+              size="large"
               variant="outlined"
               disabled
             >
@@ -118,11 +121,14 @@ async function handleUpgradeClick(planId: string) {
             </v-btn>
             <v-btn
               v-else
+              block
+              size="large"
               color="primary"
+              variant="flat"
               :loading="checkoutLoading && selectedPlan === plan.id"
               @click="handleUpgradeClick(plan.id)"
             >
-              {{ plan.id !== currentPlan ? 'Assinar' : 'Gerenciar' }}
+              Assinar
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -133,7 +139,7 @@ async function handleUpgradeClick(planId: string) {
           Faça login ou cadastre-se para assinar um plano.
         </p>
         <div class="d-flex gap-2 mt-2">
-          <v-btn color="primary" :to="'/login?redirect=' + encodeURIComponent('/planos')">
+          <v-btn color="primary" variant="flat" :to="'/login?redirect=' + encodeURIComponent('/planos')">
             Entrar
           </v-btn>
           <v-btn variant="outlined" to="/register">
@@ -148,8 +154,8 @@ async function handleUpgradeClick(planId: string) {
 <style scoped>
 .planos-page {
   min-height: 100vh;
-  padding: 32px 24px 48px;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 48px 24px;
+  background: #f8faf9;
 }
 
 .planos-page__container {
@@ -174,25 +180,62 @@ async function handleUpgradeClick(planId: string) {
 
 .planos-page__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
 .planos-page__card {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s ease;
-}
-
-.planos-page__card--pro {
-  border-color: #087f5b;
-  border-width: 2px;
 }
 
 .planos-page__card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.planos-page__card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 24px;
+  padding-inline: 24px;
+}
+
+.planos-page__card-icon {
+  flex-shrink: 0;
+}
+
+.planos-page__badge {
+  flex-shrink: 0;
+}
+
+.planos-page__card-title {
+  padding-inline: 24px 24px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.planos-page__card-desc {
+  padding-inline: 24px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.planos-page__card :deep(.v-card-text) {
+  padding: 16px 24px;
+}
+
+.planos-page__card :deep(.v-card-actions) {
+  padding: 16px 24px 24px;
+  flex-direction: column;
+}
+
 .planos-page__price {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #0f172a;
 }
@@ -212,6 +255,10 @@ async function handleUpgradeClick(planId: string) {
 @media (min-width: 600px) {
   .planos-page__title {
     font-size: 32px;
+  }
+
+  .planos-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
 </style>

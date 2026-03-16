@@ -256,9 +256,15 @@ function togglePrivacy() {
 
   .account-overview__content {
     height: 100%;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     gap: 20px;
     justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .account-overview__content::-webkit-scrollbar {
+    display: none;
   }
 }
 

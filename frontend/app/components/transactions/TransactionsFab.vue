@@ -75,9 +75,9 @@ function handleSelect(action: string) {
 
 <style scoped>
 .fab-wrapper {
-  position: absolute !important;
-  bottom: 16px !important;
-  right: 16px !important;
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
   z-index: 100;
 }
 
