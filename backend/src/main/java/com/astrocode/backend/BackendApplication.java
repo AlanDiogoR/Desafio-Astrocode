@@ -54,7 +54,15 @@ public class BackendApplication {
 		} else {
 			System.err.println("WARNING: Arquivo .env não encontrado! Usando variáveis de ambiente do sistema.");
 		}
-		
+
+		// Diagnóstico JWT_SECRET (nunca logar o valor)
+		String jwtSecret = System.getProperty("JWT_SECRET", System.getenv("JWT_SECRET"));
+		if (jwtSecret != null && !jwtSecret.isBlank()) {
+			System.out.println("JWT_SECRET: presente, " + jwtSecret.trim().length() + " chars");
+		} else {
+			System.err.println("CRITICO: JWT_SECRET não encontrado nas variáveis de ambiente!");
+		}
+
 		SpringApplication.run(BackendApplication.class, args);
 	}
 

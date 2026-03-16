@@ -35,7 +35,15 @@ public class JwtService {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("JWT secret não pode ser vazio. Configure a variável de ambiente JWT_SECRET.");
         }
-        byte[] decoded = Base64.getDecoder().decode(secret);
+        String sanitized = secret.trim().replace("\"", "");
+        byte[] decoded;
+        try {
+            decoded = Base64.getDecoder().decode(sanitized);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "JWT_SECRET não é Base64 válido. Verifique espaços ou caracteres inválidos. " +
+                    "Gere com: openssl rand -base64 64 | tr -d '\\n'", e);
+        }
         if (decoded.length < 32) {
             throw new IllegalArgumentException("JWT secret deve ter pelo menos 32 bytes (Base64 decodificado). Gere com SecureRandom.");
         }
