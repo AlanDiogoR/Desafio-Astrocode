@@ -1,7 +1,8 @@
 interface UpdateAccountPayload {
-  name?: string
-  type?: string
-  color?: string | null
+  name: string
+  initialBalance: number
+  type: string
+  color: string | null
 }
 
 export async function updateBankAccount(id: string, payload: UpdateAccountPayload): Promise<void> {

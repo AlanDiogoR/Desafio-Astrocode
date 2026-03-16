@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import { getErrorMessage } from '~/utils/errorHandler'
+import { toDateString } from '~/utils/format'
 import { createGoal as createGoalApi } from '~/services/goals'
 
 const goalSchema = z.object({
@@ -40,7 +41,7 @@ export function useNewGoalModalController() {
     isLoading.value = true
     try {
       const endDate = payload.deadline
-        ? payload.deadline.toISOString().slice(0, 10)
+        ? toDateString(payload.deadline)
         : null
       await createGoalApi({
         name: payload.name.trim(),

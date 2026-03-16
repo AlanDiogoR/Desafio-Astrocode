@@ -11,10 +11,12 @@ interface BankAccount {
   color: string
 }
 
-defineProps<{
+const props = defineProps<{
   account: BankAccount
   showPrivacy: boolean
 }>()
+
+const { openEditAccountModal, openConfirmDeleteModal } = useDashboard()
 
 function getAccountIcon(type: AccountType): string {
   switch (type) {
@@ -31,16 +33,28 @@ function getAccountIcon(type: AccountType): string {
 
 <template>
   <div
-    class="account-card"
+    class="account-card d-flex flex-column pa-4 rounded-xl cursor-pointer"
     :style="{ borderBottomColor: account.color }"
+    @click="openEditAccountModal(account)"
   >
-    <div class="account-card__icon">
+    <v-btn
+      icon
+      variant="text"
+      density="compact"
+      size="small"
+      class="account-card__edit-btn"
+      aria-label="Editar conta"
+      @click.stop="openEditAccountModal(account)"
+    >
+      <v-icon icon="mdi-pencil-outline" size="18" />
+    </v-btn>
+    <div class="account-card__icon d-flex align-center justify-center rounded-circle mb-3">
       <v-icon :icon="getAccountIcon(account.type)" size="24" class="account-card__icon-svg" />
     </div>
-    <p class="account-card__name">
+    <p class="account-card__name mb-1">
       {{ account.name }}
     </p>
-    <p class="account-card__value">
+    <p class="account-card__value mb-1">
       {{ showPrivacy ? formatCurrency(account.balance) : '••••' }}
     </p>
     <p class="account-card__label">
@@ -51,14 +65,25 @@ function getAccountIcon(type: AccountType): string {
 
 <style scoped>
 .account-card {
+  position: relative;
   background-color: white;
-  border-radius: 12px;
-  padding: 16px;
   flex-shrink: 0;
   border-bottom: 4px solid transparent;
   color: #212529;
-  cursor: pointer;
   transition: opacity 0.2s;
+}
+
+.account-card__edit-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #868e96;
+  min-width: 32px;
+}
+
+.account-card__edit-btn:hover {
+  color: #495057;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .account-card:hover {
@@ -68,12 +93,8 @@ function getAccountIcon(type: AccountType): string {
 .account-card__icon {
   width: 44px;
   height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
   background-color: #e9ecef;
-  border-radius: 50%;
-  margin-bottom: 12px;
 }
 
 .account-card__icon-svg {
@@ -83,14 +104,14 @@ function getAccountIcon(type: AccountType): string {
 .account-card__name {
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 4px 0;
+  margin: 0;
   color: #212529;
 }
 
 .account-card__value {
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 4px 0;
+  margin: 0;
   color: #212529;
 }
 

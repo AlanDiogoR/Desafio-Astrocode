@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import { getErrorMessage } from '~/utils/errorHandler'
+import { toDateString } from '~/utils/format'
 import { useQueryClient } from '@tanstack/vue-query'
 import { createTransaction as createTransactionApi } from '~/services/transactions'
 
@@ -71,7 +72,7 @@ export function useNewTransactionModalController() {
       await createTransactionApi({
         name: payload.name.trim(),
         amount: payload.amount,
-        date: payload.date.toISOString().slice(0, 10),
+        date: toDateString(payload.date),
         type: payload.type,
         bankAccountId: payload.bankAccountId,
         categoryId: payload.categoryId,

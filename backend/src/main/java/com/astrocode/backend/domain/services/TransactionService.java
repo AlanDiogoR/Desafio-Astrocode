@@ -20,6 +20,10 @@ import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,6 +119,13 @@ public class TransactionService {
     }
 
     public List<Transaction> findAllByUserId(UUID userId, Integer year, Integer month, UUID bankAccountId, TransactionType type) {
+        return findAllByUserIdPaginated(userId, year, month, bankAccountId, type, Pageable.unpaged()).getContent();
+    }
+
+    public Page<Transaction> findAllByUserIdPaginated(UUID userId, Integer year, Integer month, UUID bankAccountId, TransactionType type, Pageable pageable) {
+        var sort = Sort.by("date").descending().and(Sort.by("createdAt").descending());
+        var actualPageable = pageable.isUnpaged() ? pageable : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
         if (bankAccountId != null) {
             var bankAccount = bankAccountRepository.findById(bankAccountId)
                     .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
@@ -124,30 +135,30 @@ public class TransactionService {
                 var startDate = LocalDate.of(year, month, 1);
                 var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 if (type != null) {
-                    return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonthAndType(userId, bankAccountId, startDate, endDate, type);
+                    return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonthAndType(userId, bankAccountId, startDate, endDate, type, actualPageable);
                 }
-                return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonth(userId, bankAccountId, startDate, endDate);
+                return transactionRepository.findByUserIdAndBankAccountIdAndDateYearAndDateMonth(userId, bankAccountId, startDate, endDate, actualPageable);
             }
             if (type != null) {
-                return transactionRepository.findByUserIdAndBankAccountIdAndType(userId, bankAccountId, type);
+                return transactionRepository.findByUserIdAndBankAccountIdAndType(userId, bankAccountId, type, actualPageable);
             }
-            return transactionRepository.findByUserIdAndBankAccountId(userId, bankAccountId);
+            return transactionRepository.findByUserIdAndBankAccountId(userId, bankAccountId, actualPageable);
         }
 
         if (year != null && month != null) {
             var startDate = LocalDate.of(year, month, 1);
             var endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
             if (type != null) {
-                return transactionRepository.findByUserIdAndDateYearAndDateMonthAndType(userId, startDate, endDate, type);
+                return transactionRepository.findByUserIdAndDateYearAndDateMonthAndType(userId, startDate, endDate, type, actualPageable);
             }
-            return transactionRepository.findByUserIdAndDateYearAndDateMonth(userId, startDate, endDate);
+            return transactionRepository.findByUserIdAndDateYearAndDateMonth(userId, startDate, endDate, actualPageable);
         }
 
         if (type != null) {
-            return transactionRepository.findByUserIdAndType(userId, type);
+            return transactionRepository.findByUserIdAndType(userId, type, actualPageable);
         }
 
-        return transactionRepository.findByUserId(userId);
+        return transactionRepository.findByUserId(userId, actualPageable);
     }
 
     @Transactional(rollbackFor = Exception.class)

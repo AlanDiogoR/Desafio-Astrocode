@@ -2,6 +2,7 @@ import { reactive } from 'vue'
 import { z } from 'zod'
 import { useQueryClient } from '@tanstack/vue-query'
 import { getErrorMessage } from '~/utils/errorHandler'
+import { toDateString, parseDateString } from '~/utils/format'
 import { updateTransaction } from '~/services/transactions'
 import { TRANSACTIONS_QUERY_KEY } from '~/composables/useTransactions'
 import type { TransactionForEdit } from '~/composables/useDashboard'
@@ -48,7 +49,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
         name.value = t.name
         categoryId.value = t.categoryId
         bankAccountId.value = t.bankAccountId
-        date.value = new Date(t.date)
+        date.value = parseDateString(t.date) ?? new Date()
         isRecurring.value = t.isRecurring ?? false
       }
     },
@@ -90,7 +91,7 @@ export function useEditTransactionModalController(transaction: Ref<TransactionFo
       await updateTransaction(t.id, {
         name: result.data.name,
         amount: result.data.amount,
-        date: result.data.date.toISOString().slice(0, 10),
+        date: toDateString(result.data.date),
         type: result.data.type,
         bankAccountId: result.data.bankAccountId,
         categoryId: result.data.categoryId,

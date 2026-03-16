@@ -11,6 +11,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   openFilters: []
+  openMonthlySummary: []
 }>()
 </script>
 
@@ -66,15 +67,27 @@ const emit = defineEmits<{
         </DropdownMenuItem>
       </template>
     </AppDropdown>
-    <v-btn
-      variant="text"
-      icon
-      size="small"
-      class="section-filter"
-      @click="emit('openFilters')"
-    >
-      <v-icon icon="mdi-filter-outline" size="22" class="filter-icon" />
-    </v-btn>
+    <div class="section-actions d-flex align-center gap-1">
+      <v-btn
+        variant="text"
+        icon
+        size="small"
+        class="section-action-btn"
+        aria-label="Resumo do mês"
+        @click="emit('openMonthlySummary')"
+      >
+        <v-icon icon="mdi-chart-pie" size="22" class="action-icon" />
+      </v-btn>
+      <v-btn
+        variant="text"
+        icon
+        size="small"
+        class="section-action-btn"
+        @click="emit('openFilters')"
+      >
+        <v-icon icon="mdi-filter-outline" size="22" class="action-icon" />
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -109,12 +122,18 @@ const emit = defineEmits<{
   color: #212529;
 }
 
-.section-filter {
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.section-action-btn {
   min-width: 0;
   color: #495057;
 }
 
-.filter-icon {
+.action-icon {
   color: #495057;
 }
 </style>

@@ -2,6 +2,28 @@ import { format as dateFnsFormat } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { capitalizeFirstLetter } from './capitalize'
 
+/**
+ * Converte uma data para string yyyy-MM-dd no fuso local.
+ * Evita o problema de timezone ao usar toISOString() que converte para UTC.
+ */
+export function toDateString(date: Date): string {
+  return dateFnsFormat(date, 'yyyy-MM-dd')
+}
+
+/**
+ * Parse de string de data (yyyy-MM-dd ou ISO com timezone) para Date local.
+ * Evita o offset de timezone ao interpretar "2024-01-05T00:00:00Z" como UTC.
+ */
+export function parseDateString(value: string | null | undefined): Date | null {
+  if (!value || typeof value !== 'string') return null
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (match) {
+    const [, y, m, d] = match
+    return new Date(Number(y), Number(m) - 1, Number(d))
+  }
+  return null
+}
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

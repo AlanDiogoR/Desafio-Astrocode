@@ -2,6 +2,7 @@ import { reactive } from 'vue'
 import { z } from 'zod'
 import type { SavingsGoal } from '~/composables/useGoals'
 import { getErrorMessage } from '~/utils/errorHandler'
+import { toDateString, parseDateString } from '~/utils/format'
 import { updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '~/services/goals'
 
 const editGoalSchema = z.object({
@@ -33,7 +34,7 @@ export function useEditGoalModalController() {
       name.value = edited.name
       targetAmount.value = edited.targetAmount
       color.value = edited.color ?? null
-      deadline.value = null
+      deadline.value = parseDateString(edited.endDate ?? '') ?? null
     }
   }, { immediate: true })
   const errors = reactive<Record<string, string>>({})
@@ -52,7 +53,7 @@ export function useEditGoalModalController() {
       name.value = goal.name
       targetAmount.value = goal.targetAmount
       color.value = goal.color ?? null
-      deadline.value = null
+      deadline.value = parseDateString(goal.endDate ?? '') ?? null
     }
   })
 
@@ -68,7 +69,7 @@ export function useEditGoalModalController() {
     isLoading.value = true
     try {
       const endDate = payload.deadline
-        ? payload.deadline.toISOString().slice(0, 10)
+        ? toDateString(payload.deadline)
         : null
       await updateGoalApi(payload.goalId, {
         name: payload.name.trim(),

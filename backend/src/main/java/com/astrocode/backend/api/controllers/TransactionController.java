@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -53,23 +56,23 @@ public class TransactionController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @Operation(summary = "Listar transações", description = "Lista transações com filtros opcionais (year, month, bankAccountId, type)")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Lista de transações")})
+    @Operation(summary = "Listar transações", description = "Lista transações com filtros opcionais (year, month, bankAccountId, type) e paginação (page, size)")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Lista paginada de transações")})
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getAll(
+    public ResponseEntity<Page<TransactionResponse>> getAll(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) UUID bankAccountId,
             @RequestParam(required = false) TransactionType type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
-        var transactions = transactionService.findAllByUserId(user.getId(), year, month, bankAccountId, type);
+        var pageable = PageRequest.of(page, size, Sort.by("date").descending().and(Sort.by("createdAt").descending()));
+        var result = transactionService.findAllByUserIdPaginated(user.getId(), year, month, bankAccountId, type, pageable);
 
-        List<TransactionResponse> response = transactions.stream()
-                .map(this::toResponse)
-                .toList();
-
+        Page<TransactionResponse> response = result.map(this::toResponse);
         return ResponseEntity.ok(response);
     }
 

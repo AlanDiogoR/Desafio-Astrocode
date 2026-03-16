@@ -45,7 +45,18 @@ const mergedFilters = computed<TransactionFiltersState>(() => ({
 }))
 
 const filtersRef = computed(() => mergedFilters.value)
-const { transactions, isPending } = useTransactions(filtersRef)
+const {
+  transactions,
+  isPending,
+  totalPages,
+  currentPage,
+  setPage,
+} = useTransactions(filtersRef)
+
+const displayPage = computed({
+  get: () => currentPage.value + 1,
+  set: (v) => setPage(v - 1),
+})
 
 function handleTypeSelect(type: TransactionTypeOption) {
   selectedType.value = type
@@ -55,7 +66,6 @@ function handleFabAction(action: string) {
   if (action === 'new-account') openNewAccountModal()
   else if (action === 'new-income') openNewTransactionModal('INCOME')
   else if (action === 'new-expense') openNewTransactionModal('EXPENSE')
-  else if (action === 'monthly-summary') openMonthlySummaryModal()
 }
 
 function applyFilters(f: TransactionFiltersState) {
@@ -83,13 +93,14 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
 </script>
 
 <template>
-  <div class="transaction-list">
+  <div class="transaction-list d-flex flex-column rounded-xl">
     <div class="transaction-list__header-area">
       <TransactionListHeader
         :transaction-types="TRANSACTION_TYPES"
         :selected-type="selectedType"
         @type-select="handleTypeSelect"
         @open-filters="showFilters = true"
+        @open-monthly-summary="openMonthlySummaryModal"
       />
       <MonthSelector
         :displayed-months="displayedMonths"
@@ -98,7 +109,7 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         :on-select-month="selectMonth"
       />
     </div>
-    <div class="transaction-list__scroll">
+    <div class="transaction-list__scroll d-flex flex-column">
       <div v-if="isPending" class="transaction-list__skeleton">
         <div class="transaction-list__skeleton-spinner">
           <v-progress-circular
@@ -113,7 +124,7 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
       </div>
       <div
         v-else-if="transactions.length > 0"
-        class="transaction-list__cards"
+        class="transaction-list__cards d-flex flex-column ga-3"
       >
         <SpendingAlert
           v-if="topCategory"
@@ -132,6 +143,14 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         />
       </div>
       <TransactionEmptyState v-else />
+      <v-pagination
+        v-if="totalPages > 1"
+        v-model="displayPage"
+        :length="totalPages"
+        :total-visible="5"
+        density="compact"
+        class="mt-4"
+      />
     </div>
     <TransactionsFab @action="handleFabAction" />
     <TransactionFiltersModal
@@ -155,9 +174,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
   width: 100%;
   background-color: #f1f3f5;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  border-radius: 16px;
   min-height: 400px;
 }
 
@@ -176,8 +192,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
 
 .transaction-list__scroll {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   overflow-x: hidden;
   padding: 16px 32px 100px;
 }
@@ -193,12 +207,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
   .transaction-list__scroll {
     overflow-y: visible;
   }
-}
-
-.transaction-list__cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .transaction-list__skeleton {

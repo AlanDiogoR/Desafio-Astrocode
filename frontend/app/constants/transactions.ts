@@ -66,14 +66,6 @@ export const TRANSACTION_FAB_OPTIONS: TransactionFabOption[] = [
     size: 28,
   },
   {
-    label: 'Resumo do Mês',
-    action: 'monthly-summary',
-    icon: 'mdi-chart-pie',
-    filter: '',
-    size: 28,
-    useMdiIcon: true,
-  },
-  {
     label: 'Nova conta',
     action: 'new-account',
     icon: '/images/banco.svg',

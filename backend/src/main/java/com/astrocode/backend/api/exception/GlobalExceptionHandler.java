@@ -1,6 +1,7 @@
 package com.astrocode.backend.api.exception;
 
 import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
+import com.astrocode.backend.domain.exceptions.DuplicateAccountNameException;
 import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
@@ -27,6 +28,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(DuplicateAccountNameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateAccountNameException(DuplicateAccountNameException ex) {
         var errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),

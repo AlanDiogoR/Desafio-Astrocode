@@ -9,29 +9,46 @@ export interface TransactionFiltersState {
   year?: number
   month?: number
   bankAccountId?: string
+  page?: number
+  size?: number
 }
+
+const DEFAULT_PAGE_SIZE = 20
 
 export function useTransactions(filters: Ref<TransactionFiltersState | undefined>) {
   const authStore = useAuthStore()
   const { accounts } = useBankAccounts()
   const { categoriesById } = useCategories()
 
+  const currentPage = ref(0)
+
   const apiFilters = computed<TransactionFilters | undefined>(() => {
     const f = filters.value
     if (!f) return undefined
-    const out: TransactionFilters = {}
+    const out: TransactionFilters = {
+      page: currentPage.value,
+      size: f.size ?? DEFAULT_PAGE_SIZE,
+    }
     if (f.year) out.year = f.year
     if (f.month) out.month = f.month
     if (f.bankAccountId) out.bankAccountId = f.bankAccountId
     if (f.type) out.type = f.type
-    return Object.keys(out).length ? out : undefined
+    return out
   })
 
-  const { data: rawTransactions, isPending, isError, error, refetch } = useQuery({
+  watch(filters, () => {
+    currentPage.value = 0
+  }, { deep: true })
+
+  const { data: rawPage, isPending, isError, error, refetch } = useQuery({
     queryKey: [TRANSACTIONS_QUERY_KEY[0], apiFilters],
     queryFn: () => listTransactions(apiFilters.value ?? {}),
     enabled: computed(() => !!authStore.token),
   })
+
+  const rawTransactions = computed(() => rawPage.value?.content ?? [])
+  const totalPages = computed(() => rawPage.value?.totalPages ?? 0)
+  const totalElements = computed(() => rawPage.value?.totalElements ?? 0)
 
   const categoryNameById = computed(() => {
     const byId = categoriesById.value
@@ -61,11 +78,19 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
     }))
   })
 
+  function setPage(page: number) {
+    currentPage.value = Math.max(0, page)
+  }
+
   return {
     transactions,
     isPending,
     isError,
     error,
     refetch,
+    currentPage,
+    totalPages,
+    totalElements,
+    setPage,
   }
 }

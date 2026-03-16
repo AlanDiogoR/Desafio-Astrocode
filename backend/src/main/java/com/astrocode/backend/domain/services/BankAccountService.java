@@ -3,6 +3,7 @@ package com.astrocode.backend.domain.services;
 import com.astrocode.backend.api.dto.account.BankAccountRequest;
 import com.astrocode.backend.domain.entities.BankAccount;
 import com.astrocode.backend.domain.entities.User;
+import com.astrocode.backend.domain.exceptions.DuplicateAccountNameException;
 import com.astrocode.backend.domain.exceptions.ResourceAccessDeniedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
@@ -30,6 +31,11 @@ public class BankAccountService {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+        var existing = bankAccountRepository.findByUserIdAndNameIgnoreCase(userId, request.name().trim());
+        if (!existing.isEmpty()) {
+            throw new DuplicateAccountNameException(request.name().trim());
+        }
+
         var bankAccount = BankAccount.builder()
                 .user(user)
                 .name(request.name())
@@ -53,6 +59,13 @@ public class BankAccountService {
 
         if (!account.getUser().getId().equals(user.getId())) {
             throw new ResourceAccessDeniedException("Você não tem permissão para acessar esta conta");
+        }
+
+        var existing = bankAccountRepository.findByUserIdAndNameIgnoreCase(user.getId(), request.name().trim());
+        boolean duplicateName = existing.stream()
+                .anyMatch(a -> !a.getId().equals(accountId));
+        if (duplicateName) {
+            throw new DuplicateAccountNameException(request.name().trim());
         }
 
         account.setName(request.name());

@@ -6,9 +6,10 @@ import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewGoalModal from '~/components/modals/NewGoalModal.vue'
 import GoalInteractionModal from '~/components/modals/GoalInteractionModal.vue'
 import EditGoalModal from '~/components/modals/EditGoalModal.vue'
+import EditAccountModal from '~/components/modals/EditAccountModal.vue'
 import { useCarousel } from '~/composables/useCarousel'
 
-const { openNewAccountModal, openConfirmDeleteModal } = useDashboard()
+const { openNewAccountModal } = useDashboard()
 const {
   accounts,
   goals,
@@ -28,7 +29,7 @@ function togglePrivacy() {
 
 <template>
   <div class="account-overview">
-    <div class="account-overview__content d-flex flex-column justify-space-between">
+    <div class="account-overview__content d-flex flex-column">
       <section class="balance-section">
         <p class="balance-label ma-0 mb-2">
           Saldo total
@@ -62,14 +63,32 @@ function togglePrivacy() {
         :goals="goals"
         :show-privacy="areValuesVisible"
         :is-loading="isLoading"
+        class="goals-section-spacing"
+      />
+      <v-divider
+        v-if="!isEmpty || goals.length > 0"
+        class="accounts-section-divider"
+        color="rgba(255, 255, 255, 0.35)"
       />
       <section class="accounts-section">
-        <div class="accounts-header d-flex align-center justify-space-between">
-          <h3 class="accounts-title">
+        <div class="accounts-header d-flex align-center justify-space-between mb-4">
+          <h3 class="accounts-title d-flex align-center gap-1">
             Minhas contas
+            <v-btn
+              icon
+              variant="text"
+              density="compact"
+              color="white"
+              size="small"
+              aria-label="Nova conta"
+              class="accounts-title__add-btn"
+              @click="openNewAccountModal()"
+            >
+              <v-icon icon="mdi-plus" size="20" />
+            </v-btn>
           </h3>
           <div
-            class="accounts-nav d-flex gap-1"
+            class="accounts-nav d-flex ga-1"
             :class="{ 'accounts-nav--hidden': !hasCarousel }"
           >
             <v-btn
@@ -88,10 +107,10 @@ function togglePrivacy() {
             />
           </div>
         </div>
-        <div
-          v-if="isLoading"
-          class="accounts-skeleton"
-        >
+    <div
+      v-if="isLoading"
+      class="accounts-skeleton d-flex ga-4"
+    >
           <div class="accounts-skeleton__spinner">
             <v-progress-circular
               indeterminate
@@ -119,12 +138,12 @@ function togglePrivacy() {
             :account="account"
             :show-privacy="areValuesVisible"
             class="account-card-item"
-            @click="openConfirmDeleteModal('ACCOUNT', account.id)"
           />
         </div>
       </section>
     </div>
     <NewAccountModal />
+    <EditAccountModal />
     <NewGoalModal />
     <GoalInteractionModal />
     <EditGoalModal />
@@ -144,6 +163,7 @@ function togglePrivacy() {
 .account-overview__content {
   width: 100%;
   padding: 24px 24px 32px;
+  gap: 24px;
 }
 
 @media (min-width: 960px) {
@@ -154,7 +174,26 @@ function togglePrivacy() {
   .account-overview__content {
     height: 100%;
     overflow: hidden;
+    gap: 20px;
+    justify-content: flex-start;
   }
+}
+
+/* Separador visual no mobile entre metas e contas */
+.accounts-section-divider {
+  flex-shrink: 0;
+  margin: 8px 0;
+  opacity: 0.8;
+}
+
+@media (min-width: 960px) {
+  .accounts-section-divider {
+    margin: 4px 0;
+  }
+}
+
+.goals-section-spacing {
+  flex-shrink: 0;
 }
 
 .balance-section {
@@ -208,10 +247,6 @@ function togglePrivacy() {
   flex-shrink: 0;
 }
 
-.accounts-header {
-  margin-bottom: 16px;
-}
-
 .accounts-nav :deep(.v-btn) {
   color: rgb(255, 255, 255);
 }
@@ -225,8 +260,6 @@ function togglePrivacy() {
 }
 
 .accounts-skeleton {
-  display: flex;
-  gap: 16px;
   padding-bottom: 8px;
   position: relative;
 }

@@ -25,6 +25,8 @@ export function useDashboard() {
   const isEditTransactionModalOpen = useState<boolean>('isEditTransactionModalOpen', () => false)
   const transactionBeingEdited = useState<TransactionForEdit | null>('transactionBeingEdited', () => null)
   const isNewAccountModalOpen = useState<boolean>('isNewAccountModalOpen', () => false)
+  const isEditAccountModalOpen = useState<boolean>('isEditAccountModalOpen', () => false)
+  const accountBeingEdited = useState<import('~/composables/useBankAccounts').BankAccount | null>('accountBeingEdited', () => null)
   const isNewGoalModalOpen = useState<boolean>('isNewGoalModalOpen', () => false)
   const isNewGoalValueModalOpen = useState<boolean>('isNewGoalValueModalOpen', () => false)
   const goalInteractionType = useState<GoalInteractionType>('goalInteractionType', () => 'DEPOSIT')
@@ -71,6 +73,16 @@ export function useDashboard() {
     isNewAccountModalOpen.value = false
   }
 
+  function openEditAccountModal(account?: import('~/composables/useBankAccounts').BankAccount) {
+    accountBeingEdited.value = account ?? null
+    isEditAccountModalOpen.value = true
+  }
+
+  function closeEditAccountModal() {
+    isEditAccountModalOpen.value = false
+    accountBeingEdited.value = null
+  }
+
   function openNewGoalModal() {
     isNewGoalModalOpen.value = true
   }
@@ -109,6 +121,7 @@ export function useDashboard() {
     confirmDeleteEntityId.value = id
     isConfirmDeleteModalOpen.value = true
     isEditGoalModalOpen.value = false
+    isEditAccountModalOpen.value = false
   }
 
   function closeConfirmDeleteModal() {
@@ -146,6 +159,10 @@ export function useDashboard() {
     closeEditTransactionModal,
     openNewAccountModal,
     closeNewAccountModal,
+    isEditAccountModalOpen,
+    accountBeingEdited,
+    openEditAccountModal,
+    closeEditAccountModal,
     isNewGoalModalOpen,
     openNewGoalModal,
     closeNewGoalModal,

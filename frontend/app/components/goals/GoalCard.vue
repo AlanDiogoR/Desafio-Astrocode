@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency, formatDate } from '~/utils/format'
+import { formatCurrency, formatDate, parseDateString } from '~/utils/format'
 import type { SavingsGoal } from '~/composables/useGoals'
 
 const props = defineProps<{
@@ -7,7 +7,7 @@ const props = defineProps<{
   showPrivacy: boolean
 }>()
 
-const { openGoalInteractionModal } = useDashboard()
+const { openGoalInteractionModal, openEditGoalModal, openConfirmDeleteModal } = useDashboard()
 
 const isCompleted = computed(() => {
   const g = props.goal
@@ -17,7 +17,8 @@ const isCompleted = computed(() => {
 const isExpired = computed(() => {
   const endDate = props.goal.endDate
   if (!endDate) return false
-  return new Date(endDate) < new Date()
+  const parsed = parseDateString(endDate)
+  return parsed ? parsed < new Date() : false
 })
 
 const badgeLabel = computed(() => {
@@ -29,7 +30,8 @@ const badgeLabel = computed(() => {
 const formattedDeadline = computed(() => {
   const endDate = props.goal.endDate
   if (!endDate) return ''
-  return formatDate(new Date(endDate), 'd MMM yyyy')
+  const parsed = parseDateString(endDate)
+  return parsed ? formatDate(parsed, 'd MMM yyyy') : ''
 })
 
 const canAdd = computed(() => {
@@ -41,6 +43,16 @@ function handleClick() {
   if (isExpired.value) return
   const type = canAdd.value ? 'DEPOSIT' : 'WITHDRAW'
   openGoalInteractionModal(type, props.goal)
+}
+
+function handleEdit(e: Event) {
+  e.stopPropagation()
+  openEditGoalModal(props.goal)
+}
+
+function handleDelete(e: Event) {
+  e.stopPropagation()
+  openConfirmDeleteModal('GOAL', props.goal.id)
 }
 
 function progressStrokeDasharray(percentage: number): string {
@@ -66,6 +78,39 @@ function progressStrokeDasharray(percentage: number): string {
     <div v-if="badgeLabel" class="goal-card__badge" :class="{ 'goal-card__badge--expired': isExpired }">
       {{ badgeLabel }}
     </div>
+    <v-menu
+      location="bottom end"
+      :close-on-content-click="true"
+      @click.stop
+    >
+      <template #activator="{ props: menuProps }">
+        <v-btn
+          v-bind="menuProps"
+          icon
+          variant="text"
+          density="compact"
+          size="small"
+          class="goal-card__menu-btn"
+          aria-label="Ações da meta"
+          @click.stop
+        >
+          <v-icon icon="mdi-dots-vertical" size="20" />
+        </v-btn>
+      </template>
+      <v-list density="compact" min-width="160">
+        <v-list-item
+          prepend-icon="mdi-pencil-outline"
+          title="Editar meta"
+          @click="handleEdit"
+        />
+        <v-list-item
+          prepend-icon="mdi-delete-outline"
+          title="Excluir meta"
+          class="text-error"
+          @click="handleDelete"
+        />
+      </v-list>
+    </v-menu>
     <div class="goal-card__progress">
       <svg
         class="goal-card__ring"
@@ -95,10 +140,10 @@ function progressStrokeDasharray(percentage: number): string {
           transform="rotate(-90 40 40)"
         />
       </svg>
-      <div v-if="!(isCompleted && !isExpired)" class="goal-card__percentage">
+      <div v-if="!(isCompleted && !isExpired)" class="goal-card__percentage d-flex align-center justify-center">
         {{ Math.round(goal.progressPercentage) }}%
       </div>
-      <div v-if="isCompleted && !isExpired" class="goal-card__check">
+      <div v-if="isCompleted && !isExpired" class="goal-card__check d-flex align-center justify-center">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
@@ -114,7 +159,7 @@ function progressStrokeDasharray(percentage: number): string {
       <span v-if="formattedDeadline" class="goal-card__deadline">
         {{ formattedDeadline }}
       </span>
-      <span class="goal-card__target">
+      <span class="goal-card__target align-self-end">
         {{ showPrivacy ? `${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}` : '•••• / ••••' }}
       </span>
     </div>
@@ -158,10 +203,23 @@ function progressStrokeDasharray(percentage: number): string {
   background: #e9ecef;
 }
 
+.goal-card__menu-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #868e96;
+  min-width: 32px;
+}
+
+.goal-card__menu-btn:hover {
+  color: #495057;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .goal-card__badge {
   position: absolute;
   top: 8px;
-  right: 8px;
+  right: 40px;
   font-size: 10px;
   font-weight: 700;
   color: #b45309;
@@ -185,9 +243,6 @@ function progressStrokeDasharray(percentage: number): string {
 .goal-card__percentage {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 14px;
   font-weight: 700;
   color: #212529;
@@ -224,9 +279,6 @@ function progressStrokeDasharray(percentage: number): string {
 .goal-card__check {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #087f5b;
 }
 
@@ -250,6 +302,5 @@ function progressStrokeDasharray(percentage: number): string {
 .goal-card__target {
   font-size: 12px;
   color: #868e96;
-  align-self: flex-end;
 }
 </style>

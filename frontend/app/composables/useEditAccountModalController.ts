@@ -1,11 +1,12 @@
 import { reactive } from 'vue'
 import { z } from 'zod'
 import { getErrorMessage } from '~/utils/errorHandler'
-import { createBankAccount } from '~/services/bankAccounts'
+import { updateBankAccount } from '~/services/bankAccounts'
+import type { BankAccount } from '~/composables/useBankAccounts'
 
 const accountSchema = z.object({
   name: z.string().min(1, 'Campo obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
-  initialBalance: z
+  balance: z
     .union([z.number(), z.null()])
     .transform((v) => v ?? 0)
     .refine((v) => v >= 0, { message: 'Saldo não pode ser negativo' }),
@@ -18,7 +19,7 @@ const accountSchema = z.object({
   color: z.string().max(30, 'Cor deve ter no máximo 30 caracteres').optional().nullable(),
 })
 
-export type AccountFormValues = z.infer<typeof accountSchema>
+export type EditAccountFormValues = z.infer<typeof accountSchema>
 
 interface SelectOption {
   label: string
@@ -31,12 +32,13 @@ const ACCOUNT_TYPE_OPTIONS: SelectOption[] = [
   { label: 'Dinheiro Físico', value: 'CASH' },
 ]
 
-export function useNewAccountModalController() {
-  const { closeNewAccountModal } = useDashboard()
+export function useEditAccountModalController() {
+  const { closeEditAccountModal, openConfirmDeleteModal } = useDashboard()
   const { accounts, invalidateBankAccounts } = useBankAccounts()
   const { invalidateDashboard } = useDashboardData()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
+  const accountId = ref<string | null>(null)
   const balance = ref<number | null>(null)
   const name = ref('')
   const type = ref<string | null>(null)
@@ -56,28 +58,51 @@ export function useNewAccountModalController() {
 
   const accountTypeOptions = ACCOUNT_TYPE_OPTIONS
 
-  async function createAccount(payload: AccountFormValues) {
+  function loadAccount(account: BankAccount | null) {
+    if (!account) {
+      resetForm()
+      return
+    }
+    accountId.value = account.id
+    balance.value = account.balance
+    name.value = account.name
+    type.value = account.type.toUpperCase()
+    color.value = account.color ?? null
+    Object.keys(errors).forEach((key) => delete errors[key])
+    Object.keys(touched).forEach((key) => delete touched[key as keyof typeof touched])
+    submittedOnce.value = false
+  }
+
+  async function saveAccount(payload: EditAccountFormValues) {
+    if (!accountId.value) return
     isLoading.value = true
     try {
-      await createBankAccount({
+      await updateBankAccount(accountId.value, {
         name: payload.name.trim(),
-        initialBalance: payload.initialBalance,
+        initialBalance: payload.balance,
         type: payload.type,
         color: payload.color ?? null,
       })
-      toast.success('Conta criada com sucesso!')
+      toast.success('Conta atualizada com sucesso!')
       await invalidateBankAccounts()
       await invalidateDashboard()
-      closeNewAccountModal()
+      closeEditAccountModal()
       resetForm()
     } catch (err: unknown) {
-      toast.error(getErrorMessage(err, 'Erro ao criar conta. Tente novamente.'))
+      toast.error(getErrorMessage(err, 'Erro ao atualizar conta. Tente novamente.'))
     } finally {
       isLoading.value = false
     }
   }
 
+  function openDeleteConfirm() {
+    if (accountId.value) {
+      openConfirmDeleteModal('ACCOUNT', accountId.value)
+    }
+  }
+
   function resetForm() {
+    accountId.value = null
     balance.value = null
     name.value = ''
     type.value = null
@@ -93,7 +118,7 @@ export function useNewAccountModalController() {
 
     const result = accountSchema.safeParse({
       name: name.value.trim(),
-      initialBalance: balance.value,
+      balance: balance.value,
       type: type.value ?? '',
       color: color.value,
     })
@@ -104,7 +129,7 @@ export function useNewAccountModalController() {
         zodError.issues.forEach((issue) => {
           const path = issue.path[0]
           if (path !== undefined) {
-            const key = path === 'initialBalance' ? 'balance' : path.toString()
+            const key = path === 'balance' ? 'balance' : path.toString()
             errors[key] = issue.message
           }
         })
@@ -114,17 +139,18 @@ export function useNewAccountModalController() {
 
     const nameTrimmed = result.data.name.trim()
     const duplicate = accounts.value.some(
-      (a) => a.name.trim().toLowerCase() === nameTrimmed.toLowerCase()
+      (a) => a.id !== accountId.value && a.name.trim().toLowerCase() === nameTrimmed.toLowerCase()
     )
     if (duplicate) {
       errors.name = 'Já existe uma conta com este nome. Escolha outro.'
       return
     }
 
-    createAccount(result.data)
+    saveAccount(result.data)
   }
 
   return {
+    accountId,
     balance,
     name,
     type,
@@ -136,7 +162,9 @@ export function useNewAccountModalController() {
     shouldShowError,
     isLoading,
     accountTypeOptions,
+    loadAccount,
     resetForm,
     handleSubmit,
+    openDeleteConfirm,
   }
 }

@@ -17,11 +17,11 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
 
 <template>
   <section class="goals-section">
-    <div class="goals-header d-flex align-center justify-space-between">
+    <div class="goals-header d-flex align-center justify-space-between mb-3">
       <h3 class="goals-title">
         Minhas Metas
       </h3>
-      <div class="goals-header__actions d-flex align-center">
+      <div class="goals-header__actions d-flex align-center ga-2">
         <GoalsFab />
         <template v-if="hasCarousel">
           <v-btn
@@ -43,7 +43,7 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
         </template>
       </div>
     </div>
-    <div v-if="isLoading" class="goals-skeleton">
+    <div v-if="isLoading" class="goals-skeleton d-flex ga-4">
       <div class="goals-skeleton__spinner">
         <v-progress-circular
           indeterminate
@@ -82,17 +82,6 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
 .goals-section {
   position: relative;
   flex-shrink: 0;
-  margin-bottom: 16px;
-}
-
-.goals-header {
-  margin-bottom: 12px;
-}
-
-.goals-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .goals-nav__btn :deep(.v-btn),
@@ -109,8 +98,6 @@ const hasCarousel = computed(() => (props.goals ?? []).length >= 3)
 }
 
 .goals-skeleton {
-  display: flex;
-  gap: 16px;
   padding-bottom: 8px;
   position: relative;
 }

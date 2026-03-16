@@ -2,6 +2,8 @@ package com.astrocode.backend.domain.repositories;
 
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.model.enums.TransactionType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserId(@Param("userId") UUID userId);
 
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId")
+    Page<Transaction> findByUserId(@Param("userId") UUID userId, Pageable pageable);
+
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndDateBetween(
             @Param("userId") UUID userId,
@@ -32,10 +38,27 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("endDate") LocalDate endDate
     );
 
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate")
+    Page<Transaction> findByUserIdAndDateYearAndDateMonth(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable
+    );
+
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountId(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId
+    );
+
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId")
+    Page<Transaction> findByUserIdAndBankAccountId(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId,
+            Pageable pageable
     );
 
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC")
@@ -46,10 +69,28 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("endDate") LocalDate endDate
     );
 
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate")
+    Page<Transaction> findByUserIdAndBankAccountIdAndDateYearAndDateMonth(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable
+    );
+
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndType(
             @Param("userId") UUID userId,
             @Param("type") TransactionType type
+    );
+
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.type = :type")
+    Page<Transaction> findByUserIdAndType(
+            @Param("userId") UUID userId,
+            @Param("type") TransactionType type,
+            Pageable pageable
     );
 
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
@@ -60,11 +101,30 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("type") TransactionType type
     );
 
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type")
+    Page<Transaction> findByUserIdAndDateYearAndDateMonthAndType(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("type") TransactionType type,
+            Pageable pageable
+    );
+
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
     List<Transaction> findByUserIdAndBankAccountIdAndType(
             @Param("userId") UUID userId,
             @Param("bankAccountId") UUID bankAccountId,
             @Param("type") TransactionType type
+    );
+
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.type = :type")
+    Page<Transaction> findByUserIdAndBankAccountIdAndType(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId,
+            @Param("type") TransactionType type,
+            Pageable pageable
     );
 
     @Query("SELECT t FROM Transaction t JOIN FETCH t.bankAccount JOIN FETCH t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC")
@@ -74,6 +134,17 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("type") TransactionType type
+    );
+
+    @Query(value = "SELECT t FROM Transaction t JOIN t.bankAccount JOIN t.category WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type ORDER BY t.date DESC, t.createdAt DESC",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.user.id = :userId AND t.bankAccount.id = :bankAccountId AND t.date >= :startDate AND t.date <= :endDate AND t.type = :type")
+    Page<Transaction> findByUserIdAndBankAccountIdAndDateYearAndDateMonthAndType(
+            @Param("userId") UUID userId,
+            @Param("bankAccountId") UUID bankAccountId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("type") TransactionType type,
+            Pageable pageable
     );
 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.id = :userId AND t.type = :type AND t.date >= :startDate AND t.date <= :endDate")

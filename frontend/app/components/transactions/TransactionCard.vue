@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UpdateIcon } from '@radix-icons/vue'
-import { formatCurrency, formatDate } from '~/utils/format'
+import { formatCurrency, formatDate, parseDateString } from '~/utils/format'
 import { getBankIconPath, getTransactionCategoryIconPath } from '~/utils/transactionIcons'
 
 interface TransactionItem {
@@ -40,11 +40,8 @@ function getTransactionIcon() {
 const formattedDate = computed(() => {
   const d = props.transaction.date
   if (!d) return ''
-  try {
-    return formatDate(new Date(d), 'd MMM yyyy')
-  } catch {
-    return d
-  }
+  const parsed = parseDateString(d)
+  return parsed ? formatDate(parsed, 'd MMM yyyy') : d
 })
 </script>
 
