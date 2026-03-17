@@ -1,6 +1,5 @@
 package com.astrocode.backend.domain.entities;
 
-import com.astrocode.backend.domain.model.enums.AccountType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,19 +9,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "bank_accounts")
+@Table(name = "pluggy_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BankAccount {
+public class PluggyItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,34 +31,17 @@ public class BankAccount {
     private User user;
 
     @NotBlank
-    @Size(max = 100)
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @NotNull
-    @Column(name = "initial_balance", nullable = false, precision = 15, scale = 2)
-    private BigDecimal initialBalance;
-
-    @NotNull
-    @Column(name = "current_balance", nullable = false, precision = 15, scale = 2)
-    private BigDecimal currentBalance;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 20)
-    private AccountType type;
-
-    @Size(max = 30)
-    @Column(name = "color", length = 30)
-    private String color;
-
     @Size(max = 255)
-    @Column(name = "pluggy_account_id", length = 255)
-    private String pluggyAccountId;
-
-    @Size(max = 255)
-    @Column(name = "pluggy_item_id", length = 255)
+    @Column(name = "pluggy_item_id", nullable = false, unique = true, length = 255)
     private String pluggyItemId;
+
+    @Size(max = 150)
+    @Column(name = "institution_name", length = 150)
+    private String institutionName;
+
+    @Size(max = 50)
+    @Column(name = "status", length = 50)
+    private String status;
 
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -71,14 +50,6 @@ public class BankAccount {
     @NotNull
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @Version
-    @Column(name = "version")
-    private Long version;
-
-    @OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @Builder.Default
-    private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

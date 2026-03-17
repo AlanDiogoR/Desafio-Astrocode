@@ -10,6 +10,7 @@ const { $api } = useNuxtApp()
 const { refetch: refetchUser } = useUser()
 
 const VALID_PLAN_IDS = ['MONTHLY', 'SEMIANNUAL', 'ANNUAL'] as const
+const REDIRECT_DELAY_MS = 2500
 
 const planId = computed(() => {
   const p = (route.query.plano as string) || 'MONTHLY'
@@ -49,18 +50,29 @@ onMounted(async () => {
     ])
     mpPublicKey.value = configData?.mpPublicKey ?? ''
     plans.value = (plansData ?? []).map((p) => ({ id: p.id, price: p.price }))
-  } catch {
-    errorMessage.value = 'Não foi possível carregar a configuração de pagamento.'
+  } catch (e) {
+    const err = e as Error & { code?: string }
+    errorMessage.value = err?.code === 'API_CONFIG_MISSING'
+      ? 'API não configurada. Verifique NUXT_PUBLIC_API_BASE no ambiente.'
+      : 'Não foi possível carregar a configuração de pagamento.'
   } finally {
     isLoadingConfig.value = false
   }
 })
 
-function handleSuccess(result: unknown) {
+async function handleSuccess(result: unknown) {
   resultData.value = result
   success.value = true
   errorMessage.value = null
-  toast?.success('Assinatura ativada com sucesso!')
+  toast?.success('Assinatura ativada com sucesso! Redirecionando...')
+  const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
+  const res = await refetchUser()
+  if (res.data) {
+    authStore.setUser(mapApiUserToStoreUser(res.data))
+  }
+  setTimeout(() => {
+    navigateTo('/dashboard', { replace: true })
+  }, REDIRECT_DELAY_MS)
 }
 
 function handleError(msg: string) {
@@ -68,23 +80,21 @@ function handleError(msg: string) {
   toast?.error(msg)
 }
 
-function invalidateUser() {
-  refetchUser()
-}
 </script>
 
 <template>
   <div class="checkout-page">
     <div class="checkout-page__container">
-      <v-btn
-        variant="text"
-        color="primary"
-        class="mb-4"
-        :to="'/planos'"
-      >
-        <v-icon start>mdi-arrow-left</v-icon>
-        Voltar aos planos
-      </v-btn>
+      <div class="checkout-page__nav d-flex gap-2 mb-4">
+        <v-btn variant="text" color="primary" :to="'/planos'">
+          <v-icon start>mdi-arrow-left</v-icon>
+          Voltar aos planos
+        </v-btn>
+        <v-btn variant="text" color="primary" to="/">
+          <v-icon start>mdi-home</v-icon>
+          Home
+        </v-btn>
+      </div>
 
       <h1 class="checkout-page__title">
         Checkout - {{ planLabel }}
@@ -99,9 +109,9 @@ function invalidateUser() {
       </v-alert>
 
       <v-alert v-if="success" type="success" class="mb-4">
-        Assinatura ativada com sucesso! Você já pode aproveitar os benefícios Pro.
-        <v-btn class="mt-2" color="primary" :to="'/dashboard'" @click="invalidateUser">
-          Ir para o Dashboard
+        Assinatura ativada com sucesso! Redirecionando para sua conta...
+        <v-btn class="mt-2" color="primary" to="/dashboard">
+          Ir agora
         </v-btn>
       </v-alert>
 
@@ -117,7 +127,7 @@ function invalidateUser() {
         </div>
         <div v-else-if="!success && !isLoadingConfig && !mpPublicKey" class="checkout-page__fallback">
           <v-alert type="warning">
-            Chave do Mercado Pago não configurada. Entre em contato com o suporte.
+            Chave do Mercado Pago não configurada. Configure MP_PUBLIC_KEY no backend e reinicie o servidor.
           </v-alert>
         </div>
         <div v-else-if="!success" class="checkout-page__loading">

@@ -48,5 +48,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
     toast.error('Sua sessão expirou. Por favor, faça login novamente.')
   }
-  return navigateTo('/login')
+  return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
 })

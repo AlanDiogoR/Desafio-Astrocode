@@ -14,6 +14,7 @@ import CreditCardBillModal from '~/components/modals/CreditCardBillModal.vue'
 import { useCarousel } from '~/composables/useCarousel'
 
 const { openNewAccountModal, openNewCreditCardModal } = useDashboard()
+const { openPluggyConnect, isElite, isConnecting } = useOpenFinance()
 const {
   accounts,
   goals,
@@ -94,6 +95,18 @@ function togglePrivacy() {
               @click="openNewAccountModal()"
             >
               <v-icon icon="mdi-plus" size="20" />
+            </v-btn>
+            <v-btn
+              v-if="isElite"
+              size="small"
+              variant="outlined"
+              color="white"
+              :loading="isConnecting"
+              class="ml-1"
+              @click="openPluggyConnect()"
+            >
+              <v-icon start size="18">mdi-bank-plus</v-icon>
+              Open Finance
             </v-btn>
           </h3>
           <div v-if="hasCarousel" class="accounts-nav d-flex ga-1">

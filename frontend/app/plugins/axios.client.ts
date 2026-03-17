@@ -50,7 +50,8 @@ export default defineNuxtPlugin(() => {
         if (!isAuthPage && !isBootstrapRequest) {
           const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
           toast.error('Sessão expirada. Faça login novamente.')
-          navigateTo('/login')
+          const currentPath = typeof window !== 'undefined' ? window.location?.pathname + window.location?.search : ''
+          navigateTo({ path: '/login', query: currentPath ? { redirect: currentPath } : undefined })
         }
       }
       return Promise.reject(error)

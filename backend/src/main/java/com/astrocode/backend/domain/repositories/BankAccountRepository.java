@@ -29,6 +29,11 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> 
     @Query("SELECT ba FROM BankAccount ba WHERE ba.user.id = :userId AND LOWER(ba.name) = LOWER(:name)")
     List<BankAccount> findByUserIdAndNameIgnoreCase(@Param("userId") UUID userId, @Param("name") String name);
 
+    Optional<BankAccount> findByPluggyAccountId(String pluggyAccountId);
+
+    @Query("SELECT ba FROM BankAccount ba WHERE ba.user.id = :userId AND ba.pluggyItemId = :pluggyItemId")
+    List<BankAccount> findByUserIdAndPluggyItemId(@Param("userId") UUID userId, @Param("pluggyItemId") String pluggyItemId);
+
     @Query("SELECT COALESCE(SUM(b.currentBalance), 0) FROM BankAccount b WHERE b.user.id = :userId")
     BigDecimal sumTotalBalanceByUserId(@Param("userId") UUID userId);
 }

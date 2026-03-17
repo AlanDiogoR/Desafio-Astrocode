@@ -23,6 +23,7 @@
     "chart.js": "^4.5.1",
     "nuxt": "^4.3.1",
     "pinia": "^3.0.4",
+    "pluggy-connect-sdk": "^2.13.0",
     "radix-vue": "^1.9.17",
     "sass": "^1.97.3",
     "vue": "^3.5.28",

@@ -13,6 +13,9 @@ public record CheckoutRequest(
         @NotBlank(message = "Token do cartão é obrigatório")
         String token,
 
+        @NotBlank(message = "Método de pagamento é obrigatório")
+        String paymentMethodId,
+
         @NotNull(message = "Parcelas é obrigatório")
         @Min(value = 1, message = "Parcelas deve ser pelo menos 1")
         Integer installments,
@@ -23,6 +26,8 @@ public record CheckoutRequest(
 
         String payerIdentificationType,
 
-        String payerIdentificationNumber
+        String payerIdentificationNumber,
+
+        String issuerId
 ) {
 }

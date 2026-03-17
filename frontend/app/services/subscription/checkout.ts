@@ -3,10 +3,12 @@ const BASE = '/subscription'
 export interface CheckoutRequest {
   planType: string
   token: string
+  paymentMethodId: string
   installments: number
   payerEmail: string
   payerIdentificationType?: string
   payerIdentificationNumber?: string
+  issuerId?: string
 }
 
 export interface CheckoutResponse {

@@ -78,7 +78,7 @@ const planFeatures: Record<string, string[]> = {
     'Transações ilimitadas por mês',
     'Metas de economia ilimitadas',
     'Cartões de crédito com controle de fatura',
-    'Open Finance (em breve)',
+    'Open Finance - Conecte seus bancos',
     'Relatórios e insights avançados',
     'Suporte VIP',
   ],
@@ -124,6 +124,12 @@ async function handleUpgradeClick(planId: string) {
 <template>
   <div class="planos-page">
     <div class="planos-page__container">
+      <div class="planos-page__nav d-flex justify-space-between align-center mb-6">
+        <v-btn variant="text" color="primary" to="/">
+          <v-icon start>mdi-home</v-icon>
+          Home
+        </v-btn>
+      </div>
       <h1 class="planos-page__title">
         Planos Grivy
       </h1>

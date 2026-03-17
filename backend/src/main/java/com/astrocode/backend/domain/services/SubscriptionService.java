@@ -105,15 +105,22 @@ public class SubscriptionService {
                     .build());
         }
 
-        var paymentRequest = PaymentCreateRequest.builder()
+        var paymentRequestBuilder = PaymentCreateRequest.builder()
                 .transactionAmount(amount)
                 .token(request.token())
+                .paymentMethodId(request.paymentMethodId())
                 .installments(request.installments())
                 .description("Grivy - Plano " + request.planType().name())
                 .externalReference(externalRef)
                 .payer(payerBuilder.build())
-                .statementDescriptor("GRIVY")
-                .build();
+                .statementDescriptor("GRIVY");
+        if (request.issuerId() != null && !request.issuerId().isBlank()) {
+            try {
+                paymentRequestBuilder.issuerId(Long.valueOf(request.issuerId()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        var paymentRequest = paymentRequestBuilder.build();
 
         Payment payment;
         try {
@@ -262,7 +269,7 @@ public class SubscriptionService {
                 new PlanInfo(PlanType.FREE, "Grátis", BigDecimal.ZERO, 0, "2 contas, 30 transações/mês, 2 metas"),
                 new PlanInfo(PlanType.MONTHLY, "Pro Mensal", PRICE_MONTHLY, 1, "Ilimitado + cartão de crédito"),
                 new PlanInfo(PlanType.SEMIANNUAL, "Pro Semestral", PRICE_SEMIANNUAL, 6, "Ilimitado + cartão de crédito (16% OFF)"),
-                new PlanInfo(PlanType.ANNUAL, "Elite Anual", PRICE_ANNUAL, 12, "Ilimitado + cartão + Open Finance (24% OFF)")
+                new PlanInfo(PlanType.ANNUAL, "Elite Anual", PRICE_ANNUAL, 12, "Ilimitado + cartão + Open Finance Pluggy (24% OFF)")
         );
     }
 
