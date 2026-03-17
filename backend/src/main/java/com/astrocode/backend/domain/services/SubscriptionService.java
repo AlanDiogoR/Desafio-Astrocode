@@ -115,10 +115,7 @@ public class SubscriptionService {
                 .payer(payerBuilder.build())
                 .statementDescriptor("GRIVY");
         if (request.issuerId() != null && !request.issuerId().isBlank()) {
-            try {
-                paymentRequestBuilder.issuerId(Long.valueOf(request.issuerId()));
-            } catch (NumberFormatException ignored) {
-            }
+            paymentRequestBuilder.issuerId(request.issuerId());
         }
         var paymentRequest = paymentRequestBuilder.build();
 
