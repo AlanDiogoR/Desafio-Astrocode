@@ -32,7 +32,6 @@ public class RecurringTransactionJob {
     private static final Logger log = LoggerFactory.getLogger(RecurringTransactionJob.class);
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final NumberFormat CURRENCY_FORMATTER = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     private final TransactionRepository transactionRepository;
     private final TransactionService transactionService;
@@ -108,7 +107,8 @@ public class RecurringTransactionJob {
                         var user = parent.getUser();
                         var toEmail = user != null ? user.getEmail() : null;
                         if (toEmail != null) {
-                            var amountFormatted = CURRENCY_FORMATTER.format(parent.getAmount() != null ? parent.getAmount() : BigDecimal.ZERO);
+                            var fmt = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+                            var amountFormatted = fmt.format(parent.getAmount() != null ? parent.getAmount() : BigDecimal.ZERO);
                             var dateFormatted = targetDate.format(DATE_FORMATTER);
                             mailService.sendRecurringExpenseNotAddedDueToInsufficientBalance(
                                     toEmail,

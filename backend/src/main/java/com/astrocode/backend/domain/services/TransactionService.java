@@ -22,9 +22,9 @@ import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.model.enums.GoalStatus;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
+import com.astrocode.backend.domain.repositories.CreditCardBillRepository;
 import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
-import com.astrocode.backend.domain.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,29 +41,30 @@ import java.util.UUID;
 @Service
 public class TransactionService {
 
-    private static final int FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH = 30;
-
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final CreditCardBillRepository creditCardBillRepository;
     private final CategoryRepository categoryRepository;
     private final SavingsGoalRepository savingsGoalRepository;
     private final CreditCardService creditCardService;
-    private final UserRepository userRepository;
+    private final PlanLimitService planLimitService;
 
     public TransactionService(
             TransactionRepository transactionRepository,
             BankAccountRepository bankAccountRepository,
+            CreditCardBillRepository creditCardBillRepository,
             CategoryRepository categoryRepository,
             SavingsGoalRepository savingsGoalRepository,
             CreditCardService creditCardService,
-            UserRepository userRepository
+            PlanLimitService planLimitService
     ) {
         this.transactionRepository = transactionRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.creditCardBillRepository = creditCardBillRepository;
         this.categoryRepository = categoryRepository;
         this.savingsGoalRepository = savingsGoalRepository;
         this.creditCardService = creditCardService;
-        this.userRepository = userRepository;
+        this.planLimitService = planLimitService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -75,32 +76,13 @@ public class TransactionService {
             throw new InvalidTransactionSourceException();
         }
 
-        checkFreePlanTransactionLimit(userId);
+        planLimitService.checkFreePlanTransactionLimit(userId);
 
         if (hasCreditCard) {
             return createCreditCardTransaction(request, userId);
         }
 
         return createBankAccountTransaction(request, userId);
-    }
-
-    private void checkFreePlanTransactionLimit(UUID userId) {
-        var user = userRepository.findByIdWithSubscription(userId);
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException("Usuário não encontrado");
-        }
-        if (user.get().isPro()) {
-            return;
-        }
-        var now = LocalDate.now();
-        var startOfMonth = now.withDayOfMonth(1);
-        var endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
-        long count = transactionRepository.countByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
-        if (count >= FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH) {
-            throw new PlanUpgradeRequiredException(
-                    "Você atingiu o limite de " + FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH + " transações no mês no plano gratuito. Faça upgrade para continuar.",
-                    "transactions");
-        }
     }
 
     private Transaction createCreditCardTransaction(TransactionRequest request, UUID userId) {
@@ -112,6 +94,8 @@ public class TransactionService {
 
         var creditCard = creditCardService.findById(request.creditCardId(), userId);
         var bill = creditCardService.getOrCreateCurrentBill(request.creditCardId(), userId);
+        bill = creditCardBillRepository.findByIdForUpdate(bill.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Fatura não encontrada"));
 
         var newBillTotal = bill.getTotalAmount().add(request.amount());
         if (newBillTotal.compareTo(creditCard.getCreditLimit()) > 0) {

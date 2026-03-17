@@ -5,12 +5,14 @@ import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
+@Transactional(readOnly = true)
 public class DashboardService {
 
     private final BankAccountRepository bankAccountRepository;

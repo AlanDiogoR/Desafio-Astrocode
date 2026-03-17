@@ -23,6 +23,9 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> 
     @Query("SELECT ba FROM BankAccount ba WHERE ba.user.id = :userId")
     List<BankAccount> findByUserId(@Param("userId") UUID userId);
 
+    long countByUser_Id(UUID userId);
+
+
     @Query("SELECT ba FROM BankAccount ba WHERE ba.user.id = :userId AND LOWER(ba.name) = LOWER(:name)")
     List<BankAccount> findByUserIdAndNameIgnoreCase(@Param("userId") UUID userId, @Param("name") String name);
 

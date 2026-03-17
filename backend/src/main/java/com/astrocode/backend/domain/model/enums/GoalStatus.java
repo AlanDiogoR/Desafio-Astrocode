@@ -9,5 +9,6 @@ package com.astrocode.backend.domain.model.enums;
 public enum GoalStatus {
     ACTIVE,
     COMPLETED,
-    CANCELLED
+    CANCELLED,
+    EXPIRED
 }

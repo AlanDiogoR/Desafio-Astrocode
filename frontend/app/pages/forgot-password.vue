@@ -84,17 +84,9 @@ async function handleResetPassword() {
       code: code.value.trim(),
       newPassword: newPassword.value,
     })
-    authStore.setUser({
-      id: response.id,
-      name: response.name,
-      email: response.email,
-      plan: (response.plan ?? 'FREE') as import('~/stores/auth').PlanType,
-      isPro: response.isPro ?? false,
-      isElite: response.isElite ?? false,
-      planExpiresAt: response.planExpiresAt ?? null,
-    })
+    const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
+    authStore.setUser(mapApiUserToStoreUser(response))
     toast.success('Senha alterada com sucesso!')
-    toast.success('Entrando...', { duration: 1000 })
     await navigateTo('/dashboard')
   } catch (err: unknown) {
     toast.error(getErrorMessage(err, 'Código inválido ou expirado. Solicite um novo.'))
@@ -105,6 +97,7 @@ async function handleResetPassword() {
 
 function goBack() {
   step.value = 1
+  emailError.value = ''
   code.value = ''
   newPassword.value = ''
   confirmPassword.value = ''
@@ -246,25 +239,25 @@ function goBack() {
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #212529;
+  color: var(--color-text-primary);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
-  color: #868E96;
+  color: var(--color-text-muted);
   font-weight: 400;
   line-height: 1.5;
 }
 
 .page-footer {
   font-size: 14px;
-  color: #495057;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 .footer-link {
-  color: #087F5B;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
   margin-left: 4px;
@@ -277,7 +270,7 @@ function goBack() {
 .footer-link-btn {
   background: none;
   border: none;
-  color: #087F5B;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;

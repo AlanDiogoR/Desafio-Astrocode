@@ -21,6 +21,13 @@ const CHART_COLORS = [
   '#FAB005',
   '#15AABF',
   '#FA5252',
+  '#E64980',
+  '#7950F2',
+  '#228BE6',
+  '#69DB7C',
+  '#FF922B',
+  '#20C997',
+  '#FF6B6B',
 ]
 
 const props = defineProps<{
@@ -31,7 +38,7 @@ const props = defineProps<{
 const chartData = computed(() => {
   const labels = props.byCategory.map((c) => c.categoryName)
   const data = props.byCategory.map((c) => c.totalAmount)
-  const colors = CHART_COLORS.slice(0, props.byCategory.length)
+  const colors = props.byCategory.map((_, i) => CHART_COLORS[i % CHART_COLORS.length])
   return {
     labels,
     datasets: [
@@ -71,10 +78,25 @@ const options: ChartOptions<'doughnut'> = {
     },
   },
 }
+
+const chartDescription = computed(() => {
+  if (!props.byCategory.length) return 'Nenhum gasto registrado.'
+  const parts = props.byCategory
+    .slice(0, 5)
+    .map((c) => {
+      const pct = ((c.totalAmount / (props.totalExpense || 1)) * 100).toFixed(0)
+      return `${c.categoryName}: ${pct}%`
+    })
+  return `Gastos por categoria: ${parts.join(', ')}${props.byCategory.length > 5 ? ' e outras' : ''}. Total: ${formatCurrency(props.totalExpense)}`
+})
 </script>
 
 <template>
-  <div class="expense-chart">
+  <div
+    class="expense-chart"
+    role="img"
+    :aria-label="chartDescription"
+  >
     <div class="expense-chart__canvas-wrapper">
       <Doughnut
         :data="chartData"

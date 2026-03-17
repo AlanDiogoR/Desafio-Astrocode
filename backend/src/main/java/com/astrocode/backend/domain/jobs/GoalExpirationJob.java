@@ -29,7 +29,7 @@ public class GoalExpirationJob {
         var expired = savingsGoalRepository.findByStatusAndEndDateBeforeAndDeletedAtIsNull(
                 GoalStatus.ACTIVE, LocalDate.now());
         expired.forEach(g -> {
-            g.setStatus(GoalStatus.CANCELLED);
+            g.setStatus(GoalStatus.EXPIRED);
             log.info("Goal expired: id={}, name={}", g.getId(), g.getName());
         });
         if (!expired.isEmpty()) {

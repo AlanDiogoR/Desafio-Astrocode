@@ -37,14 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
 const modelValue = defineModel<string | null>()
 const isOpen = ref(false)
 
-const mockOptions = [
-  { label: 'Conta Corrente', value: 'CHECKING' },
-  { label: 'Investimentos', value: 'INVESTMENT' },
-]
-
-const resolvedOptions = computed(() =>
-  props.options?.length ? props.options : mockOptions
-)
+const resolvedOptions = computed(() => props.options ?? [])
 
 const displayValue = computed(() => {
   if (!modelValue.value) return null

@@ -6,6 +6,7 @@ definePageMeta({
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+const { refetch: refetchUser } = useUser()
 
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
@@ -17,6 +18,18 @@ const isLoggedIn = computed(() => authStore.isLoggedIn)
 const currentPlan = computed(() => authStore.getUser?.plan ?? 'FREE')
 
 onMounted(async () => {
+  if (!authStore.isLoggedIn) {
+    try {
+      const result = await refetchUser()
+      if (result.data) {
+        const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
+        authStore.setUser(mapApiUserToStoreUser(result.data))
+      }
+    } catch {
+      /* silencioso */
+    }
+  }
+
   try {
     const { listPlans } = await import('~/services/subscription/listPlans')
     plans.value = await listPlans($api)
@@ -32,11 +45,44 @@ onMounted(async () => {
       subscription.value = await getSubscription($api)
     } catch {
       subscription.value = null
+      toast?.error('Erro ao carregar informações da assinatura.')
     }
   }
 })
 
 const paidPlans = computed(() => plans.value.filter((p) => p.id !== 'FREE'))
+
+const planFeatures: Record<string, string[]> = {
+  MONTHLY: [
+    'Contas bancárias ilimitadas',
+    'Transações ilimitadas por mês',
+    'Metas de economia ilimitadas',
+    'Cartões de crédito com controle de fatura',
+    'Relatórios e insights mensais',
+    'Suporte prioritário',
+  ],
+  SEMIANNUAL: [
+    'Tudo do plano Mensal',
+    'Economia de 16% vs mensal',
+    'Contas bancárias ilimitadas',
+    'Transações ilimitadas por mês',
+    'Metas de economia ilimitadas',
+    'Cartões de crédito com controle de fatura',
+    'Relatórios e insights mensais',
+    'Suporte prioritário',
+  ],
+  ANNUAL: [
+    'Tudo do plano Semestral',
+    'Economia de 24% vs mensal',
+    'Contas bancárias ilimitadas',
+    'Transações ilimitadas por mês',
+    'Metas de economia ilimitadas',
+    'Cartões de crédito com controle de fatura',
+    'Open Finance (em breve)',
+    'Relatórios e insights avançados',
+    'Suporte VIP',
+  ],
+}
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -46,12 +92,32 @@ function formatPrice(value: number) {
   }).format(value)
 }
 
+function getPriceUnit(months: number): string {
+  if (months <= 1) return '/mês'
+  if (months === 6) return '/semestre'
+  if (months === 12) return '/ano'
+  return `/${months} meses`
+}
+
+function getMonthlyEquivalent(price: number, months: number): string | null {
+  if (months <= 1) return null
+  return formatPrice(price / months)
+}
+
+const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
+
 async function handleUpgradeClick(planId: string) {
   if (!authStore.isLoggedIn) {
-    return navigateTo('/login?redirect=' + encodeURIComponent('/planos'))
+    const checkoutUrl = `/planos/checkout?plano=${planId}`
+    return navigateTo('/login?redirect=' + encodeURIComponent(checkoutUrl))
   }
   selectedPlan.value = planId
-  await navigateTo(`/planos/checkout?plano=${planId}`)
+  checkoutLoading.value = true
+  try {
+    await navigateTo(`/planos/checkout?plano=${planId}`)
+  } finally {
+    checkoutLoading.value = false
+  }
 }
 </script>
 
@@ -80,13 +146,13 @@ async function handleUpgradeClick(planId: string) {
 
       <div v-else class="planos-page__grid">
         <v-card
-          v-for="plan in paidPlans"
+          v-for="(plan, index) in paidPlans"
           :key="plan.id"
           class="planos-page__card"
           variant="outlined"
         >
           <div class="planos-page__card-header">
-            <v-icon icon="mdi-star-four-points" size="32" color="#087f5b" class="planos-page__card-icon" />
+            <v-icon icon="mdi-star-four-points" size="32" color="primary" class="planos-page__card-icon" />
             <v-chip
               v-if="plan.id === 'MONTHLY' && paidPlans.length > 1"
               size="small"
@@ -104,10 +170,19 @@ async function handleUpgradeClick(planId: string) {
             {{ plan.description }}
           </v-card-subtitle>
           <v-card-text>
+            <ul class="planos-page__features">
+              <li v-for="(feature, fi) in (planFeatures[plan.id] ?? [])" :key="fi" class="planos-page__feature">
+                <v-icon icon="mdi-check-circle" size="18" color="primary" class="mr-2 flex-shrink-0" />
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
             <div class="planos-page__price">
               {{ formatPrice(plan.price) }}
-              <span v-if="plan.months > 0" class="planos-page__price-unit">/mês</span>
+              <span v-if="plan.months > 0" class="planos-page__price-unit">{{ getPriceUnit(plan.months) }}</span>
             </div>
+            <p v-if="monthlyEquivalents[index]" class="planos-page__price-monthly">
+              equivale a {{ monthlyEquivalents[index] }}/mês
+            </p>
           </v-card-text>
           <v-card-actions>
             <v-btn
@@ -155,7 +230,7 @@ async function handleUpgradeClick(planId: string) {
 .planos-page {
   min-height: 100vh;
   padding: 48px 24px;
-  background: #f8faf9;
+  background: var(--color-bg-page);
 }
 
 .planos-page__container {
@@ -166,14 +241,14 @@ async function handleUpgradeClick(planId: string) {
 .planos-page__title {
   font-size: 28px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
   text-align: center;
 }
 
 .planos-page__subtitle {
   font-size: 16px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin: 0 0 32px 0;
   text-align: center;
 }
@@ -186,7 +261,7 @@ async function handleUpgradeClick(planId: string) {
 
 .planos-page__card {
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s ease;
 }
@@ -212,21 +287,40 @@ async function handleUpgradeClick(planId: string) {
 }
 
 .planos-page__card-title {
-  padding-inline: 24px 24px 0;
+  padding-inline: 24px;
+  padding-block-end: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .planos-page__card-desc {
   padding-inline: 24px;
   margin-top: 4px;
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .planos-page__card :deep(.v-card-text) {
-  padding: 16px 24px;
+  padding: 0 24px 16px;
+}
+
+.planos-page__features {
+  list-style: none;
+  padding: 0 0 12px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planos-page__feature {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
 }
 
 .planos-page__card :deep(.v-card-actions) {
@@ -237,13 +331,20 @@ async function handleUpgradeClick(planId: string) {
 .planos-page__price {
   font-size: 28px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .planos-page__price-unit {
   font-size: 14px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--color-text-secondary);
+}
+
+.planos-page__price-monthly {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 4px 0 0;
+  font-weight: 500;
 }
 
 .planos-page__loading {

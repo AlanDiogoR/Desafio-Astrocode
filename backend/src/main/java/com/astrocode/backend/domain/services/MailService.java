@@ -63,7 +63,7 @@ public class MailService {
         }
 
         sendViaBrevo(toEmail, SUBJECT, body, (e) ->
-                log.warn("[FALLBACK] Brevo falhou. Código de recuperação para {}: {} (expira em 15 min)", toEmail, code));
+                log.warn("[FALLBACK] Brevo falhou para {}. Verifique configuração de e-mail.", toEmail));
     }
 
     public void sendRecurringExpenseNotAddedDueToInsufficientBalance(String toEmail, String expenseName, String amountFormatted, String date) {

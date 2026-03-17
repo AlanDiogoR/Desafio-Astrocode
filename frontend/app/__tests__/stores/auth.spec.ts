@@ -7,13 +7,12 @@ describe('useAuthStore', () => {
     setActivePinia(createPinia())
   })
 
-  it('hasToken é false quando user é null', () => {
+  it('isLoggedIn é false quando user é null', () => {
     const store = useAuthStore()
-    expect(store.hasToken).toBe(false)
     expect(store.isLoggedIn).toBe(false)
   })
 
-  it('hasToken é true quando user está definido', () => {
+  it('isLoggedIn é true quando user está definido', () => {
     const store = useAuthStore()
     store.setUser({
       id: '1',
@@ -24,7 +23,6 @@ describe('useAuthStore', () => {
       isElite: false,
       planExpiresAt: null,
     })
-    expect(store.hasToken).toBe(true)
     expect(store.isLoggedIn).toBe(true)
   })
 
@@ -41,7 +39,7 @@ describe('useAuthStore', () => {
     })
     expect(store.isProUser).toBe(true)
     store.clearAuth()
-    expect(store.hasToken).toBe(false)
+    expect(store.isLoggedIn).toBe(false)
     expect(store.user).toBeNull()
   })
 

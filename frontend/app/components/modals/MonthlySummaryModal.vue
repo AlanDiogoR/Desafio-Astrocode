@@ -25,7 +25,7 @@ const selectedDate = ref(new Date())
 const year = computed(() => selectedDate.value.getFullYear())
 const month = computed(() => selectedDate.value.getMonth() + 1)
 
-const { data: summary, isPending } = useQuery({
+const { data: summary, isPending, isError, refetch } = useQuery({
   queryKey: ['monthly-summary-modal', year, month],
   queryFn: () => getMonthlySummary(year.value, month.value),
   enabled: computed(() => props.open && !!year.value && !!month.value),
@@ -59,7 +59,11 @@ function goPrevMonth() {
 
 function goNextMonth() {
   const d = new Date(selectedDate.value)
+  const today = new Date()
   d.setMonth(d.getMonth() + 1)
+  if (d.getFullYear() > today.getFullYear() || (d.getFullYear() === today.getFullYear() && d.getMonth() > today.getMonth())) {
+    return
+  }
   selectedDate.value = d
 }
 
@@ -129,7 +133,13 @@ watch(() => props.open, (open) => {
         </div>
 
         <div id="summary-desc" class="summary-modal-body">
-          <div v-if="isPending" class="summary-modal-loading">
+          <div v-if="isError" class="summary-modal-error">
+            <p class="summary-modal-error__text">Não foi possível carregar o resumo.</p>
+            <button type="button" class="summary-modal-error__btn" @click="refetch()">
+              Tentar novamente
+            </button>
+          </div>
+          <div v-else-if="isPending" class="summary-modal-loading">
             <v-progress-circular
               indeterminate
               color="primary"
@@ -364,6 +374,34 @@ watch(() => props.open, (open) => {
 .summary-modal-empty__text {
   font-size: 14px;
   color: #868e96;
+}
+
+.summary-modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 16px;
+}
+
+.summary-modal-error__text {
+  font-size: 14px;
+  color: #868e96;
+  margin: 0;
+}
+
+.summary-modal-error__btn {
+  padding: 10px 20px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.summary-modal-error__btn:hover {
+  opacity: 0.9;
 }
 
 @media (max-width: 599px) {

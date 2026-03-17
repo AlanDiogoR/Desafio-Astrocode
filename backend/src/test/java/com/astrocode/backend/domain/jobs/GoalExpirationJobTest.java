@@ -30,7 +30,7 @@ class GoalExpirationJobTest {
     private GoalExpirationJob goalExpirationJob;
 
     @Test
-    @DisplayName("Apenas metas ACTIVE com endDate < hoje são atualizadas para CANCELLED")
+    @DisplayName("Apenas metas ACTIVE com endDate < hoje são atualizadas para EXPIRED")
     void expireOverdueGoals_onlyActiveWithEndDateBeforeToday() {
         var user = User.builder()
                 .id(UUID.randomUUID())
@@ -57,7 +57,7 @@ class GoalExpirationJobTest {
 
         goalExpirationJob.expireOverdueGoals();
 
-        assertThat(expiredGoal.getStatus()).isEqualTo(GoalStatus.CANCELLED);
+        assertThat(expiredGoal.getStatus()).isEqualTo(GoalStatus.EXPIRED);
         verify(savingsGoalRepository).saveAll(any());
     }
 

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/vue-query'
+import { getErrorMessage } from '~/utils/errorHandler'
 import type { TransactionFilters } from '~/services/transactions'
 import { listTransactions } from '~/services/transactions'
 
@@ -41,10 +42,16 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
     currentPage.value = 0
   }, { deep: true })
 
+  const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
   const { data: rawPage, isPending, isError, error, refetch } = useQuery({
     queryKey: [TRANSACTIONS_QUERY_KEY[0], apiFilters],
     queryFn: () => listTransactions(apiFilters.value ?? {}),
     enabled: computed(() => !!authStore.user),
+    onError: (err) => {
+      if (import.meta.client) {
+        toast.error(getErrorMessage(err, 'Erro ao carregar transações.'))
+      }
+    },
   })
 
   const rawTransactions = computed(() => rawPage.value?.content ?? [])

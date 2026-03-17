@@ -13,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,15 +25,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final int COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 dias
+    private static final int COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
     private final AuthService authService;
     private final com.astrocode.backend.config.LoginRateLimiter loginRateLimiter;
+    private final String trustedProxies;
 
     public AuthController(AuthService authService,
-                          com.astrocode.backend.config.LoginRateLimiter loginRateLimiter) {
+                          com.astrocode.backend.config.LoginRateLimiter loginRateLimiter,
+                          @Value("${app.trusted-proxies:}") String trustedProxies) {
         this.authService = authService;
         this.loginRateLimiter = loginRateLimiter;
+        this.trustedProxies = trustedProxies != null ? trustedProxies.trim() : "";
     }
 
     @Operation(summary = "Login", description = "Define cookie httpOnly com JWT e retorna dados do usuário (token não vem no body)")
@@ -109,10 +113,51 @@ public class AuthController {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            return xForwardedFor.split(",")[0].trim();
+        String remoteAddr = request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
+        if (trustedProxies.isBlank()) {
+            return remoteAddr;
         }
-        return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
+        for (String cidr : trustedProxies.split(",")) {
+            String trimmed = cidr.trim();
+            if (!trimmed.isEmpty() && isInCidr(remoteAddr, trimmed)) {
+                String xForwardedFor = request.getHeader("X-Forwarded-For");
+                if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+                    return xForwardedFor.split(",")[0].trim();
+                }
+                break;
+            }
+        }
+        return remoteAddr;
+    }
+
+    private boolean isInCidr(String ip, String cidr) {
+        if (cidr.contains("/")) {
+            String[] parts = cidr.split("/");
+            if (parts.length != 2) return false;
+            int mask = Integer.parseInt(parts[1]);
+            return ipMatchesCidr(ip, parts[0].trim(), mask);
+        }
+        return ip.equals(cidr.trim());
+    }
+
+    private boolean ipMatchesCidr(String ip, String network, int maskBits) {
+        try {
+            long ipLong = ipToLong(ip);
+            long networkLong = ipToLong(network);
+            long mask = maskBits == 0 ? 0 : -1L << (32 - maskBits);
+            return (ipLong & mask) == (networkLong & mask);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private long ipToLong(String ip) {
+        String[] octets = ip.split("\\.");
+        if (octets.length != 4) return -1;
+        long result = 0;
+        for (int i = 0; i < 4; i++) {
+            result = (result << 8) | Integer.parseInt(octets[i].trim());
+        }
+        return result;
     }
 }

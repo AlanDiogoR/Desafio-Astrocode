@@ -1,0 +1,2 @@
+-- Garante idempotência no processamento de webhooks do Mercado Pago
+-- Constraint UNIQUE (payment_id, request_id) já coberta no V16__webhook_processed_events.sql

@@ -77,6 +77,7 @@ public class OriginValidationFilter extends OncePerRequestFilter {
                     .filter(s -> !s.isEmpty())
                     .toList();
         }
+        log.warn("app.cors.allowed-origins nao configurado, usando fallback de desenvolvimento");
         return List.of(
                 "https://grivy.netlify.app",
                 "https://www.grivy.netlify.app",

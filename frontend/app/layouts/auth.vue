@@ -28,13 +28,14 @@
                 max-width="520"
                 height="400"
                 class="rounded-xl"
+                alt=""
               />
             </div>
             <div class="align-self-start">
               <AppLogo color="#087F5B" :size="32" />
             </div>
             <p class="auth-hero-text text-h6 font-weight-regular">
-              Gerencie suas finanças pessoais de uma forma simples com o Grivy, e o melhor, totalmente de graça!
+              Gerencie suas finanças pessoais de uma forma simples com o Grivy. Comece gratuitamente, evolua quando quiser.
             </p>
           </div>
         </v-col>
@@ -47,7 +48,7 @@
 .auth-form-side {
   background-color: #fff !important;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .auth-hero-side {
@@ -61,7 +62,7 @@
 }
 
 .auth-hero-text {
-  color: #495057;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   max-width: 580px;
 }

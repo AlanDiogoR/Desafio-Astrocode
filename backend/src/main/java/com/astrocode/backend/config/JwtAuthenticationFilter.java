@@ -57,33 +57,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            if (jwtService.isTokenValid(token)) {
-                var email = jwtService.extractEmail(token);
-                var userId = jwtService.extractUserId(token);
+            var claims = jwtService.extractClaims(token);
+            var email = jwtService.extractEmailFromClaims(claims);
+            var userId = jwtService.extractUserIdFromClaims(claims);
 
-                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (email != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     var userOpt = userRepository.findByIdWithSubscription(userId);
 
                     if (userOpt.isPresent()) {
                         var user = userOpt.get();
-                        
+
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 user,
                                 null,
                                 null
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        
+
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     } else {
                         SecurityContextHolder.clearContext();
                     }
-                } else {
-                    if (email == null) {
-                        SecurityContextHolder.clearContext();
-                    }
-                }
-            } else {
+            } else if (email == null || userId == null) {
                 SecurityContextHolder.clearContext();
             }
         } catch (Exception e) {

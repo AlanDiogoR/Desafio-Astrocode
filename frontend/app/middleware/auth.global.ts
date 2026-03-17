@@ -18,26 +18,35 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const { isValid: hasApiConfig } = useApiConfig()
 
-  if (!hasApiConfig) {
-    return
-  }
+  if (!hasApiConfig) return
 
-  if (isPublicRoute(to.path)) {
-    if (authStore.hasToken) return navigateTo('/dashboard')
+  const isPublic = isPublicRoute(to.path)
+
+  if (authStore.isLoggedIn) {
+    if (isPublic && (to.path === '/login' || to.path === '/register')) {
+      return navigateTo('/dashboard')
+    }
     return
   }
 
   const { refetch } = useUser()
   const result = await refetch()
 
-  if (result.isError || !result.data) {
-    authStore.clearAuth()
-    if (result.isError && isUnauthorized(result.error) && import.meta.client) {
-      const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
-      toast.error('Sua sessão expirou. Por favor, faça login novamente.')
+  if (result.data && !result.isError) {
+    const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
+    authStore.setUser(mapApiUserToStoreUser(result.data))
+    if (to.path === '/login' || to.path === '/register') {
+      return navigateTo('/dashboard')
     }
-    return navigateTo('/login')
+    return
   }
 
-  authStore.setUser(result.data)
+  if (isPublic) return
+
+  authStore.clearAuth()
+  if (result.isError && isUnauthorized(result.error) && import.meta.client) {
+    const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+    toast.error('Sua sessão expirou. Por favor, faça login novamente.')
+  }
+  return navigateTo('/login')
 })

@@ -130,7 +130,6 @@ export function useAuthForm() {
     const status = axiosError.response?.status
     if (status === 401) {
       passwordError.value = 'E-mail ou senha inválidos'
-      toast.error('E-mail ou senha inválidos')
     } else {
       toast.error(getErrorMessage(error, 'Falha ao conectar com o servidor.'))
     }
@@ -185,7 +184,7 @@ export function useAuthForm() {
         isElite: data.isElite ?? false,
         planExpiresAt: data.planExpiresAt ?? null,
       })
-      toast.success('Bem-vindo ao Grivy!')
+      toast.success('Bem-vindo(a) ao Grivy!')
     },
     onError: handleRegisterError,
   })
@@ -194,7 +193,9 @@ export function useAuthForm() {
     if (!validateLogin()) return
     try {
       await loginMutation.mutateAsync({ email: email.value, password: password.value })
-      router.replace('/dashboard')
+      const route = useRoute()
+      const redirect = route.query.redirect as string
+      router.replace(redirect && redirect.startsWith('/') ? redirect : '/dashboard')
     } catch {
       /* onError já tratou */
     }
@@ -208,7 +209,9 @@ export function useAuthForm() {
         email: email.value,
         password: password.value,
       })
-      router.replace('/dashboard')
+      const route = useRoute()
+      const redirect = route.query.redirect as string
+      router.replace(redirect && redirect.startsWith('/') ? redirect : '/dashboard')
     } catch {
       /* onError já tratou */
     }

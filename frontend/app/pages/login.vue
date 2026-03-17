@@ -23,10 +23,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div
-    class="mx-auto text-center"
-    style="max-width: 440px; width: 100%;"
-  >
+  <div class="mx-auto text-center login-container">
     <div class="d-flex justify-center mb-2">
       <AppLogo color="#868E96" :size="28" />
     </div>
@@ -34,45 +31,46 @@ async function onSubmit() {
     <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
 
     <v-form class="w-100" @submit.prevent="onSubmit">
-      <ClientOnly>
-        <AppInput
-          v-model="email"
-          label="E-mail"
-          type="email"
-          :field-error="emailErrorDisplay"
-          :disabled="isPending"
-          class="mb-4"
-          @clear-error="clearFieldError('email')"
-          @blur="markAsTouched('email')"
-        />
+      <AppInput
+        v-model="email"
+        label="E-mail"
+        type="email"
+        autocomplete="email"
+        :field-error="emailErrorDisplay"
+        :disabled="isPending"
+        class="mb-4"
+        @clear-error="clearFieldError('email')"
+        @blur="markAsTouched('email')"
+      />
 
-        <AppInput
-          v-model="password"
-          label="Senha"
-          :type="showPassword ? 'text' : 'password'"
-          :field-error="passwordErrorDisplay"
-          :disabled="isPending"
-          class="mb-2"
-          @clear-error="clearFieldError('password')"
-          @blur="markAsTouched('password')"
-        >
+      <AppInput
+        v-model="password"
+        label="Senha"
+        :type="showPassword ? 'text' : 'password'"
+        autocomplete="current-password"
+        :field-error="passwordErrorDisplay"
+        :disabled="isPending"
+        class="mb-2"
+        @clear-error="clearFieldError('password')"
+        @blur="markAsTouched('password')"
+      >
         <template #append-inner>
           <v-icon
             :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             class="cursor-pointer"
+            :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
             @click="showPassword = !showPassword"
           />
         </template>
-        </AppInput>
-        <div class="text-right mb-6">
-          <NuxtLink
-            to="/forgot-password"
-            class="forgot-password-link"
-          >
-            Esqueceu a senha?
-          </NuxtLink>
-        </div>
-      </ClientOnly>
+      </AppInput>
+      <div class="text-right mb-6">
+        <NuxtLink
+          to="/forgot-password"
+          class="forgot-password-link"
+        >
+          Esqueceu a senha?
+        </NuxtLink>
+      </div>
 
       <AppButton
         type="submit"
@@ -93,28 +91,33 @@ async function onSubmit() {
 </template>
 
 <style scoped>
+.login-container {
+  max-width: 440px;
+  width: 100%;
+}
+
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #212529;
+  color: var(--color-text-primary);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
-  color: #868E96;
+  color: var(--color-text-muted);
   font-weight: 400;
   line-height: 1.5;
 }
 
 .page-footer {
   font-size: 14px;
-  color: #495057;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 .footer-link {
-  color: #087F5B;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
   margin-left: 4px;
@@ -126,7 +129,7 @@ async function onSubmit() {
 
 .forgot-password-link {
   font-size: 14px;
-  color: #087F5B;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 500;
 }

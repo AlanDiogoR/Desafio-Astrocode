@@ -5,13 +5,21 @@ const props = defineProps<{
   categoryName: string
   percentage: number
   visible: boolean
+  currentMonth?: number
+  currentYear?: number
 }>()
 
 const emit = defineEmits<{
   dismiss: []
 }>()
 
-const dismissed = ref(false)
+const now = new Date()
+const currentMonth = computed(() => props.currentMonth ?? now.getMonth() + 1)
+const currentYear = computed(() => props.currentYear ?? now.getFullYear())
+const storageKey = computed(() => `spending-alert-dismissed-${currentYear.value}-${currentMonth.value}`)
+const dismissed = ref(
+  typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey.value) === 'true'
+)
 
 const isVisible = computed(
   () => props.visible && !dismissed.value && props.percentage > 40,
@@ -19,6 +27,9 @@ const isVisible = computed(
 
 function dismiss() {
   dismissed.value = true
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem(storageKey.value, 'true')
+  }
   emit('dismiss')
 }
 </script>

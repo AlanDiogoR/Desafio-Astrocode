@@ -21,8 +21,13 @@ function getCardColor() {
 <template>
   <div
     class="credit-card-card d-flex flex-column pa-4 rounded-xl cursor-pointer"
+    role="button"
+    tabindex="0"
+    :aria-label="`Cartão ${creditCard.name}`"
     :style="{ borderBottomColor: getCardColor() }"
     @click="openCreditCardBillModal(creditCard)"
+    @keydown.enter="openCreditCardBillModal(creditCard)"
+    @keydown.space.prevent="openCreditCardBillModal(creditCard)"
   >
     <v-btn
       icon
@@ -76,7 +81,7 @@ function getCardColor() {
   background-color: white;
   flex-shrink: 0;
   border-bottom: 4px solid transparent;
-  color: #212529;
+  color: var(--color-text-primary);
   transition: opacity 0.2s;
   min-height: 140px;
   min-width: 180px;
@@ -101,7 +106,7 @@ function getCardColor() {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: #212529;
+  color: var(--color-text-primary);
 }
 
 .credit-card-card__value {

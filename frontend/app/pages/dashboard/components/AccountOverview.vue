@@ -61,6 +61,7 @@ function togglePrivacy() {
             density="compact"
             color="white"
             class="opacity-80 ml-4"
+            :aria-label="areValuesVisible ? 'Ocultar saldos' : 'Mostrar saldos'"
             @click="togglePrivacy"
           >
             <v-icon :icon="areValuesVisible ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
@@ -95,10 +96,7 @@ function togglePrivacy() {
               <v-icon icon="mdi-plus" size="20" />
             </v-btn>
           </h3>
-          <div
-            class="accounts-nav d-flex ga-1"
-            :class="{ 'accounts-nav--hidden': !hasCarousel }"
-          >
+          <div v-if="hasCarousel" class="accounts-nav d-flex ga-1">
             <v-btn
               icon="mdi-chevron-left"
               variant="text"
@@ -213,13 +211,19 @@ function togglePrivacy() {
             class="account-card-item"
           />
         </div>
-        <p
+        <div
           v-else
-          class="text-body-2 text-medium-emphasis py-2"
-          @click="openNewCreditCardModal"
+          class="credit-cards-empty-state d-flex flex-column align-center justify-center py-4"
+          role="button"
+          tabindex="0"
+          @click="openNewCreditCardModal()"
+          @keydown.enter="openNewCreditCardModal()"
         >
-          Nenhum cartão cadastrado. Clique para adicionar.
-        </p>
+          <v-icon icon="mdi-credit-card-plus-outline" size="32" color="rgba(255,255,255,0.7)" class="mb-2" />
+          <p class="credit-cards-empty-text ma-0">
+            Adicionar cartão de crédito
+          </p>
+        </div>
       </section>
     </div>
     <NewAccountModal />
@@ -236,7 +240,7 @@ function togglePrivacy() {
 <style scoped>
 .account-overview {
   width: 100%;
-  background-color: #087f5b;
+  background-color: var(--color-primary);
   color: white;
   box-sizing: border-box;
   display: flex;
@@ -353,9 +357,6 @@ function togglePrivacy() {
   color: rgb(255, 255, 255);
 }
 
-.accounts-nav--hidden {
-  visibility: hidden;
-}
 
 .accounts-skeleton {
   padding-bottom: 8px;
@@ -401,6 +402,26 @@ function togglePrivacy() {
 .account-card-item {
   flex: 0 0 220px;
   min-width: 220px;
+}
+
+.credit-cards-empty-state {
+  cursor: pointer;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+
+.credit-cards-empty-state:hover,
+.credit-cards-empty-state:focus-visible {
+  border-color: rgba(255, 255, 255, 0.7);
+  outline: none;
+}
+
+.credit-cards-empty-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 @media (min-width: 960px) {

@@ -8,6 +8,7 @@ import com.astrocode.backend.domain.exceptions.*;
 import com.astrocode.backend.domain.model.enums.BillStatus;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ public class CreditCardService {
     private final CategoryRepository categoryRepository;
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
+    private final PlanLimitService planLimitService;
 
     public CreditCardService(
             CreditCardRepository creditCardRepository,
@@ -36,7 +38,8 @@ public class CreditCardService {
             UserRepository userRepository,
             CategoryRepository categoryRepository,
             BankAccountRepository bankAccountRepository,
-            TransactionRepository transactionRepository
+            TransactionRepository transactionRepository,
+            PlanLimitService planLimitService
     ) {
         this.creditCardRepository = creditCardRepository;
         this.creditCardBillRepository = creditCardBillRepository;
@@ -44,6 +47,7 @@ public class CreditCardService {
         this.categoryRepository = categoryRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.transactionRepository = transactionRepository;
+        this.planLimitService = planLimitService;
     }
 
     @Transactional
@@ -162,14 +166,21 @@ public class CreditCardService {
     @Transactional
     public CreditCardBill getOrCreateCurrentBill(UUID creditCardId, UUID userId) {
         var creditCard = findById(creditCardId, userId);
+        var existing = creditCardBillRepository.findFirstByCreditCardIdAndStatusOrderByYearDescMonthDesc(
+                creditCardId, BillStatus.OPEN);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        try {
+            createInitialBill(creditCard);
+        } catch (DataIntegrityViolationException e) {
+            return creditCardBillRepository.findFirstByCreditCardIdAndStatusOrderByYearDescMonthDesc(
+                            creditCardId, BillStatus.OPEN)
+                    .orElseThrow(() -> new ResourceNotFoundException("Fatura ativa não encontrada para o cartão"));
+        }
         return creditCardBillRepository.findFirstByCreditCardIdAndStatusOrderByYearDescMonthDesc(
                         creditCardId, BillStatus.OPEN)
-                .orElseGet(() -> {
-                    createInitialBill(creditCard);
-                    return creditCardBillRepository.findFirstByCreditCardIdAndStatusOrderByYearDescMonthDesc(
-                                    creditCardId, BillStatus.OPEN)
-                            .orElseThrow(() -> new ResourceNotFoundException("Fatura ativa não encontrada para o cartão"));
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Fatura ativa não encontrada para o cartão"));
     }
 
     public List<CreditCardBill> getBillHistory(UUID creditCardId, UUID userId) {
@@ -197,6 +208,8 @@ public class CreditCardService {
         if (accountBalance.compareTo(request.amount()) < 0) {
             throw new InsufficientBalanceException("Saldo insuficiente na conta para realizar o pagamento");
         }
+
+        planLimitService.checkFreePlanTransactionLimit(userId);
 
         var category = getOrCreatePagamentoFaturaCategory(userId);
 

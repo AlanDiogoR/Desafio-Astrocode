@@ -7,8 +7,15 @@ const route = useRoute()
 const authStore = useAuthStore()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 const { $api } = useNuxtApp()
+const { refetch: refetchUser } = useUser()
 
-const planId = computed(() => (route.query.plano as string) || 'MONTHLY')
+const VALID_PLAN_IDS = ['MONTHLY', 'SEMIANNUAL', 'ANNUAL'] as const
+
+const planId = computed(() => {
+  const p = (route.query.plano as string) || 'MONTHLY'
+  return VALID_PLAN_IDS.includes(p as (typeof VALID_PLAN_IDS)[number]) ? p : 'MONTHLY'
+})
+
 const planLabel = computed(() => {
   const labels: Record<string, string> = {
     MONTHLY: 'Pro Mensal',
@@ -18,12 +25,11 @@ const planLabel = computed(() => {
   return labels[planId.value] ?? planId.value
 })
 
-const planPrices: Record<string, number> = {
-  MONTHLY: 9.9,
-  SEMIANNUAL: 49.9,
-  ANNUAL: 89.9,
-}
-const planAmount = computed(() => planPrices[planId.value] ?? 9.9)
+const plans = ref<Array<{ id: string; price: number }>>([])
+const planAmount = computed(() => {
+  const plan = plans.value.find((p) => p.id === planId.value)
+  return plan?.price ?? 9.9
+})
 
 const mpPublicKey = ref('')
 const isLoadingConfig = ref(true)
@@ -32,9 +38,17 @@ const errorMessage = ref<string | null>(null)
 const resultData = ref<unknown>(null)
 
 onMounted(async () => {
+  if (!VALID_PLAN_IDS.includes(planId.value as (typeof VALID_PLAN_IDS)[number])) {
+    return navigateTo('/planos')
+  }
   try {
-    const { data } = await $api.get<{ mpPublicKey: string }>('/config/public')
-    mpPublicKey.value = data?.mpPublicKey ?? ''
+    const { listPlans: fetchPlans } = await import('~/services/subscription/listPlans')
+    const [{ data: configData }, plansData] = await Promise.all([
+      $api.get<{ mpPublicKey: string }>('/config/public'),
+      fetchPlans($api),
+    ])
+    mpPublicKey.value = configData?.mpPublicKey ?? ''
+    plans.value = (plansData ?? []).map((p) => ({ id: p.id, price: p.price }))
   } catch {
     errorMessage.value = 'Não foi possível carregar a configuração de pagamento.'
   } finally {
@@ -55,8 +69,7 @@ function handleError(msg: string) {
 }
 
 function invalidateUser() {
-  const { refetch } = useUser()
-  refetch()
+  refetchUser()
 }
 </script>
 

@@ -11,14 +11,13 @@ export interface User {
   isPro: boolean
   isElite: boolean
   planExpiresAt: string | null
-  createdAt?: string
-  updatedAt?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
 
-  const hasToken = computed(() => !!user.value)
   const isLoggedIn = computed(() => !!user.value)
   const getUser = computed(() => user.value)
   const isProUser = computed(() => user.value?.isPro ?? false)
@@ -42,5 +41,5 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
-  return { user, hasToken, isLoggedIn, getUser, isProUser, isEliteUser, planLabel, setUser, clearAuth }
+  return { user, isLoggedIn, getUser, isProUser, isEliteUser, planLabel, setUser, clearAuth }
 })

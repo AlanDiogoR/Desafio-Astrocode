@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +49,20 @@ class AuthServiceResetPasswordTest {
 
     private final String email = "test@example.com";
     private final UUID userId = UUID.randomUUID();
+
+    private static String sha256(String input) {
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            var sb = new StringBuilder(64);
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
     private final User user = User.builder()
             .id(userId)
             .name("Test")
@@ -60,7 +76,7 @@ class AuthServiceResetPasswordTest {
         var expiredCode = PasswordResetCode.builder()
                 .id(UUID.randomUUID())
                 .email(email)
-                .code("ABC123")
+                .code(sha256("ABC123"))
                 .expiresAt(OffsetDateTime.now().minusMinutes(1))
                 .build();
         var request = new ResetPasswordRequest(email, "ABC123", "newPass123");
@@ -81,7 +97,7 @@ class AuthServiceResetPasswordTest {
         var resetCode = PasswordResetCode.builder()
                 .id(UUID.randomUUID())
                 .email(email)
-                .code("ABC123")
+                .code(sha256("ABC123"))
                 .expiresAt(OffsetDateTime.now().plusMinutes(10))
                 .build();
         var request = new ResetPasswordRequest(email, "WRONG1", "newPass123");
@@ -101,7 +117,7 @@ class AuthServiceResetPasswordTest {
         var resetCode = PasswordResetCode.builder()
                 .id(UUID.randomUUID())
                 .email(email)
-                .code("ABC123")
+                .code(sha256("ABC123"))
                 .expiresAt(OffsetDateTime.now().plusMinutes(10))
                 .build();
         var request = new ResetPasswordRequest(email, "ABC123", "newPass123");

@@ -1,13 +1,24 @@
 <script setup lang="ts">
 const isLoading = useAppLoading()
 const { isValid: hasApiConfig } = useApiConfig()
+const { status } = useUser()
 
-useUser()
+const fallbackTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+watch(status, (s) => {
+  if (s !== 'pending') {
+    isLoading.value = false
+    if (fallbackTimer.value) clearTimeout(fallbackTimer.value)
+  }
+}, { immediate: true })
 
 onMounted(() => {
-  setTimeout(() => {
+  fallbackTimer.value = setTimeout(() => {
     isLoading.value = false
-  }, 800)
+  }, 2000)
+})
+onUnmounted(() => {
+  if (fallbackTimer.value) clearTimeout(fallbackTimer.value)
 })
 </script>
 

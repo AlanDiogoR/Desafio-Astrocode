@@ -8,15 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FlywayConfig {
 
-    /**
-     * Executa repair antes de migrate para corrigir entradas com falha
-     * ou checksum desatualizado no histórico do Flyway.
-     */
     @Bean
-    public FlywayMigrationStrategy repairThenMigrate() {
-        return flyway -> {
-            flyway.repair();
-            flyway.migrate();
-        };
+    public FlywayMigrationStrategy migrateOnly() {
+        return flyway -> flyway.migrate();
     }
 }

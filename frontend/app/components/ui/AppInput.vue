@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import { CrossCircledIcon } from '@radix-icons/vue'
 
 type Rule = (v: string) => boolean | string
@@ -24,6 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const model = defineModel<string>({ default: '' })
+const inputId = useId()
 
 const emit = defineEmits<{
   clearError: []
@@ -69,6 +71,7 @@ function onFocus() {
   <div class="app-input-wrapper">
     <div class="app-input-inner">
       <input
+        :id="inputId"
         :value="model"
         :type="type"
         :disabled="disabled"
@@ -82,6 +85,7 @@ function onFocus() {
         @blur="onBlur"
       >
       <label
+        :for="inputId"
         class="app-input__label"
         :class="{ 'app-input__label--float': isFloating }"
       >
@@ -121,17 +125,15 @@ function onFocus() {
   padding: 0 16px;
   font-size: 16px;
   color: #1f2937;
-  outline: none !important;
-  box-shadow: none !important;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   transition: border-color 0.2s;
   background: white;
 }
 
-.app-input__field:focus,
-.app-input__field:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: #087f5b;
+.app-input-inner:focus-within .app-input__field {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .app-input__field--error {

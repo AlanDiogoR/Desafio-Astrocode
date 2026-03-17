@@ -48,9 +48,8 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmailWithSubscription(request.email())
                 .orElseThrow(InvalidCredentialsException::new);
-        user = userRepository.findByIdWithSubscription(user.getId()).orElse(user);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new InvalidCredentialsException();
@@ -82,11 +81,12 @@ public class AuthService {
         resetCodeRepository.deleteByEmail(normalizedEmail);
 
         String code = generateAlphanumericCode();
+        String hashedCode = hashWithSHA256(code);
         OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);
 
         var resetCode = PasswordResetCode.builder()
                 .email(normalizedEmail)
-                .code(code)
+                .code(hashedCode)
                 .expiresAt(expiresAt)
                 .build();
         resetCodeRepository.save(resetCode);
@@ -101,9 +101,10 @@ public class AuthService {
         PasswordResetCode resetCode = resetCodeRepository.findFirstByEmailOrderByCreatedAtDesc(normalizedEmail)
                 .orElseThrow(InvalidResetCodeException::new);
 
+        String hashedRequestCode = hashWithSHA256(request.code());
         if (!MessageDigest.isEqual(
                 resetCode.getCode().getBytes(StandardCharsets.UTF_8),
-                request.code().getBytes(StandardCharsets.UTF_8))) {
+                hashedRequestCode.getBytes(StandardCharsets.UTF_8))) {
             throw new InvalidResetCodeException();
         }
         if (OffsetDateTime.now().isAfter(resetCode.getExpiresAt())) {
@@ -135,5 +136,21 @@ public class AuthService {
             sb.append(ALPHANUMERIC.charAt(random.nextInt(ALPHANUMERIC.length())));
         }
         return sb.toString();
+    }
+
+    private String hashWithSHA256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(64);
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("SHA-256 não disponível", e);
+        }
     }
 }

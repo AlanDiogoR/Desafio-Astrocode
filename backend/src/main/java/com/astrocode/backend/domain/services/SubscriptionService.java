@@ -19,6 +19,8 @@ import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +34,12 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class SubscriptionService {
 
+    private static final Logger log = LoggerFactory.getLogger(SubscriptionService.class);
     private static final BigDecimal PRICE_MONTHLY = new BigDecimal("9.90");
     private static final BigDecimal PRICE_SEMIANNUAL = new BigDecimal("49.90");
     private static final BigDecimal PRICE_ANNUAL = new BigDecimal("89.90");
+    private static final BigDecimal MIN_ANNUAL_THRESHOLD = new BigDecimal("80");
+    private static final BigDecimal MIN_SEMIANNUAL_THRESHOLD = new BigDecimal("40");
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
@@ -160,6 +165,10 @@ public class SubscriptionService {
         }
 
         String[] parts = externalRef.split(":");
+        if (parts.length < 2) {
+            log.warn("externalRef malformado: {}", externalRef);
+            return;
+        }
         UUID subId = UUID.fromString(parts[1]);
         Subscription subscription = subscriptionRepository.findById(subId).orElse(null);
         if (subscription == null) {
@@ -199,8 +208,8 @@ public class SubscriptionService {
 
     private PlanType inferPlanFromAmount(BigDecimal amount) {
         if (amount == null) return PlanType.MONTHLY;
-        if (amount.compareTo(PRICE_ANNUAL) <= 0 && amount.compareTo(new BigDecimal("80")) >= 0) return PlanType.ANNUAL;
-        if (amount.compareTo(PRICE_SEMIANNUAL) <= 0 && amount.compareTo(new BigDecimal("40")) >= 0) return PlanType.SEMIANNUAL;
+        if (amount.compareTo(PRICE_ANNUAL) <= 0 && amount.compareTo(MIN_ANNUAL_THRESHOLD) >= 0) return PlanType.ANNUAL;
+        if (amount.compareTo(PRICE_SEMIANNUAL) <= 0 && amount.compareTo(MIN_SEMIANNUAL_THRESHOLD) >= 0) return PlanType.SEMIANNUAL;
         return PlanType.MONTHLY;
     }
 
@@ -218,12 +227,15 @@ public class SubscriptionService {
     public void expireSubscriptions() {
         OffsetDateTime now = OffsetDateTime.now();
         var expired = subscriptionRepository.findByStatusAndExpiresAtBefore(SubscriptionStatus.ACTIVE, now);
-        for (Subscription sub : expired) {
-            if (sub.getPlanType() != PlanType.FREE) {
-                sub.setStatus(SubscriptionStatus.EXPIRED);
-                sub.setPlanType(PlanType.FREE);
-                subscriptionRepository.save(sub);
-            }
+        var toSave = expired.stream()
+                .filter(sub -> sub.getPlanType() != PlanType.FREE)
+                .peek(sub -> {
+                    sub.setStatus(SubscriptionStatus.EXPIRED);
+                    sub.setPlanType(PlanType.FREE);
+                })
+                .toList();
+        if (!toSave.isEmpty()) {
+            subscriptionRepository.saveAll(toSave);
         }
     }
 

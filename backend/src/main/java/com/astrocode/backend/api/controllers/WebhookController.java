@@ -44,7 +44,6 @@ public class WebhookController {
     }
 
     @PostMapping("/mercadopago")
-    @Transactional
     public ResponseEntity<Void> handleMercadoPago(@RequestBody Map<String, Object> payload,
                                                   @RequestHeader(value = "x-signature", required = false) String signature,
                                                   @RequestHeader(value = "x-request-id", required = false) String requestId) {

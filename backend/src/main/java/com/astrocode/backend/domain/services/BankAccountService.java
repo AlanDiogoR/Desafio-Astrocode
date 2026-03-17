@@ -43,7 +43,7 @@ public class BankAccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (!user.isPro()) {
-            var count = bankAccountRepository.findByUserId(userId).size();
+            var count = bankAccountRepository.countByUser_Id(userId);
             if (count >= FREE_PLAN_ACCOUNT_LIMIT) {
                 throw new PlanUpgradeRequiredException(
                         "Você atingiu o limite de " + FREE_PLAN_ACCOUNT_LIMIT + " contas no plano gratuito. Faça upgrade para continuar.",

@@ -11,6 +11,7 @@ import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,7 +85,12 @@ public class UserService {
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        var savedUser = userRepository.save(user);
+        User savedUser;
+        try {
+            savedUser = userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new EmailAlreadyExistsException(request.email(), e);
+        }
         createDefaultCategories(savedUser);
 
         subscriptionRepository.save(

@@ -48,6 +48,8 @@ const filtersRef = computed(() => mergedFilters.value)
 const {
   transactions,
   isPending,
+  isError,
+  refetch,
   totalPages,
   currentPage,
   setPage,
@@ -125,6 +127,19 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         <v-skeleton-loader type="list-item-avatar-three-line" />
       </div>
       <div
+        v-else-if="isError"
+        class="transaction-list__error d-flex flex-column align-center justify-center flex-grow-1"
+        style="gap: 16px; min-height: 200px;"
+      >
+        <v-icon icon="mdi-alert-circle-outline" size="48" color="grey" />
+        <p class="text-body-1 text-medium-emphasis text-center">
+          Erro ao carregar transações
+        </p>
+        <v-btn variant="tonal" color="primary" size="small" @click="refetch()">
+          Tentar novamente
+        </v-btn>
+      </div>
+      <div
         v-else-if="transactions.length > 0"
         class="transaction-list__cards d-flex flex-column ga-3"
       >
@@ -144,7 +159,7 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
           @icon-error="handleIconError"
         />
       </div>
-      <TransactionEmptyState v-else />
+      <TransactionEmptyState v-else @add-transaction="openNewTransactionModal('EXPENSE')" />
       <v-pagination
         v-if="totalPages > 1"
         v-model="displayPage"

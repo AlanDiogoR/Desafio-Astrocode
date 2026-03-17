@@ -44,7 +44,10 @@ async function handleConfirm() {
   try {
     await props.onConfirm()
     props.onClose()
-  } catch {
+  } catch (err) {
+    const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+    const { getErrorMessage } = await import('~/utils/errorHandler')
+    toast.error(getErrorMessage(err, 'Erro ao excluir. Tente novamente.'))
   } finally {
     isLoading.value = false
   }
@@ -143,7 +146,7 @@ async function handleConfirm() {
 }
 
 .confirm-delete-content:focus {
-  outline: 2px solid #087f5b;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -151,7 +154,7 @@ async function handleConfirm() {
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #1f2937;
+  color: var(--color-text-primary);
   text-align: center;
   margin: 0;
 }
@@ -182,7 +185,7 @@ async function handleConfirm() {
 .confirm-delete-text {
   font-size: 16px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   text-align: center;
   margin: 0;
 }
@@ -190,7 +193,7 @@ async function handleConfirm() {
 .confirm-delete-warning {
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-muted);
   text-align: center;
   margin: 0;
 }
@@ -213,17 +216,17 @@ async function handleConfirm() {
 }
 
 .confirm-delete-btn--confirm {
-  background-color: #dc2626;
+  background-color: var(--color-danger);
   color: white;
 }
 
 .confirm-delete-btn--confirm:hover:not(:disabled) {
-  background-color: #b91c1c;
+  background-color: var(--color-danger-hover);
 }
 
 .confirm-delete-btn--cancel {
   background-color: white;
-  color: #1f2937;
+  color: var(--color-text-primary);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 

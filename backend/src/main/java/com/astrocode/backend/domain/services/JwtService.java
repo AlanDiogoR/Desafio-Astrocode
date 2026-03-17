@@ -82,17 +82,29 @@ public class JwtService {
         }
     }
 
-    public UUID extractUserId(String token) {
-        Claims claims = extractClaims(token);
+    public UUID extractUserIdFromClaims(Claims claims) {
         String userIdStr = claims.get(USER_ID_CLAIM, String.class);
         if (userIdStr == null) {
-            throw new InvalidTokenException("Token não contém user_id");
+            return null;
         }
         try {
             return UUID.fromString(userIdStr);
         } catch (IllegalArgumentException e) {
-            throw new InvalidTokenException("user_id inválido no token", e);
+            return null;
         }
+    }
+
+    public UUID extractUserId(String token) {
+        Claims claims = extractClaims(token);
+        UUID userId = extractUserIdFromClaims(claims);
+        if (userId == null) {
+            throw new InvalidTokenException("Token não contém user_id");
+        }
+        return userId;
+    }
+
+    public String extractEmailFromClaims(Claims claims) {
+        return claims.get(EMAIL_CLAIM, String.class);
     }
 
     public String extractEmail(String token) {

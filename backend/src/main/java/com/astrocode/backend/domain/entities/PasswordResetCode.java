@@ -32,8 +32,8 @@ public class PasswordResetCode {
     private String email;
 
     @NotBlank
-    @Size(min = 6, max = 6)
-    @Column(name = "code", nullable = false, length = 6)
+    @Size(min = 64, max = 64)
+    @Column(name = "code", nullable = false, length = 64)
     private String code;
 
     @Column(name = "expires_at", nullable = false)
