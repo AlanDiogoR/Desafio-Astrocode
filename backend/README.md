@@ -534,7 +534,7 @@ curl -X GET http://localhost:8080/api/dashboard \
 |----------|----------------|---------|
 | **401 Unauthorized** | Token JWT inválido ou expirado | Refaça login. Verifique se o header é `Authorization: Bearer <token>`. |
 | **Token inválido ao iniciar** | `JWT_SECRET` alterado ou diferente entre deploys | Use a mesma chave em todos os ambientes. Mínimo 32 caracteres. |
-| **CORS bloqueando requisições** | Frontend em origem não permitida | Adicione a origem em `SecurityConfig` (allowedOrigins). |
+| **CORS bloqueando requisições** | Frontend em origem não permitida | Configure `APP_CORS_ORIGINS` no Railway (ex: `https://grivy.netlify.app`). Sem aspas. Redeploy obrigatório. |
 | **Banco não conecta** | PostgreSQL indisponível ou credenciais incorretas | Verifique `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`. Teste conexão com `psql`. |
 | **Flyway / migração falha** | Schema inconsistente ou migração antiga quebrada | Revise `db/migration/`. Em dev, pode ser necessário recriar o banco. |
 | **Porta 8080 em uso** | Outro processo usando a porta | Altere `server.port` em `application.properties` ou mate o processo. |
@@ -619,11 +619,9 @@ backend/
 
 ### Configuração de CORS
 
-O backend está configurado para aceitar requisições de:
-- `https://grivy.netlify.app` (produção)
-- `https://www.grivy.netlify.app`
-- `http://localhost:3000`
-- `http://localhost:5173`
+O backend aceita requisições das origens configuradas em `APP_CORS_ORIGINS` (fallback: `https://grivy.netlify.app`, `http://localhost:3000`, etc.).
+
+**Railway:** defina `APP_CORS_ORIGINS=https://grivy.netlify.app` (sem aspas). Após alterar, faça **redeploy**.
 
 ---
 
