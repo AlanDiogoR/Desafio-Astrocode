@@ -59,6 +59,15 @@ const { handleConfirm } = useConfirmDelete()
 .dashboard-col {
   border-radius: 16px;
   overflow: hidden;
+  min-width: 0;
+}
+
+.dashboard-col--left {
+  order: 1;
+}
+
+.dashboard-col--right {
+  order: 2;
 }
 
 @media (min-width: 960px) {
@@ -75,6 +84,7 @@ const { handleConfirm } = useConfirmDelete()
 
   .dashboard-col {
     min-height: 0;
+    min-width: 280px;
   }
 
   .dashboard-col > * {
