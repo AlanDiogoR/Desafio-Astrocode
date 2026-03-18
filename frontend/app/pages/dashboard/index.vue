@@ -30,12 +30,12 @@ const { handleConfirm } = useConfirmDelete()
     <EditProfileModal />
     <DashboardHeader />
     <div class="dashboard-grid">
-      <div class="dashboard-col dashboard-col--left">
+      <aside class="dashboard-col dashboard-col--left">
         <AccountOverview />
-      </div>
-      <div class="dashboard-col dashboard-col--right">
+      </aside>
+      <main class="dashboard-col dashboard-col--right">
         <TransactionList :show-privacy="areValuesVisible" />
-      </div>
+      </main>
     </div>
   </div>
 </template>
@@ -45,6 +45,7 @@ const { handleConfirm } = useConfirmDelete()
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   background-color: white;
 }
 
@@ -53,6 +54,7 @@ const { handleConfirm } = useConfirmDelete()
   grid-template-columns: 1fr;
   gap: 24px;
   flex: 1;
+  min-height: 0;
   padding: 24px;
 }
 
@@ -72,19 +74,22 @@ const { handleConfirm } = useConfirmDelete()
 
 @media (min-width: 960px) {
   .dashboard-page {
+    flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
+    flex: 1;
     min-height: 0;
-    height: calc(100vh - 64px);
     overflow: hidden;
   }
 
   .dashboard-col {
     min-height: 0;
-    min-width: 280px;
+    overflow: hidden;
   }
 
   .dashboard-col > * {
@@ -97,7 +102,6 @@ const { handleConfirm } = useConfirmDelete()
     padding: 16px;
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
     gap: 16px;
-    min-height: auto;
   }
 
   .dashboard-col {
