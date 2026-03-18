@@ -15,7 +15,7 @@ watch(status, (s) => {
 onMounted(() => {
   fallbackTimer.value = setTimeout(() => {
     isLoading.value = false
-  }, 2000)
+  }, 1200)
 })
 onUnmounted(() => {
   if (fallbackTimer.value) clearTimeout(fallbackTimer.value)

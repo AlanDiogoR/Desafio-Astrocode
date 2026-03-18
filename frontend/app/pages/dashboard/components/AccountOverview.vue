@@ -253,7 +253,9 @@ function togglePrivacy() {
 <style scoped>
 .account-overview {
   width: 100%;
+  height: 100%;
   min-width: 0;
+  min-height: 0;
   background-color: #087f5b;
   color: white;
   box-sizing: border-box;

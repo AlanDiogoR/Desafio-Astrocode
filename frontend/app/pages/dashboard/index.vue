@@ -49,39 +49,47 @@ const { handleConfirm } = useConfirmDelete()
 }
 
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   flex: 1;
   padding: 24px;
+  min-height: 0;
 }
 
 .dashboard-col {
   border-radius: 16px;
   overflow: hidden;
+  min-height: 0;
 }
 
 @media (min-width: 960px) {
   .dashboard-page {
     min-height: 0;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    min-height: 0;
-    height: calc(100vh - 64px);
     overflow: hidden;
   }
 
-  .dashboard-col {
+  .dashboard-grid {
+    flex-direction: row;
     min-height: 0;
-    min-width: 0;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+    gap: 24px;
+  }
+
+  .dashboard-col {
+    flex: 1 1 0;
+    min-width: 280px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .dashboard-col > * {
-    height: 100%;
+    flex: 1;
     min-height: 0;
     min-width: 0;
+    overflow: hidden;
   }
 }
 

@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   ],
 
   build: {
-    transpile: ['vuetify', '@radix-icons/vue', '@headlessui/vue', 'vue-number-format', '@vuepic/vue-datepicker'],
+    transpile: ['vuetify', '@radix-icons/vue', '@headlessui/vue', 'vue-number-format', '@vuepic/vue-datepicker', '@tanstack/vue-query'],
   },
 
   vite: {
@@ -30,12 +30,13 @@ export default defineNuxtConfig({
           manualChunks(id) {
             if (id.includes('node_modules/vuetify')) return 'vuetify'
             if (id.includes('node_modules/@radix-icons') || id.includes('node_modules/radix-vue')) return 'radix'
+            if (id.includes('node_modules/@tanstack/vue-query')) return 'vue-query'
           },
         },
       },
     },
     optimizeDeps: {
-      include: ['@vuepic/vue-datepicker'],
+      include: ['@vuepic/vue-datepicker', '@tanstack/vue-query'],
     },
   },
 
@@ -55,7 +56,7 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap', fetchpriority: 'high' },
       ],
     },
   },

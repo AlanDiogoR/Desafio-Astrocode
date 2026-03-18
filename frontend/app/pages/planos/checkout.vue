@@ -42,6 +42,10 @@ onMounted(async () => {
   if (!VALID_PLAN_IDS.includes(planId.value as (typeof VALID_PLAN_IDS)[number])) {
     return navigateTo('/planos')
   }
+  if (!authStore.isLoggedIn) {
+    const redirectUrl = `/planos/checkout?plano=${planId.value}`
+    return navigateTo('/login?redirect=' + encodeURIComponent(redirectUrl), { replace: true })
+  }
   try {
     const { listPlans: fetchPlans } = await import('~/services/subscription/listPlans')
     const [{ data: configData }, plansData] = await Promise.all([
@@ -106,6 +110,9 @@ function handleError(msg: string) {
 
       <v-alert v-if="errorMessage" type="error" class="mb-4" closable @click:close="errorMessage = null">
         {{ errorMessage }}
+        <v-btn variant="text" size="small" class="mt-2" :to="'/planos'">
+          Voltar aos planos
+        </v-btn>
       </v-alert>
 
       <v-alert v-if="success" type="success" class="mb-4">

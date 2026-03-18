@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/vue-query'
+
 export function useOpenFinance() {
   const { $api } = useNuxtApp()
   const authStore = useAuthStore()

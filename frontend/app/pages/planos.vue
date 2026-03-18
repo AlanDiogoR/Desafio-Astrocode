@@ -272,8 +272,15 @@ async function handleUpgradeClick(planId: string) {
   border: 1px solid var(--color-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s ease;
-  overflow: visible;
   min-width: 0;
+  height: auto;
+}
+
+.planos-page__card :deep(.v-card-text),
+.planos-page__card :deep(.v-card-title),
+.planos-page__card :deep(.v-card-subtitle),
+.planos-page__card :deep(.v-card-actions) {
+  overflow: visible;
 }
 
 .planos-page__card:hover {
