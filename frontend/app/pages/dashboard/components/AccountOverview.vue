@@ -253,15 +253,19 @@ function togglePrivacy() {
 <style scoped>
 .account-overview {
   width: 100%;
+  min-width: 0;
   background-color: #087f5b;
   color: white;
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   border-radius: 16px;
+  overflow: hidden;
 }
 
 .account-overview__content {
   width: 100%;
+  min-width: 0;
   padding: 24px 24px 32px;
   gap: 24px;
 }
@@ -272,7 +276,8 @@ function togglePrivacy() {
   }
 
   .account-overview__content {
-    height: 100%;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     gap: 20px;

@@ -264,9 +264,9 @@ public class SubscriptionService {
     public List<PlanInfo> listPlans() {
         return List.of(
                 new PlanInfo(PlanType.FREE, "Grátis", BigDecimal.ZERO, 0, "2 contas, 30 transações/mês, 2 metas"),
-                new PlanInfo(PlanType.MONTHLY, "Pro Mensal", PRICE_MONTHLY, 1, "Ilimitado + cartão de crédito"),
-                new PlanInfo(PlanType.SEMIANNUAL, "Pro Semestral", PRICE_SEMIANNUAL, 6, "Ilimitado + cartão de crédito (16% OFF)"),
-                new PlanInfo(PlanType.ANNUAL, "Elite Anual", PRICE_ANNUAL, 12, "Ilimitado + cartão + Open Finance Pluggy (24% OFF)")
+                new PlanInfo(PlanType.MONTHLY, "Pro Mensal", PRICE_MONTHLY, 1, "Tudo ilimitado + cartões de crédito"),
+                new PlanInfo(PlanType.SEMIANNUAL, "Pro Semestral", PRICE_SEMIANNUAL, 6, "Tudo ilimitado + cartões de crédito (16% OFF)"),
+                new PlanInfo(PlanType.ANNUAL, "Elite Anual", PRICE_ANNUAL, 12, "Tudo ilimitado + cartões + Open Finance (24% OFF)")
         );
     }
 

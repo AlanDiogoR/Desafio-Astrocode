@@ -240,8 +240,9 @@ async function handleUpgradeClick(planId: string) {
 }
 
 .planos-page__container {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .planos-page__title {
@@ -263,6 +264,7 @@ async function handleUpgradeClick(planId: string) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 .planos-page__card {
@@ -270,6 +272,8 @@ async function handleUpgradeClick(planId: string) {
   border: 1px solid var(--color-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s ease;
+  overflow: visible;
+  min-width: 0;
 }
 
 .planos-page__card:hover {
@@ -305,6 +309,8 @@ async function handleUpgradeClick(planId: string) {
   margin-top: 4px;
   font-size: 14px;
   color: var(--color-text-secondary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .planos-page__card :deep(.v-card-text) {
@@ -323,10 +329,22 @@ async function handleUpgradeClick(planId: string) {
 
 .planos-page__feature {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-size: 14px;
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.planos-page__feature .v-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.planos-page__feature span {
+  min-width: 0;
+  flex: 1;
 }
 
 .planos-page__card :deep(.v-card-actions) {
@@ -365,7 +383,13 @@ async function handleUpgradeClick(planId: string) {
   }
 
   .planos-page__grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .planos-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
 </style>

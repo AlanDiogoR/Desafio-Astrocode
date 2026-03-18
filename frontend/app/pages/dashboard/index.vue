@@ -67,7 +67,7 @@ const { handleConfirm } = useConfirmDelete()
   }
 
   .dashboard-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     min-height: 0;
     height: calc(100vh - 64px);
     overflow: hidden;
@@ -75,10 +75,13 @@ const { handleConfirm } = useConfirmDelete()
 
   .dashboard-col {
     min-height: 0;
+    min-width: 0;
   }
 
   .dashboard-col > * {
     height: 100%;
+    min-height: 0;
+    min-width: 0;
   }
 }
 
