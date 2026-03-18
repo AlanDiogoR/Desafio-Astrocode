@@ -59,8 +59,6 @@ const { handleConfirm } = useConfirmDelete()
 .dashboard-col {
   border-radius: 16px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 @media (min-width: 960px) {
@@ -77,12 +75,10 @@ const { handleConfirm } = useConfirmDelete()
 
   .dashboard-col {
     min-height: 0;
-    height: 100%;
   }
 
   .dashboard-col > * {
-    flex: 1;
-    min-height: 0;
+    height: 100%;
   }
 }
 
@@ -95,7 +91,7 @@ const { handleConfirm } = useConfirmDelete()
   }
 
   .dashboard-col {
-    min-height: 280px;
+    min-height: 180px;
   }
 }
 </style>
