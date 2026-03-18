@@ -192,17 +192,13 @@ function getAssinarLink(planId: string): string {
               >
                 Plano atual
               </v-btn>
-              <v-btn
+              <NuxtLink
                 v-else
-                block
-                size="large"
-                color="primary"
-                variant="flat"
-                class="planos-page__assinar-btn"
                 :to="getAssinarLink(plan.id)"
+                class="planos-page__assinar-btn"
               >
                 Assinar
-              </v-btn>
+              </NuxtLink>
             </div>
           </div>
         </article>
@@ -353,7 +349,25 @@ function getAssinarLink(planId: string): string {
 }
 
 .planos-page__assinar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   min-height: 48px;
+  padding: 12px 24px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: var(--color-primary);
+  border-radius: 16px;
+  text-decoration: none;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.planos-page__assinar-btn:hover {
+  background-color: #066d4d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .planos-page__price {
