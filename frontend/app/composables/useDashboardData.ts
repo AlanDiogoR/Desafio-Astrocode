@@ -16,7 +16,7 @@ export function useDashboardData() {
   } = useQuery({
     queryKey: DASHBOARD_QUERY_KEY,
     queryFn: getDashboard,
-    enabled: computed(() => !!authStore.user),
+    enabled: computed(() => authStore.isLoggedIn),
   })
 
   const totalBalance = computed(() => dashboardData.value?.totalBalance ?? 0)

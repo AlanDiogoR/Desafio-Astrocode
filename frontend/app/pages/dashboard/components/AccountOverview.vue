@@ -254,12 +254,16 @@ function togglePrivacy() {
 .account-overview {
   width: 100%;
   min-height: 240px;
-  background-color: var(--color-primary);
+  background-color: var(--color-primary, #087F5B);
   color: white;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   border-radius: 16px;
+}
+
+.account-overview--skeleton {
+  background-color: var(--color-primary, #087F5B);
 }
 
 .account-overview__content {
