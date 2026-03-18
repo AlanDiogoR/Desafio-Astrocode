@@ -15,6 +15,14 @@
   .dashboard-layout {
     height: 100vh;
     overflow: hidden;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 959px) {
+  .dashboard-layout {
+    min-height: 100%;
+    overflow: visible;
   }
 }
 </style>

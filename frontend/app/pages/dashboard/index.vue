@@ -29,31 +29,14 @@ const { handleConfirm } = useConfirmDelete()
     />
     <EditProfileModal />
     <DashboardHeader />
-    <ClientOnly>
-      <div class="dashboard-grid">
-        <aside class="dashboard-col dashboard-col--left">
-          <AccountOverview />
-        </aside>
-        <main class="dashboard-col dashboard-col--right">
-          <TransactionList :show-privacy="areValuesVisible" />
-        </main>
+    <div class="dashboard-grid">
+      <div class="dashboard-col dashboard-col--left">
+        <AccountOverview />
       </div>
-      <template #fallback>
-        <div class="dashboard-grid">
-          <aside class="dashboard-col dashboard-col--left">
-            <div class="account-overview account-overview--skeleton">
-              <div class="account-overview__content d-flex flex-column pa-4">
-                <v-skeleton-loader type="text" width="120" class="mb-2" />
-                <v-skeleton-loader type="text" width="80" />
-              </div>
-            </div>
-          </aside>
-          <main class="dashboard-col dashboard-col--right">
-            <v-skeleton-loader type="table" class="pa-4" />
-          </main>
-        </div>
-      </template>
-    </ClientOnly>
+      <div class="dashboard-col dashboard-col--right">
+        <TransactionList :show-privacy="areValuesVisible" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -62,56 +45,40 @@ const { handleConfirm } = useConfirmDelete()
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
   background-color: white;
 }
 
 .dashboard-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 24px;
   flex: 1;
-  min-height: 200px;
   padding: 24px;
 }
 
 .dashboard-col {
   border-radius: 16px;
   overflow: hidden;
-  flex: 1 1 auto;
-  min-height: 200px;
-}
-
-.dashboard-col--left {
-  flex: 1 1 auto;
-}
-
-.dashboard-col--right {
-  flex: 1 1 auto;
 }
 
 @media (min-width: 960px) {
-  .dashboard-grid {
-    flex-direction: row;
-    gap: 24px;
+  .dashboard-page {
     min-height: 0;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    min-height: 0;
+    height: calc(100vh - 64px);
     overflow: hidden;
   }
 
   .dashboard-col {
-    flex: 1 1 0;
-    min-width: 0;
     min-height: 0;
-  }
-
-  .dashboard-col--left {
-    flex: 1 1 0;
-    min-width: 280px;
   }
 
   .dashboard-col > * {
     height: 100%;
-    min-height: 200px;
   }
 }
 
@@ -120,12 +87,11 @@ const { handleConfirm } = useConfirmDelete()
     padding: 16px;
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
     gap: 16px;
+    min-height: auto;
   }
-}
 
-.account-overview--skeleton {
-  min-height: 200px;
-  background-color: var(--color-primary, #087F5B);
-  border-radius: 16px;
+  .dashboard-col {
+    min-height: 180px;
+  }
 }
 </style>
