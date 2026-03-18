@@ -143,72 +143,69 @@ function getAssinarLink(planId: string): string {
       </div>
 
       <div v-else class="planos-page__grid">
-        <v-card
+        <article
           v-for="(plan, index) in paidPlans"
           :key="plan.id"
           class="planos-page__card"
-          variant="outlined"
         >
-          <div class="planos-page__card-header">
-            <v-icon icon="mdi-star-four-points" size="32" color="primary" class="planos-page__card-icon" />
-            <v-chip
-              v-if="plan.id === 'MONTHLY' && paidPlans.length > 1"
-              size="small"
-              color="primary"
-              variant="flat"
-              class="planos-page__badge"
-            >
-              Mais popular
-            </v-chip>
-          </div>
-          <v-card-title class="text-h6 planos-page__card-title">
-            {{ plan.name }}
-          </v-card-title>
-          <v-card-subtitle v-if="plan.description" class="planos-page__card-desc">
-            {{ plan.description }}
-          </v-card-subtitle>
-          <v-card-text>
-            <ul class="planos-page__features">
-              <li v-for="(feature, fi) in (planFeatures[plan.id] ?? [])" :key="fi" class="planos-page__feature">
-                <v-icon icon="mdi-check-circle" size="18" color="primary" class="mr-2 flex-shrink-0" />
-                <span>{{ feature }}</span>
-              </li>
-            </ul>
-            <div class="planos-page__price">
-              {{ formatPrice(plan.price) }}
-              <span v-if="plan.months > 0" class="planos-page__price-unit">{{ getPriceUnit(plan.months) }}</span>
+          <div class="planos-page__card-inner">
+            <div class="planos-page__card-header">
+              <v-icon icon="mdi-star-four-points" size="32" color="primary" class="planos-page__card-icon" />
+              <v-chip
+                v-if="plan.id === 'MONTHLY' && paidPlans.length > 1"
+                size="small"
+                color="primary"
+                variant="flat"
+                class="planos-page__badge"
+              >
+                Mais popular
+              </v-chip>
             </div>
-            <p v-if="monthlyEquivalents[index]" class="planos-page__price-monthly">
-              equivale a {{ monthlyEquivalents[index] }}/mês
+            <h3 class="planos-page__card-title">
+              {{ plan.name }}
+            </h3>
+            <p v-if="plan.description" class="planos-page__card-desc">
+              {{ plan.description }}
             </p>
-          </v-card-text>
-          <v-card-actions class="planos-page__card-actions">
-            <v-btn
-              v-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
-              block
-              size="large"
-              variant="outlined"
-              disabled
-            >
-              Plano atual
-            </v-btn>
-            <NuxtLink
-              v-else
-              :to="getAssinarLink(plan.id)"
-              class="planos-page__assinar-link"
-            >
+            <div class="planos-page__card-body">
+              <ul class="planos-page__features">
+                <li v-for="(feature, fi) in (planFeatures[plan.id] ?? [])" :key="fi" class="planos-page__feature">
+                  <v-icon icon="mdi-check-circle" size="18" color="primary" class="mr-2 flex-shrink-0" />
+                  <span>{{ feature }}</span>
+                </li>
+              </ul>
+              <div class="planos-page__price">
+                {{ formatPrice(plan.price) }}
+                <span v-if="plan.months > 0" class="planos-page__price-unit">{{ getPriceUnit(plan.months) }}</span>
+              </div>
+              <p v-if="monthlyEquivalents[index]" class="planos-page__price-monthly">
+                equivale a {{ monthlyEquivalents[index] }}/mês
+              </p>
+            </div>
+            <div class="planos-page__card-actions">
               <v-btn
+                v-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
+                block
+                size="large"
+                variant="outlined"
+                disabled
+              >
+                Plano atual
+              </v-btn>
+              <v-btn
+                v-else
                 block
                 size="large"
                 color="primary"
                 variant="flat"
                 class="planos-page__assinar-btn"
+                :to="getAssinarLink(plan.id)"
               >
                 Assinar
               </v-btn>
-            </NuxtLink>
-          </v-card-actions>
-        </v-card>
+            </div>
+          </div>
+        </article>
       </div>
 
       <div v-if="!isLoggedIn" class="planos-page__cta mt-8">
@@ -260,7 +257,7 @@ function getAssinarLink(planId: string): string {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .planos-page__card {
@@ -269,35 +266,25 @@ function getAssinarLink(planId: string): string {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
   transition: box-shadow 0.2s ease;
   min-width: 0;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-}
-
-
-.planos-page__card :deep(.v-card-text) {
-  flex: 1;
-  min-height: 0;
-}
-
-.planos-page__card :deep(.v-card-text),
-.planos-page__card :deep(.v-card-title),
-.planos-page__card :deep(.v-card-subtitle),
-.planos-page__card :deep(.v-card-actions) {
-  overflow: visible;
+  background: var(--color-surface);
 }
 
 .planos-page__card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.planos-page__card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+}
+
 .planos-page__card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 24px;
-  padding-inline: 24px;
+  flex-shrink: 0;
 }
 
 .planos-page__card-icon {
@@ -309,24 +296,23 @@ function getAssinarLink(planId: string): string {
 }
 
 .planos-page__card-title {
-  padding-inline: 24px;
-  padding-block-end: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text-primary);
+  margin: 8px 0 4px 0;
 }
 
 .planos-page__card-desc {
-  padding-inline: 24px;
-  margin-top: 4px;
   font-size: 14px;
   color: var(--color-text-secondary);
+  margin: 0 0 16px 0;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
-.planos-page__card :deep(.v-card-text) {
-  padding: 0 24px 16px;
+.planos-page__card-body {
+  flex: 1;
+  min-height: 0;
 }
 
 .planos-page__features {
@@ -359,30 +345,15 @@ function getAssinarLink(planId: string): string {
   flex: 1;
 }
 
-.planos-page__card-actions,
-.planos-page__card :deep(.v-card-actions) {
-  padding: 16px 24px 24px;
-  flex-direction: column;
+.planos-page__card-actions {
   flex-shrink: 0;
-  margin-top: auto;
-  min-height: 72px;
-}
-
-.planos-page__assinar-link {
-  display: block;
-  width: 100%;
-  text-decoration: none;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
 }
 
 .planos-page__assinar-btn {
   min-height: 48px;
-}
-
-@media (max-width: 599px) {
-  .planos-page__assinar-btn {
-    min-height: 48px;
-    padding: 12px 16px;
-  }
 }
 
 .planos-page__price {
