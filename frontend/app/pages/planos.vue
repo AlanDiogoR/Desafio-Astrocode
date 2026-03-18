@@ -192,13 +192,13 @@ function getAssinarLink(planId: string): string {
               >
                 Plano atual
               </v-btn>
-              <NuxtLink
+              <a
                 v-else
-                :to="getAssinarLink(plan.id)"
+                :href="getAssinarLink(plan.id)"
                 class="planos-page__assinar-btn"
               >
                 Assinar
-              </NuxtLink>
+              </a>
             </div>
           </div>
         </article>
@@ -363,6 +363,10 @@ function getAssinarLink(planId: string): string {
   text-decoration: none;
   transition: background-color 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .planos-page__assinar-btn:hover {
