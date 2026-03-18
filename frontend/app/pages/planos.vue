@@ -11,8 +11,6 @@ const { refetch: refetchUser } = useUser()
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
 const isLoading = ref(true)
-const checkoutLoading = ref(false)
-const selectedPlan = ref<string | null>(null)
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const currentPlan = computed(() => authStore.getUser?.plan ?? 'FREE')
@@ -106,18 +104,12 @@ function getMonthlyEquivalent(price: number, months: number): string | null {
 
 const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
 
-async function handleUpgradeClick(planId: string) {
+function getAssinarLink(planId: string): string {
   if (!authStore.isLoggedIn) {
     const checkoutUrl = `/planos/checkout?plano=${planId}`
-    return navigateTo('/login?redirect=' + encodeURIComponent(checkoutUrl))
+    return '/login?redirect=' + encodeURIComponent(checkoutUrl)
   }
-  selectedPlan.value = planId
-  checkoutLoading.value = true
-  try {
-    await navigateTo(`/planos/checkout?plano=${planId}`)
-  } finally {
-    checkoutLoading.value = false
-  }
+  return `/planos/checkout?plano=${planId}`
 }
 </script>
 
@@ -190,7 +182,7 @@ async function handleUpgradeClick(planId: string) {
               equivale a {{ monthlyEquivalents[index] }}/mês
             </p>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions class="planos-page__card-actions">
             <v-btn
               v-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
               block
@@ -200,17 +192,21 @@ async function handleUpgradeClick(planId: string) {
             >
               Plano atual
             </v-btn>
-            <v-btn
+            <NuxtLink
               v-else
-              block
-              size="large"
-              color="primary"
-              variant="flat"
-              :loading="checkoutLoading && selectedPlan === plan.id"
-              @click="handleUpgradeClick(plan.id)"
+              :to="getAssinarLink(plan.id)"
+              class="planos-page__assinar-link"
             >
-              Assinar
-            </v-btn>
+              <v-btn
+                block
+                size="large"
+                color="primary"
+                variant="flat"
+                class="planos-page__assinar-btn"
+              >
+                Assinar
+              </v-btn>
+            </NuxtLink>
           </v-card-actions>
         </v-card>
       </div>
@@ -274,6 +270,15 @@ async function handleUpgradeClick(planId: string) {
   transition: box-shadow 0.2s ease;
   min-width: 0;
   height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+
+.planos-page__card :deep(.v-card-text) {
+  flex: 1;
+  min-height: 0;
 }
 
 .planos-page__card :deep(.v-card-text),
@@ -354,9 +359,30 @@ async function handleUpgradeClick(planId: string) {
   flex: 1;
 }
 
+.planos-page__card-actions,
 .planos-page__card :deep(.v-card-actions) {
   padding: 16px 24px 24px;
   flex-direction: column;
+  flex-shrink: 0;
+  margin-top: auto;
+  min-height: 72px;
+}
+
+.planos-page__assinar-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+}
+
+.planos-page__assinar-btn {
+  min-height: 48px;
+}
+
+@media (max-width: 599px) {
+  .planos-page__assinar-btn {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
 }
 
 .planos-page__price {
