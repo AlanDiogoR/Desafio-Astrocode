@@ -192,13 +192,13 @@ function getAssinarLink(planId: string): string {
               >
                 Plano atual
               </v-btn>
-              <a
-                v-else
-                :href="getAssinarLink(plan.id)"
+              <button
+                type="button"
                 class="planos-page__assinar-btn"
+                @click="navigateTo(getAssinarLink(plan.id))"
               >
                 Assinar
-              </a>
+              </button>
             </div>
           </div>
         </article>
@@ -359,6 +359,7 @@ function getAssinarLink(planId: string): string {
   font-weight: 500;
   color: white;
   background-color: var(--color-primary);
+  border: none;
   border-radius: 16px;
   text-decoration: none;
   transition: background-color 0.2s, box-shadow 0.2s;
@@ -367,6 +368,8 @@ function getAssinarLink(planId: string): string {
   z-index: 1;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  font-family: inherit;
 }
 
 .planos-page__assinar-btn:hover {
