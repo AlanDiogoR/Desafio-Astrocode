@@ -14,6 +14,13 @@ function isUnauthorized(error: unknown): boolean {
   return err?.status === 401 || err?.response?.status === 401
 }
 
+function safeRedirectTarget(query: unknown): string | null {
+  const raw = Array.isArray(query) ? query[0] : query
+  if (typeof raw !== 'string' || !raw.startsWith('/')) return null
+  if (raw.startsWith('//')) return null
+  return raw
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const { isValid: hasApiConfig } = useApiConfig()
@@ -24,11 +31,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (authStore.isLoggedIn) {
     if (isPublic && (to.path === '/login' || to.path === '/register')) {
-      return navigateTo('/dashboard')
+      const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
+      return navigateTo(postLogin)
     }
     if (to.path === '/planos') {
       return navigateTo('/dashboard/planos')
     }
+    return
+  }
+
+  // $api só existe no cliente; no SSR não dá para chamar /users/me com a sessão do browser.
+  if (import.meta.server) {
     return
   }
 
@@ -39,7 +52,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
     authStore.setUser(mapApiUserToStoreUser(result.data))
     if (to.path === '/login' || to.path === '/register') {
-      return navigateTo('/dashboard')
+      const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
+      return navigateTo(postLogin)
+    }
+    if (to.path === '/planos') {
+      return navigateTo('/dashboard/planos')
     }
     return
   }
