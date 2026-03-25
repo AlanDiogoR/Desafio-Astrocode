@@ -1,0 +1,2 @@
+# SPA: qualquer rota não encontrada como ficheiro estático serve a app (Netlify)
+/*    /index.html   200

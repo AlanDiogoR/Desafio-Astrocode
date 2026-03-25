@@ -128,22 +128,20 @@ function handleError(msg: string) {
         </v-btn>
       </v-alert>
 
-      <ClientOnly>
-        <div v-if="!success && !isLoadingConfig && mpPublicKey" class="checkout-page__form">
-          <MercadoPagoCardForm
-            :public-key="mpPublicKey"
-            :plan-type="planId"
-            :amount="planAmount"
-            @success="handleSuccess"
-            @error="handleError"
-          />
-        </div>
-        <div v-else-if="!success && !isLoadingConfig && !mpPublicKey" class="checkout-page__fallback">
-          <v-alert type="warning">
-            Chave do Mercado Pago não configurada. Configure MP_PUBLIC_KEY no backend e reinicie o servidor.
-          </v-alert>
-        </div>
-      </ClientOnly>
+      <div v-if="!success && !isLoadingConfig && mpPublicKey" class="checkout-page__form">
+        <MercadoPagoCardForm
+          :public-key="mpPublicKey"
+          :plan-type="planId"
+          :amount="planAmount"
+          @success="handleSuccess"
+          @error="handleError"
+        />
+      </div>
+      <div v-else-if="!success && !isLoadingConfig && !mpPublicKey" class="checkout-page__fallback">
+        <v-alert type="warning">
+          Chave do Mercado Pago não configurada. Configure MP_PUBLIC_KEY no backend e reinicie o servidor.
+        </v-alert>
+      </div>
     </div>
   </div>
 </template>

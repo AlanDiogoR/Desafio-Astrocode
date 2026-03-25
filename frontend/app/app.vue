@@ -1,21 +1,35 @@
 <script setup lang="ts">
+const route = useRoute()
 const isLoading = useAppLoading()
 const { isValid: hasApiConfig } = useApiConfig()
-const { status } = useUser()
+const { isPending } = useUser()
 
 const fallbackTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
-watch(status, (s) => {
-  if (s !== 'pending') {
-    isLoading.value = false
-    if (fallbackTimer.value) clearTimeout(fallbackTimer.value)
+function clearSplash() {
+  isLoading.value = false
+  if (fallbackTimer.value) {
+    clearTimeout(fallbackTimer.value)
+    fallbackTimer.value = null
   }
-}, { immediate: true })
+}
+
+watch(
+  [isPending, hasApiConfig],
+  ([pending, valid]) => {
+    if (!valid) {
+      clearSplash()
+      return
+    }
+    if (!pending) {
+      clearSplash()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
-  fallbackTimer.value = setTimeout(() => {
-    isLoading.value = false
-  }, 1200)
+  fallbackTimer.value = setTimeout(() => clearSplash(), 1500)
 })
 onUnmounted(() => {
   if (fallbackTimer.value) clearTimeout(fallbackTimer.value)
@@ -23,8 +37,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ClientOnly>
-    <AppLaunchScreen :show="isLoading" />
+  <div class="grivy-root">
+    <ClientOnly>
+      <AppLaunchScreen :show="isLoading" />
+    </ClientOnly>
     <v-app>
       <v-alert
         v-if="!hasApiConfig && !isLoading"
@@ -36,7 +52,7 @@ onUnmounted(() => {
         Configuração de API ausente em produção. Verifique se NUXT_PUBLIC_API_BASE está definida com a URL absoluta da API (ex: https://api.exemplo.com/api).
       </v-alert>
       <NuxtLayout>
-        <NuxtPage />
+        <NuxtPage :key="route.fullPath" />
       </NuxtLayout>
       <Toaster
         :toast-options="{
@@ -49,5 +65,5 @@ onUnmounted(() => {
         }"
       />
     </v-app>
-  </ClientOnly>
+  </div>
 </template>
