@@ -1,18 +1,16 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'default',
+  layout: 'dashboard',
 })
 
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
-const { refetch: refetchUser } = useUser()
 
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
 const isLoading = ref(true)
 
-const isLoggedIn = computed(() => authStore.isLoggedIn)
 const currentPlan = computed(() => authStore.user?.plan ?? 'FREE')
 
 function isCurrentPlanActive(planId: string) {
@@ -20,17 +18,6 @@ function isCurrentPlanActive(planId: string) {
 }
 
 onMounted(async () => {
-  if (!authStore.isLoggedIn) {
-    try {
-      const result = await refetchUser()
-      if (result.data) {
-        const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
-        authStore.setUser(mapApiUserToStoreUser(result.data))
-      }
-    } catch {
-    }
-  }
-
   try {
     const { listPlans } = await import('~/services/subscription/listPlans')
     plans.value = await listPlans($api)
@@ -40,14 +27,12 @@ onMounted(async () => {
     isLoading.value = false
   }
 
-  if (authStore.isLoggedIn) {
-    try {
-      const { getSubscription } = await import('~/services/subscription/me')
-      subscription.value = await getSubscription($api)
-    } catch {
-      subscription.value = null
-      toast?.error('Erro ao carregar informações da assinatura.')
-    }
+  try {
+    const { getSubscription } = await import('~/services/subscription/me')
+    subscription.value = await getSubscription($api)
+  } catch {
+    subscription.value = null
+    toast?.error('Erro ao carregar informações da assinatura.')
   }
 })
 
@@ -107,36 +92,38 @@ function getMonthlyEquivalent(price: number, months: number): string | null {
 
 const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
 
-function getAssinarLink(planId: string): string {
-  if (!authStore.isLoggedIn) {
-    const checkoutUrl = `/planos/checkout?plano=${planId}`
-    return '/login?redirect=' + encodeURIComponent(checkoutUrl)
-  }
+function checkoutUrl(planId: string) {
   return `/planos/checkout?plano=${planId}`
 }
 
 function goCheckout(planId: string) {
-  void navigateTo(getAssinarLink(planId))
+  void navigateTo(checkoutUrl(planId))
 }
 </script>
 
 <template>
-  <div class="planos-page">
-    <div class="planos-page__container">
-      <div class="planos-page__nav d-flex justify-space-between align-center mb-6">
-        <v-btn variant="text" color="primary" to="/">
-          <v-icon start>mdi-home</v-icon>
-          Home
-        </v-btn>
+  <div class="dashboard-planos">
+    <div class="dashboard-planos__inner">
+      <div class="planos-page__nav d-flex flex-wrap justify-space-between align-center gap-2 mb-6">
+        <div class="d-flex flex-wrap gap-2">
+          <v-btn variant="text" color="primary" to="/dashboard">
+            <v-icon start>mdi-view-dashboard</v-icon>
+            Painel
+          </v-btn>
+          <v-btn variant="text" color="primary" to="/">
+            <v-icon start>mdi-home</v-icon>
+            Home
+          </v-btn>
+        </div>
       </div>
       <h1 class="planos-page__title">
         Planos Grivy
       </h1>
       <p class="planos-page__subtitle">
-        Escolha o plano ideal para organizar suas finanças
+        Escolha o plano e conclua o pagamento no checkout
       </p>
 
-      <section v-if="isLoggedIn && subscription" class="planos-page__current mb-8">
+      <section v-if="subscription" class="planos-page__current mb-8">
         <v-alert type="info" variant="tonal" density="compact">
           Seu plano atual: <strong>{{ authStore.planLabel }}</strong>
           <span v-if="subscription?.expiresAt">
@@ -216,32 +203,22 @@ function goCheckout(planId: string) {
           </div>
         </article>
       </div>
-
-      <div v-if="!isLoggedIn" class="planos-page__cta mt-8">
-        <p class="text-body-1 text-medium-emphasis">
-          Faça login ou cadastre-se para assinar um plano.
-        </p>
-        <div class="d-flex gap-2 mt-2">
-          <v-btn color="primary" variant="flat" :to="'/login?redirect=' + encodeURIComponent('/dashboard/planos')">
-            Entrar
-          </v-btn>
-          <v-btn variant="outlined" to="/register">
-            Cadastrar
-          </v-btn>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.planos-page {
-  min-height: 100vh;
-  padding: 48px 24px;
+.dashboard-planos {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   background: var(--color-bg-page);
+  padding: 16px 16px 32px;
 }
 
-.planos-page__container {
+.dashboard-planos__inner {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
@@ -426,10 +403,8 @@ function goCheckout(planId: string) {
   .planos-page__features {
     max-height: min(320px, 40vh);
   }
-}
 
-@media (min-width: 1200px) {
-  .planos-page__container {
+  .dashboard-planos__inner {
     max-width: 1200px;
   }
 }

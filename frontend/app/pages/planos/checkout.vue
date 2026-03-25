@@ -40,7 +40,7 @@ const resultData = ref<unknown>(null)
 
 onMounted(async () => {
   if (!VALID_PLAN_IDS.includes(planId.value as (typeof VALID_PLAN_IDS)[number])) {
-    return navigateTo('/planos')
+    return navigateTo('/dashboard/planos')
   }
   if (!authStore.isLoggedIn) {
     const redirectUrl = `/planos/checkout?plano=${planId.value}`
@@ -90,7 +90,7 @@ function handleError(msg: string) {
   <div class="checkout-page">
     <div class="checkout-page__container">
       <div class="checkout-page__nav d-flex gap-2 mb-4">
-        <v-btn variant="text" color="primary" :to="'/planos'">
+        <v-btn variant="text" color="primary" :to="'/dashboard/planos'">
           <v-icon start>mdi-arrow-left</v-icon>
           Voltar aos planos
         </v-btn>
@@ -116,7 +116,7 @@ function handleError(msg: string) {
 
       <v-alert v-if="errorMessage" type="error" class="mb-4" closable @click:close="errorMessage = null">
         {{ errorMessage }}
-        <v-btn variant="text" size="small" class="mt-2" :to="'/planos'">
+        <v-btn variant="text" size="small" class="mt-2" :to="'/dashboard/planos'">
           Voltar aos planos
         </v-btn>
       </v-alert>

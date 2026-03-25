@@ -31,7 +31,7 @@ const userInitials = computed(() => {
         size="small"
         color="primary"
         variant="flat"
-        :to="'/planos'"
+        :to="'/dashboard/planos'"
         class="dashboard-header__upgrade-btn"
         prepend-icon="mdi-crown"
       >

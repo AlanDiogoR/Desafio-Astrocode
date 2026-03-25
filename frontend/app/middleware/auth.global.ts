@@ -26,6 +26,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (isPublic && (to.path === '/login' || to.path === '/register')) {
       return navigateTo('/dashboard')
     }
+    if (to.path === '/planos') {
+      return navigateTo('/dashboard/planos')
+    }
     return
   }
 
