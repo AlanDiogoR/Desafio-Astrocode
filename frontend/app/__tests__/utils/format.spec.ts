@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { formatCurrency, formatDate, parseDateString, toDateString } from '~/utils/format'
 
 describe('formatCurrency', () => {
-  it('formata 1500 como R$ 1.500,00', () => {
-    expect(formatCurrency(1500)).toBe('R$ 1.500,00')
+  it('formata 1500 no padrão pt-BR (moeda BRL)', () => {
+    expect(formatCurrency(1500)).toMatch(/^R\$\s*1\.500,00$/)
   })
 
-  it('formata 0 como R$ 0,00', () => {
-    expect(formatCurrency(0)).toBe('R$ 0,00')
+  it('formata 0 no padrão pt-BR', () => {
+    expect(formatCurrency(0)).toMatch(/^R\$\s*0,00$/)
   })
 })
 

@@ -196,4 +196,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    /** Ordem fixa (date, id) para reverter impacto nas metas ao excluir conta. */
+    @Query("SELECT t.goal.id, t.type, t.amount FROM Transaction t WHERE t.bankAccount.id = :accountId AND t.goal IS NOT NULL ORDER BY t.date ASC, t.id ASC")
+    List<Object[]> findGoalImpactRowsByBankAccountId(@Param("accountId") UUID accountId);
 }

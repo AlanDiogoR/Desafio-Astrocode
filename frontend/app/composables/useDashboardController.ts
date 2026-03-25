@@ -1,3 +1,9 @@
+import { computed } from 'vue'
+import { useBankAccounts } from '~/composables/useBankAccounts'
+import { useCreditCards } from '~/composables/useCreditCards'
+import { useDashboardData } from '~/composables/useDashboardData'
+import { useGoals } from '~/composables/useGoals'
+
 export function useDashboardController() {
   const { accounts, isPending: accountsPending } = useBankAccounts()
   const { goals, isPending: goalsPending } = useGoals()

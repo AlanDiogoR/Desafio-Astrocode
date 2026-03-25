@@ -15,6 +15,13 @@ vi.mock('~/composables/useGoals', () => ({
   }),
 }))
 
+vi.mock('~/composables/useCreditCards', () => ({
+  useCreditCards: () => ({
+    creditCards: { value: [] },
+    isPending: { value: false },
+  }),
+}))
+
 vi.mock('~/composables/useDashboardData', () => ({
   useDashboardData: () => ({
     totalBalance: { value: 1500 },

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -112,6 +113,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    /** IP para rate limit: com {@code app.trusted-proxies}, confia em {@code X-Forwarded-For} só se {@code RemoteAddr} for proxy ({@link IpAddressMatcher}). */
     private String getClientIp(HttpServletRequest request) {
         String remoteAddr = request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
         if (trustedProxies.isBlank()) {
@@ -119,45 +121,39 @@ public class AuthController {
         }
         for (String cidr : trustedProxies.split(",")) {
             String trimmed = cidr.trim();
-            if (!trimmed.isEmpty() && isInCidr(remoteAddr, trimmed)) {
-                String xForwardedFor = request.getHeader("X-Forwarded-For");
-                if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-                    return xForwardedFor.split(",")[0].trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            try {
+                IpAddressMatcher matcher = new IpAddressMatcher(trimmed);
+                if (matcher.matches(remoteAddr)) {
+                    String client = firstClientFromForwardedFor(request.getHeader("X-Forwarded-For"));
+                    if (client != null && !client.isBlank()) {
+                        return client;
+                    }
+                    break;
                 }
-                break;
+            } catch (IllegalArgumentException ignored) {
             }
         }
         return remoteAddr;
     }
 
-    private boolean isInCidr(String ip, String cidr) {
-        if (cidr.contains("/")) {
-            String[] parts = cidr.split("/");
-            if (parts.length != 2) return false;
-            int mask = Integer.parseInt(parts[1]);
-            return ipMatchesCidr(ip, parts[0].trim(), mask);
+    private static String firstClientFromForwardedFor(String xForwardedFor) {
+        if (xForwardedFor == null || xForwardedFor.isBlank()) {
+            return null;
         }
-        return ip.equals(cidr.trim());
-    }
-
-    private boolean ipMatchesCidr(String ip, String network, int maskBits) {
-        try {
-            long ipLong = ipToLong(ip);
-            long networkLong = ipToLong(network);
-            long mask = maskBits == 0 ? 0 : -1L << (32 - maskBits);
-            return (ipLong & mask) == (networkLong & mask);
-        } catch (Exception e) {
-            return false;
+        String first = xForwardedFor.split(",")[0].trim();
+        if (first.startsWith("\"") && first.endsWith("\"") && first.length() >= 2) {
+            first = first.substring(1, first.length() - 1).trim();
         }
-    }
-
-    private long ipToLong(String ip) {
-        String[] octets = ip.split("\\.");
-        if (octets.length != 4) return -1;
-        long result = 0;
-        for (int i = 0; i < 4; i++) {
-            result = (result << 8) | Integer.parseInt(octets[i].trim());
+        if (first.startsWith("[") && first.contains("]")) {
+            return first.substring(1, first.indexOf(']'));
         }
-        return result;
+        int lastColon = first.lastIndexOf(':');
+        if (lastColon > 0 && first.chars().filter(ch -> ch == ':').count() == 1) {
+            return first.substring(0, lastColon);
+        }
+        return first;
     }
 }

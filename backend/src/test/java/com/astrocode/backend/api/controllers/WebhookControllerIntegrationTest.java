@@ -14,6 +14,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.HexFormat;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,7 +43,23 @@ class WebhookControllerIntegrationTest {
     @Autowired
     private WebhookProcessedEventRepository webhookProcessedEventRepository;
 
+    private static final String WEBHOOK_SECRET = "test-webhook-secret-key-for-signature";
+
     private Map<String, Object> validPayload;
+
+    private static String mercadoPagoSignature(Map<String, Object> payload, String requestId, String secret) throws Exception {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) payload.get("data");
+        Object idObj = data != null ? data.get("id") : null;
+        String dataId = idObj != null ? idObj.toString() : "";
+        long ts = Instant.now().getEpochSecond();
+        String manifest = "id:" + dataId + ";request-id:" + requestId + ";ts:" + ts + ";";
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        byte[] calculated = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
+        String v1 = HexFormat.of().formatHex(calculated);
+        return "ts=" + ts + ",v1=" + v1;
+    }
 
     @BeforeEach
     void setUp() {
@@ -50,11 +71,12 @@ class WebhookControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Rejeita webhook quando secret configurado e assinatura ausente")
+    @DisplayName("Rejeita webhook quando assinatura ausente")
     void rejectWhenSignatureMissing() throws Exception {
         mockMvc.perform(post("/api/webhooks/mercadopago")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validPayload)))
+                        .content(objectMapper.writeValueAsString(validPayload))
+                        .header("x-request-id", "req-1"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -86,9 +108,12 @@ class WebhookControllerIntegrationTest {
                 "type", "subscription",
                 "data", Map.of("id", "sub_123")
         );
+        String reqId = "req-sub-1";
         mockMvc.perform(post("/api/webhooks/mercadopago")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
+                        .content(objectMapper.writeValueAsString(payload))
+                        .header("x-signature", mercadoPagoSignature(payload, reqId, WEBHOOK_SECRET))
+                        .header("x-request-id", reqId))
                 .andExpect(status().isOk());
     }
 
@@ -96,9 +121,12 @@ class WebhookControllerIntegrationTest {
     @DisplayName("Retorna 400 quando data ausente")
     void rejectWhenDataMissing() throws Exception {
         Map<String, Object> payload = Map.of("type", "payment");
+        String reqId = "req-no-data";
         mockMvc.perform(post("/api/webhooks/mercadopago")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
+                        .content(objectMapper.writeValueAsString(payload))
+                        .header("x-signature", mercadoPagoSignature(payload, reqId, WEBHOOK_SECRET))
+                        .header("x-request-id", reqId))
                 .andExpect(status().isBadRequest());
     }
 }

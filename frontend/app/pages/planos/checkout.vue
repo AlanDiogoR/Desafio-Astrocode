@@ -100,13 +100,19 @@ function handleError(msg: string) {
         </v-btn>
       </div>
 
-      <h1 class="checkout-page__title">
-        Checkout - {{ planLabel }}
-      </h1>
-
-      <p class="checkout-page__amount text-h6 mb-4">
-        {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planAmount) }}
-      </p>
+      <div v-if="isLoadingConfig" class="checkout-page__skeleton mb-4" aria-busy="true" aria-label="Carregando checkout">
+        <v-skeleton-loader type="heading" class="mb-3" />
+        <v-skeleton-loader type="text" width="200" class="mb-4" />
+        <v-skeleton-loader type="card" height="240" />
+      </div>
+      <template v-else>
+        <h1 class="checkout-page__title">
+          Checkout - {{ planLabel }}
+        </h1>
+        <p class="checkout-page__amount text-h6 mb-4">
+          {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planAmount) }}
+        </p>
+      </template>
 
       <v-alert v-if="errorMessage" type="error" class="mb-4" closable @click:close="errorMessage = null">
         {{ errorMessage }}
@@ -136,9 +142,6 @@ function handleError(msg: string) {
           <v-alert type="warning">
             Chave do Mercado Pago não configurada. Configure MP_PUBLIC_KEY no backend e reinicie o servidor.
           </v-alert>
-        </div>
-        <div v-else-if="!success" class="checkout-page__loading">
-          <v-progress-circular indeterminate color="primary" size="48" />
         </div>
       </ClientOnly>
     </div>
@@ -171,11 +174,5 @@ function handleError(msg: string) {
 
 .checkout-page__form {
   margin-top: 16px;
-}
-
-.checkout-page__loading {
-  display: flex;
-  justify-content: center;
-  padding: 48px 0;
 }
 </style>

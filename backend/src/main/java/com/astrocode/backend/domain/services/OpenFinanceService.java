@@ -97,8 +97,19 @@ public class OpenFinanceService {
                 });
 
         var created = new java.util.ArrayList<BankAccount>();
+        int updated = 0;
         for (var pa : pluggyAccounts) {
-            if (bankAccountRepository.findByPluggyAccountId(pa.id()).isPresent()) {
+            var existingOpt = bankAccountRepository.findByPluggyAccountId(pa.id());
+            if (existingOpt.isPresent()) {
+                var existing = existingOpt.get();
+                if (!existing.getUser().getId().equals(userId)) {
+                    log.warn("Open Finance: pluggyAccountId {} pertence a outro usuário, ignorando", pa.id());
+                    continue;
+                }
+                existing.setInitialBalance(pa.balance());
+                existing.setCurrentBalance(pa.balance());
+                bankAccountRepository.save(existing);
+                updated++;
                 continue;
             }
 
@@ -118,7 +129,7 @@ public class OpenFinanceService {
             created.add(bankAccount);
         }
 
-        log.info("Open Finance: {} contas importadas para user {}", created.size(), userId);
+        log.info("Open Finance: {} contas novas, {} contas atualizadas (saldo) para user {}", created.size(), updated, userId);
         return created;
     }
 

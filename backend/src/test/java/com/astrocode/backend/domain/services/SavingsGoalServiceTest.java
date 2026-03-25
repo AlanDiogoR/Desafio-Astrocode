@@ -52,6 +52,9 @@ class SavingsGoalServiceTest {
     @Mock
     private TransactionService transactionService;
 
+    @Mock
+    private PlanLimitService planLimitService;
+
     @InjectMocks
     private SavingsGoalService savingsGoalService;
 
@@ -64,6 +67,7 @@ class SavingsGoalServiceTest {
         var request = new SavingsGoalRequest("Viagem", BigDecimal.valueOf(5000), LocalDate.of(2025, 12, 31), "#087f5b");
 
         when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
+        doNothing().when(planLimitService).checkFreePlanActiveGoalLimit(userId);
         when(savingsGoalRepository.save(any(SavingsGoal.class))).thenAnswer(inv -> {
             var goal = inv.getArgument(0, SavingsGoal.class);
             goal.setId(UUID.randomUUID());

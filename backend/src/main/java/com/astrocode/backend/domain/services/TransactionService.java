@@ -179,6 +179,8 @@ public class TransactionService {
             User user,
             SavingsGoal goal
     ) {
+        planLimitService.checkFreePlanTransactionLimit(user.getId());
+
         var account = bankAccountRepository.findByIdForUpdate(bankAccount.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
         validateAccountOwnership(account, user.getId());
@@ -271,7 +273,6 @@ public class TransactionService {
         var oldType = transaction.getType();
         revertAccountBalance(oldBankAccount, oldAmount, oldType);
 
-        // Reverter goal antigo (se houver) antes de aplicar novos valores
         var oldGoal = transaction.getGoal();
         if (oldGoal != null) {
             revertGoalAmount(oldGoal, oldAmount, oldType);
@@ -310,7 +311,6 @@ public class TransactionService {
 
         updateAccountBalance(newBankAccount, newAmount, newType);
 
-        // Aplicar novo goal (se houver, mesmo goal com valores atualizados)
         var goal = transaction.getGoal();
         if (goal != null) {
             applyGoalAmount(goal, newAmount, newType);
@@ -479,16 +479,14 @@ public class TransactionService {
         }
     }
 
-    /**
-     * Cria uma transação filha a partir de uma transação pai recorrente.
-     * Usado pelo job de recorrência para gerar transações automaticamente.
-     * REQUIRES_NEW para que falha em um filho não reverta o lote inteiro.
-     */
+    /** Transação filha de recorrência; {@code REQUIRES_NEW} isola falhas por data. */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public Transaction createRecurringChild(Transaction parent, LocalDate targetDate) {
         if (parent.getBankAccount() == null) {
             return null;
         }
+        planLimitService.checkFreePlanTransactionLimit(parent.getUser().getId());
+
         var child = Transaction.builder()
                 .user(parent.getUser())
                 .bankAccount(parent.getBankAccount())

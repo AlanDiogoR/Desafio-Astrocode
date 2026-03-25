@@ -24,7 +24,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +45,12 @@ class BankAccountServiceTest {
     @Mock
     private com.astrocode.backend.domain.repositories.SavingsGoalRepository savingsGoalRepository;
 
+    @Mock
+    private com.astrocode.backend.domain.repositories.TransactionRepository transactionRepository;
+
+    @Mock
+    private PlanLimitService planLimitService;
+
     @InjectMocks
     private BankAccountService bankAccountService;
 
@@ -55,6 +63,7 @@ class BankAccountServiceTest {
         var request = new BankAccountRequest("Conta Corrente", BigDecimal.valueOf(1000), AccountType.CHECKING, "#087f5b");
 
         when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
+        doNothing().when(planLimitService).checkFreePlanBankAccountLimit(userId);
         when(bankAccountRepository.findByUserIdAndNameIgnoreCase(userId, "Conta Corrente")).thenReturn(List.of());
         when(bankAccountRepository.save(any(BankAccount.class))).thenAnswer(inv -> {
             var acc = inv.getArgument(0, BankAccount.class);
@@ -77,6 +86,7 @@ class BankAccountServiceTest {
         var existing = BankAccount.builder().id(UUID.randomUUID()).name("Conta Corrente").user(user).build();
 
         when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
+        doNothing().when(planLimitService).checkFreePlanBankAccountLimit(userId);
         when(bankAccountRepository.findByUserIdAndNameIgnoreCase(userId, "Conta Corrente")).thenReturn(List.of(existing));
 
         assertThatThrownBy(() -> bankAccountService.create(request, userId))
@@ -108,6 +118,7 @@ class BankAccountServiceTest {
         var account = BankAccount.builder().id(accountId).user(user).build();
 
         when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(transactionRepository.findGoalImpactRowsByBankAccountId(accountId)).thenReturn(List.of());
         doNothing().when(bankAccountRepository).delete(account);
 
         bankAccountService.delete(accountId, user);
@@ -177,11 +188,16 @@ class BankAccountServiceTest {
         account.setTransactions(new java.util.ArrayList<>(List.of(transaction)));
 
         when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(savingsGoalRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(transactionRepository.findGoalImpactRowsByBankAccountId(accountId)).thenReturn(List.of(
+                new Object[]{goalId, com.astrocode.backend.domain.model.enums.TransactionType.EXPENSE, BigDecimal.valueOf(100)}
+        ));
+        when(savingsGoalRepository.findAllById(List.of(goalId))).thenReturn(List.of(goal));
+        when(savingsGoalRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
         bankAccountService.delete(accountId, user);
 
         verify(transactionService).revertGoalAmount(eq(goal), eq(BigDecimal.valueOf(100)), eq(com.astrocode.backend.domain.model.enums.TransactionType.EXPENSE));
+        verify(savingsGoalRepository).saveAll(anyList());
         verify(bankAccountRepository).delete(account);
     }
 }

@@ -8,3 +8,9 @@ vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
   }
   return stateMap.get(key) as { value: T }
 })
+
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: {
+    apiBase: 'http://127.0.0.1:8080/api',
+  },
+}))

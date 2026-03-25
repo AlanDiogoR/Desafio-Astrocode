@@ -140,6 +140,9 @@ public class SubscriptionService {
         }
         subscription = subscriptionRepository.save(subscription);
 
+        log.info("AUDITORIA pagamento checkout: userId={} subscriptionId={} planType={} mpPaymentId={} status={} amount={}",
+                userId, subscription.getId(), request.planType(), payment.getId(), status, amount);
+
         return new CheckoutResponse(
                 subscription.getId(),
                 subscription.getPlanType(),
@@ -196,6 +199,9 @@ public class SubscriptionService {
         subscription.setMpPaymentId(String.valueOf(payment.getId()));
         subscription.setMpExternalReference(externalRef);
         subscriptionRepository.save(subscription);
+
+        log.info("AUDITORIA pagamento webhook MP: subscriptionId={} userId={} planType={} mpPaymentId={} externalRef={}",
+                subscription.getId(), subscription.getUser().getId(), planType, payment.getId(), externalRef);
     }
 
     private void activatePaidPlan(Subscription subscription, PlanType planType, BigDecimal amount, Long mpPaymentId) {
@@ -223,8 +229,11 @@ public class SubscriptionService {
         if (subscription.getPlanType() == PlanType.FREE) {
             throw new IllegalStateException("Assinatura gratuita não pode ser cancelada");
         }
+        var previousPlan = subscription.getPlanType();
         subscription.setStatus(SubscriptionStatus.CANCELLED);
         subscriptionRepository.save(subscription);
+        log.info("AUDITORIA alteração de plano: userId={} subscriptionId={} ação=cancelamento planoAnterior={}",
+                userId, subscription.getId(), previousPlan);
     }
 
     @Transactional
@@ -240,6 +249,9 @@ public class SubscriptionService {
                 .toList();
         if (!toSave.isEmpty()) {
             subscriptionRepository.saveAll(toSave);
+            log.info("AUDITORIA expiração de planos: assinaturasRebaixadas={} ids={}",
+                    toSave.size(),
+                    toSave.stream().map(s -> s.getId().toString()).toList());
         }
     }
 

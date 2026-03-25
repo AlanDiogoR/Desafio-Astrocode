@@ -6,7 +6,6 @@ import com.astrocode.backend.domain.services.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.Map;
 
@@ -30,17 +28,14 @@ public class WebhookController {
 
     private final SubscriptionService subscriptionService;
     private final WebhookProcessedEventRepository webhookProcessedEventRepository;
-    private final Environment environment;
 
     @Value("${mp.webhook-secret:}")
     private String webhookSecret;
 
     public WebhookController(SubscriptionService subscriptionService,
-                              WebhookProcessedEventRepository webhookProcessedEventRepository,
-                              Environment environment) {
+                              WebhookProcessedEventRepository webhookProcessedEventRepository) {
         this.subscriptionService = subscriptionService;
         this.webhookProcessedEventRepository = webhookProcessedEventRepository;
-        this.environment = environment;
     }
 
     @PostMapping("/mercadopago")
@@ -48,28 +43,22 @@ public class WebhookController {
                                                   @RequestHeader(value = "x-signature", required = false) String signature,
                                                   @RequestHeader(value = "x-request-id", required = false) String requestId) {
         try {
-            boolean secretConfigured = webhookSecret != null && !webhookSecret.isBlank();
-            boolean isProd = Arrays.stream(environment.getActiveProfiles())
-                    .anyMatch(p -> "prod".equalsIgnoreCase(p) || "production".equalsIgnoreCase(p));
-
-            if (isProd && !secretConfigured) {
-                log.error("CRITICO: MP_WEBHOOK_SECRET não configurado em produção. Webhook rejeitado.");
+            if (webhookSecret == null || webhookSecret.isBlank()) {
+                log.error("CRITICO: MP_WEBHOOK_SECRET não configurado. Webhooks rejeitados em todos os ambientes.");
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
             }
 
-            if (secretConfigured) {
-                if (signature == null || signature.isBlank()) {
-                    log.warn("Webhook Mercado Pago: assinatura obrigatória quando MP_WEBHOOK_SECRET está configurado");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-                }
-                if (requestId == null || requestId.isBlank()) {
-                    log.warn("Webhook Mercado Pago: x-request-id obrigatório para validação");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-                }
-                if (!validateSignature(payload, signature, requestId)) {
-                    log.warn("Webhook Mercado Pago: assinatura inválida");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-                }
+            if (signature == null || signature.isBlank()) {
+                log.warn("Webhook Mercado Pago: assinatura obrigatória (x-signature)");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            if (requestId == null || requestId.isBlank()) {
+                log.warn("Webhook Mercado Pago: x-request-id obrigatório para validação");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            if (!validateSignature(payload, signature, requestId)) {
+                log.warn("Webhook Mercado Pago: assinatura inválida");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             String type = (String) payload.get("type");

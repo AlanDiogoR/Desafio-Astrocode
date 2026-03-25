@@ -10,6 +10,7 @@ import com.astrocode.backend.domain.exceptions.InvalidResetCodeException;
 import com.astrocode.backend.domain.repositories.PasswordResetCodeRepository;
 import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final MailService mailService;
+
+    @Value("${app.security.password-reset-min-duration-ms:200}")
+    private long passwordResetMinDurationMs;
 
     public AuthService(UserRepository userRepository,
                        PasswordResetCodeRepository resetCodeRepository,
@@ -67,31 +71,53 @@ public class AuthService {
 
     @Transactional(readOnly = false)
     public void requestPasswordReset(String email) {
-        String normalizedEmail = email.trim().toLowerCase();
-        OffsetDateTime rateLimitThreshold = OffsetDateTime.now().minusMinutes(RATE_LIMIT_MINUTES);
+        long startNanos = System.nanoTime();
+        try {
+            String normalizedEmail = email.trim().toLowerCase();
+            OffsetDateTime rateLimitThreshold = OffsetDateTime.now().minusMinutes(RATE_LIMIT_MINUTES);
 
-        if (resetCodeRepository.existsByEmailAndCreatedAtAfter(normalizedEmail, rateLimitThreshold)) {
-            return;
+            boolean rateLimited = resetCodeRepository.existsByEmailAndCreatedAtAfter(normalizedEmail, rateLimitThreshold);
+            boolean userExists = userRepository.existsByEmail(normalizedEmail);
+
+            hashWithSHA256(normalizedEmail + "|reset|" + userExists + "|" + rateLimited);
+
+            if (!userExists) {
+                return;
+            }
+
+            if (rateLimited) {
+                return;
+            }
+
+            resetCodeRepository.deleteByEmail(normalizedEmail);
+
+            String code = generateAlphanumericCode();
+            String hashedCode = hashWithSHA256(code);
+            OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);
+
+            var resetCode = PasswordResetCode.builder()
+                    .email(normalizedEmail)
+                    .code(hashedCode)
+                    .expiresAt(expiresAt)
+                    .build();
+            resetCodeRepository.save(resetCode);
+
+            mailService.sendPasswordResetCode(normalizedEmail, code);
+        } finally {
+            enforceMinimumResetDuration(startNanos);
         }
+    }
 
-        if (!userRepository.existsByEmail(normalizedEmail)) {
-            return;
+    private void enforceMinimumResetDuration(long startNanos) {
+        long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000L;
+        long sleepMs = passwordResetMinDurationMs - elapsedMs;
+        if (sleepMs > 0) {
+            try {
+                Thread.sleep(sleepMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
-
-        resetCodeRepository.deleteByEmail(normalizedEmail);
-
-        String code = generateAlphanumericCode();
-        String hashedCode = hashWithSHA256(code);
-        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);
-
-        var resetCode = PasswordResetCode.builder()
-                .email(normalizedEmail)
-                .code(hashedCode)
-                .expiresAt(expiresAt)
-                .build();
-        resetCodeRepository.save(resetCode);
-
-        mailService.sendPasswordResetCode(normalizedEmail, code);
     }
 
     @Transactional(readOnly = false)

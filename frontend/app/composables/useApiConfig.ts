@@ -1,7 +1,4 @@
-/**
- * Fail-fast: verifica se a API está configurada antes de fazer chamadas.
- * Evita 502 silenciosos por NUXT_PUBLIC_API_BASE ausente.
- */
+/** Indica se `NUXT_PUBLIC_API_BASE` está definida (evita chamadas com base vazia). */
 export function useApiConfig() {
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase as string | undefined

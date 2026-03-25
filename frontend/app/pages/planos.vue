@@ -13,7 +13,11 @@ const subscription = ref<{ planType: string; status: string; expiresAt: string |
 const isLoading = ref(true)
 
 const isLoggedIn = computed(() => authStore.isLoggedIn)
-const currentPlan = computed(() => authStore.getUser?.plan ?? 'FREE')
+const currentPlan = computed(() => authStore.user?.plan ?? 'FREE')
+
+function isCurrentPlanActive(planId: string) {
+  return planId === currentPlan.value && subscription.value?.status === 'ACTIVE'
+}
 
 onMounted(async () => {
   if (!authStore.isLoggedIn) {
@@ -24,14 +28,13 @@ onMounted(async () => {
         authStore.setUser(mapApiUserToStoreUser(result.data))
       }
     } catch {
-      /* silencioso */
     }
   }
 
   try {
     const { listPlans } = await import('~/services/subscription/listPlans')
     plans.value = await listPlans($api)
-  } catch (e) {
+  } catch {
     toast?.error('Erro ao carregar planos.')
   } finally {
     isLoading.value = false
@@ -184,7 +187,7 @@ function getAssinarLink(planId: string): string {
             </div>
             <div class="planos-page__card-actions">
               <v-btn
-                v-if="plan.id === currentPlan && subscription?.status === 'ACTIVE'"
+                v-if="isCurrentPlanActive(plan.id)"
                 block
                 size="large"
                 variant="outlined"
@@ -192,13 +195,18 @@ function getAssinarLink(planId: string): string {
               >
                 Plano atual
               </v-btn>
-              <button
-                type="button"
+              <v-btn
+                v-else
+                color="primary"
+                variant="flat"
+                block
+                size="large"
+                rounded="lg"
                 class="planos-page__assinar-btn"
-                @click="navigateTo(getAssinarLink(plan.id))"
+                :to="getAssinarLink(plan.id)"
               >
                 Assinar
-              </button>
+              </v-btn>
             </div>
           </div>
         </article>
@@ -273,7 +281,9 @@ function getAssinarLink(planId: string): string {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 100%;
   padding: 24px;
+  min-width: 0;
 }
 
 .planos-page__card-header {
@@ -307,8 +317,10 @@ function getAssinarLink(planId: string): string {
 }
 
 .planos-page__card-body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .planos-page__features {
@@ -319,6 +331,8 @@ function getAssinarLink(planId: string): string {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .planos-page__feature {
@@ -343,38 +357,17 @@ function getAssinarLink(planId: string): string {
 
 .planos-page__card-actions {
   flex-shrink: 0;
-  margin-top: 24px;
+  margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid var(--color-border);
+  position: relative;
+  z-index: 2;
 }
 
 .planos-page__assinar-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   min-height: 48px;
-  padding: 12px 24px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: white;
-  background-color: var(--color-primary);
-  border: none;
-  border-radius: 16px;
-  text-decoration: none;
-  transition: background-color 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  font-family: inherit;
-}
-
-.planos-page__assinar-btn:hover {
-  background-color: #066d4d;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .planos-page__price {
@@ -408,13 +401,31 @@ function getAssinarLink(planId: string): string {
   }
 
   .planos-page__grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  }
+
+  .planos-page__features {
+    max-height: min(280px, 45vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 @media (min-width: 900px) {
   .planos-page__grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .planos-page__features {
+    max-height: min(320px, 40vh);
+  }
+}
+
+@media (min-width: 1200px) {
+  .planos-page__container {
+    max-width: 1200px;
   }
 }
 </style>

@@ -1,6 +1,8 @@
 package com.astrocode.backend;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -11,15 +13,16 @@ import java.io.File;
 @EnableScheduling
 public class BackendApplication {
 
+	private static final Logger log = LoggerFactory.getLogger(BackendApplication.class);
+
 	public static void main(String[] args) {
-		// Tenta encontrar o arquivo .env em diferentes locais
 		Dotenv dotenv = null;
 		String[] possiblePaths = {
-			"./.env",                    
-			"../backend/.env",           
-			"./backend/.env"            
+				"./.env",
+				"../backend/.env",
+				"./backend/.env"
 		};
-		
+
 		for (String path : possiblePaths) {
 			File envFile = new File(path);
 			if (envFile.exists()) {
@@ -28,14 +31,14 @@ public class BackendApplication {
 							.directory(envFile.getParent())
 							.filename(".env")
 							.load();
-					System.out.println("Loaded .env from: " + envFile.getAbsolutePath());
+					log.info("Arquivo .env carregado de: {}", envFile.getAbsolutePath());
 					break;
 				} catch (Exception e) {
-					// Continua tentando outros caminhos
+					log.trace("Ignorando .env em {}: {}", path, e.toString());
 				}
 			}
 		}
-		
+
 		if (dotenv == null) {
 			dotenv = Dotenv.configure()
 					.directory(".")
@@ -43,24 +46,23 @@ public class BackendApplication {
 					.ignoreIfMissing()
 					.load();
 		}
-		
+
 		if (dotenv != null) {
 			int count = 0;
 			for (var entry : dotenv.entries()) {
 				System.setProperty(entry.getKey(), entry.getValue());
 				count++;
 			}
-			System.out.println("Loaded .env: " + count + " variables (values nunca logados por segurança)");
+			log.info("Variáveis do .env aplicadas ao System: {} entradas (valores não logados)", count);
 		} else {
-			System.err.println("WARNING: Arquivo .env não encontrado! Usando variáveis de ambiente do sistema.");
+			log.warn("Arquivo .env não encontrado; usando apenas variáveis de ambiente do sistema");
 		}
 
-		// Diagnóstico JWT_SECRET (nunca logar o valor)
 		String jwtSecret = System.getProperty("JWT_SECRET", System.getenv("JWT_SECRET"));
 		if (jwtSecret != null && !jwtSecret.isBlank()) {
-			System.out.println("JWT_SECRET: presente, " + jwtSecret.trim().length() + " chars");
+			log.info("JWT_SECRET definido (comprimento {} caracteres)", jwtSecret.trim().length());
 		} else {
-			System.err.println("CRITICO: JWT_SECRET não encontrado nas variáveis de ambiente!");
+			log.error("JWT_SECRET ausente: defina em ambiente ou .env");
 		}
 
 		SpringApplication.run(BackendApplication.class, args);

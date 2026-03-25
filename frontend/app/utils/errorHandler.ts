@@ -9,7 +9,9 @@ const STATUS_MESSAGES: Record<number, string> = {
   404: 'Recurso não encontrado.',
   409: 'Este registro já existe.',
   422: 'Dados inválidos.',
+  429: 'Muitas tentativas. Aguarde um instante e tente novamente.',
   500: 'Falha ao conectar com o servidor. Tente mais tarde.',
+  503: 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.',
 }
 
 const MESSAGE_OVERRIDES: Record<string, string> = {
