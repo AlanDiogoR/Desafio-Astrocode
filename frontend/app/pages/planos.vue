@@ -114,6 +114,10 @@ function getAssinarLink(planId: string): string {
   }
   return `/planos/checkout?plano=${planId}`
 }
+
+function goCheckout(planId: string) {
+  void navigateTo(getAssinarLink(planId))
+}
 </script>
 
 <template>
@@ -203,7 +207,8 @@ function getAssinarLink(planId: string): string {
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
-                :to="getAssinarLink(plan.id)"
+                type="button"
+                @click="goCheckout(plan.id)"
               >
                 Assinar
               </v-btn>
