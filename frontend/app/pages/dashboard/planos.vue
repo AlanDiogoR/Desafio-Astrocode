@@ -5,6 +5,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
+const router = useRouter()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
@@ -92,12 +93,8 @@ function getMonthlyEquivalent(price: number, months: number): string | null {
 
 const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
 
-function checkoutUrl(planId: string) {
-  return `/planos/checkout?plano=${planId}`
-}
-
 function goCheckout(planId: string) {
-  void navigateTo(checkoutUrl(planId))
+  void router.push({ path: '/planos/checkout', query: { plano: planId } })
 }
 </script>
 
@@ -134,6 +131,12 @@ function goCheckout(planId: string) {
 
       <div v-if="isLoading" class="planos-page__loading">
         <v-progress-circular indeterminate color="primary" size="48" />
+      </div>
+
+      <div v-else-if="paidPlans.length === 0" class="planos-page__empty text-center py-8">
+        <p class="text-body-1 text-medium-emphasis">
+          Nenhum plano pago disponível no momento.
+        </p>
       </div>
 
       <div v-else class="planos-page__grid">
@@ -188,14 +191,14 @@ function goCheckout(planId: string) {
               </v-btn>
               <v-btn
                 v-else
+                type="button"
                 color="primary"
                 variant="flat"
                 block
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
-                type="button"
-                @click="goCheckout(plan.id)"
+                @click.stop.prevent="goCheckout(plan.id)"
               >
                 Assinar
               </v-btn>
@@ -343,7 +346,9 @@ function goCheckout(planId: string) {
   padding-top: 16px;
   border-top: 1px solid var(--color-border);
   position: relative;
-  z-index: 2;
+  z-index: 5;
+  isolation: isolate;
+  pointer-events: auto;
 }
 
 .planos-page__assinar-btn {

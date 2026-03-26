@@ -4,7 +4,12 @@ import { useAuthStore } from '~/stores/auth'
 import { useDashboard } from '~/composables/useDashboard'
 
 const authStore = useAuthStore()
+const router = useRouter()
 const { openEditProfileModal } = useDashboard()
+
+function goPlanos() {
+  void router.push('/dashboard/planos')
+}
 
 const userInitials = computed(() => {
   const name = authStore.user?.name
@@ -28,12 +33,13 @@ const userInitials = computed(() => {
     <div class="dashboard-header__actions d-flex align-center gap-2">
       <v-btn
         v-if="!authStore.isProUser"
+        type="button"
         size="small"
         color="primary"
         variant="flat"
-        :to="'/dashboard/planos'"
         class="dashboard-header__upgrade-btn"
         prepend-icon="mdi-crown"
+        @click.stop.prevent="goPlanos"
       >
         Upgrade Pro
       </v-btn>
