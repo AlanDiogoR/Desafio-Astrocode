@@ -43,7 +43,8 @@ public class OpenFinanceService {
 
     public String createConnectToken(UUID userId) {
         if (!pluggyApiClient.isConfigured()) {
-            throw new IllegalStateException("Open Finance não está configurado. Entre em contato com o suporte.");
+            throw new IllegalStateException(
+                    "Open Finance não está configurado. Defina PLUGGY_CLIENT_ID e as credenciais da aplicação Pluggy no ambiente (ex.: Railway).");
         }
 
         User user = userRepository.findByIdWithSubscription(userId)
@@ -66,7 +67,8 @@ public class OpenFinanceService {
     @Transactional
     public List<BankAccount> syncAccountsFromPluggy(UUID userId, String pluggyItemId) {
         if (!pluggyApiClient.isConfigured()) {
-            throw new IllegalStateException("Open Finance não está configurado.");
+            throw new IllegalStateException(
+                    "Open Finance não está configurado. Defina PLUGGY_CLIENT_ID e as credenciais da aplicação Pluggy no ambiente (ex.: Railway).");
         }
 
         User user = userRepository.findByIdWithSubscription(userId)

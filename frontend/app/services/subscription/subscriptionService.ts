@@ -30,18 +30,25 @@ export interface PaymentResponse {
 /** Formato usado pelo composable useSubscription (derivado de /subscription/me). */
 export interface SubscriptionStatus {
   plan: 'FREE' | 'PRO'
+  /** Valor do banco/API: FREE | MONTHLY | SEMIANNUAL | ANNUAL */
+  planType: string
   isActive: boolean
   expiresAt: string | null
+  /** Elite Anual: ANNUAL com assinatura paga ativa (Open Finance). */
+  isElite: boolean
 }
 
 function mapSubscriptionMeToStatus(me: SubscriptionResponse): SubscriptionStatus {
-  const isPaid = me.planType !== 'FREE' && me.status === 'ACTIVE'
+  const planType = me.planType ?? 'FREE'
+  const isPaid = planType !== 'FREE' && me.status === 'ACTIVE'
   const exp = me.expiresAt ? new Date(me.expiresAt) : null
   const isActive = Boolean(isPaid && exp && exp.getTime() > Date.now())
   return {
     plan: isActive ? 'PRO' : 'FREE',
+    planType,
     isActive,
     expiresAt: me.expiresAt,
+    isElite: isActive && planType === 'ANNUAL',
   }
 }
 

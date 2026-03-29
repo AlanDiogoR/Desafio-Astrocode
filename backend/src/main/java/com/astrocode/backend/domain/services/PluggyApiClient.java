@@ -2,11 +2,13 @@ package com.astrocode.backend.domain.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -29,6 +31,16 @@ public class PluggyApiClient {
 
     private String cachedApiKey;
     private long apiKeyExpiresAt;
+
+    @PostConstruct
+    public void logPluggyStartup() {
+        if (!isConfigured()) {
+            log.warn("[PLUGGY] PLUGGY_CLIENT_ID / PLUGGY_CLIENT_SECRET ausentes — Open Finance desabilitado até configurar no Railway");
+        } else {
+            String prefix = clientId.length() >= 6 ? clientId.substring(0, 6) : clientId;
+            log.info("[PLUGGY] Credenciais carregadas (clientId prefix={}...)", prefix);
+        }
+    }
 
     public boolean isConfigured() {
         return clientId != null && !clientId.isBlank()
@@ -53,22 +65,31 @@ public class PluggyApiClient {
         headers.set("X-API-KEY", apiKey);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        ResponseEntity<String> response;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        } catch (RestClientException e) {
+            log.error("[PLUGGY] Falha HTTP ao criar connect_token: {}", e.getMessage());
+            throw new IllegalStateException(
+                    "Não foi possível iniciar a conexão Open Finance (Pluggy). Verifique credenciais, rede e o painel Pluggy.");
+        }
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new IllegalStateException("Falha ao criar connect token da Pluggy");
+            throw new IllegalStateException("Falha ao criar conexão na Pluggy.");
         }
 
         try {
             JsonNode node = objectMapper.readTree(response.getBody());
             JsonNode accessToken = node.get("accessToken");
             if (accessToken == null) {
-                throw new IllegalStateException("Resposta Pluggy sem accessToken");
+                throw new IllegalStateException("Resposta Pluggy incompleta.");
             }
             return accessToken.asText();
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Erro ao parsear connect token", e);
-            throw new IllegalStateException("Erro ao processar connect token");
+            throw new IllegalStateException("Erro ao processar resposta da Pluggy.");
         }
     }
 
@@ -138,6 +159,10 @@ public class PluggyApiClient {
     }
 
     private synchronized String getOrRefreshApiKey() {
+        if (!isConfigured()) {
+            throw new IllegalStateException(
+                    "Open Finance não está configurado neste ambiente. Defina PLUGGY_CLIENT_ID e as credenciais da aplicação Pluggy (ex.: variáveis no Railway).");
+        }
         if (cachedApiKey != null && System.currentTimeMillis() < apiKeyExpiresAt - 60000) {
             return cachedApiKey;
         }
@@ -152,17 +177,24 @@ public class PluggyApiClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        ResponseEntity<String> response;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        } catch (RestClientException e) {
+            log.error("[PLUGGY] Falha HTTP em /auth: {}", e.getMessage());
+            throw new IllegalStateException(
+                    "Não foi possível autenticar na Pluggy. Verifique PLUGGY_CLIENT_ID, as credenciais Pluggy e se o IP do servidor está autorizado no painel Pluggy.");
+        }
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new IllegalStateException("Falha ao autenticar na Pluggy. Verifique CLIENT_ID e CLIENT_SECRET.");
+            throw new IllegalStateException("Falha ao autenticar na Pluggy. Verifique o identificador e as credenciais da aplicação.");
         }
 
         try {
             JsonNode node = objectMapper.readTree(response.getBody());
             JsonNode apiKeyNode = node.get("apiKey");
             if (apiKeyNode == null) {
-                throw new IllegalStateException("Resposta Pluggy sem apiKey");
+                throw new IllegalStateException("Resposta Pluggy sem chave de API.");
             }
             cachedApiKey = apiKeyNode.asText();
             apiKeyExpiresAt = System.currentTimeMillis() + (2 * 60 * 60 * 1000);

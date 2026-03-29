@@ -11,10 +11,39 @@ const plans = ref<Array<{ id: string; name: string; price: number; months: numbe
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
 const isLoading = ref(true)
 
-const currentPlan = computed(() => authStore.user?.plan ?? 'FREE')
+/** Preferir API; auth pode estar defasado após upgrade. */
+const resolvedCurrentPlanId = computed(() => subscription.value?.planType ?? authStore.user?.plan ?? 'FREE')
 
 function isCurrentPlanActive(planId: string) {
-  return planId === currentPlan.value && subscription.value?.status === 'ACTIVE'
+  return planId === resolvedCurrentPlanId.value && subscription.value?.status === 'ACTIVE'
+}
+
+const hasActivePaidSubscription = computed(() => {
+  const sub = subscription.value
+  if (sub && sub.status === 'ACTIVE' && sub.planType !== 'FREE') return true
+  return authStore.isProUser
+})
+
+function formatSubscriptionDate(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function planButtonLabel(planId: string) {
+  if (isCurrentPlanActive(planId)) return 'Plano atual'
+  if (hasActivePaidSubscription.value) return 'Mudar para este plano'
+  return 'Assinar'
+}
+
+function onPlanAction(planId: string) {
+  if (isCurrentPlanActive(planId)) {
+    toast?.info('Você já está neste plano.')
+    return
+  }
+  handleSubscribe(planId)
 }
 
 onMounted(async () => {
@@ -108,6 +137,11 @@ function apiPlanToMpPlanId(planId: string): MpPlanId {
 }
 
 function handleSubscribe(planId: string) {
+  const current = subscription.value?.planType ?? authStore.user?.plan ?? 'FREE'
+  if (current === planId && subscription.value?.status === 'ACTIVE') {
+    toast?.info('Você já está neste plano.')
+    return
+  }
   const mpPlanId = apiPlanToMpPlanId(planId)
   navigateTo(`/subscription/checkout?plan=${mpPlanId}`)
 }
@@ -135,13 +169,27 @@ function handleSubscribe(planId: string) {
         Escolha o plano e pague com cartão com segurança na próxima tela
       </p>
 
-      <section v-if="subscription" class="planos-page__current mb-8">
-        <v-alert type="info" variant="tonal" density="compact">
-          Seu plano atual: <strong>{{ authStore.planLabel }}</strong>
-          <span v-if="subscription?.expiresAt">
-            · Renova em {{ new Date(subscription.expiresAt).toLocaleDateString('pt-BR') }}
-          </span>
-        </v-alert>
+      <section v-if="subscription?.status === 'ACTIVE'" class="planos-page__current mb-8">
+        <v-card variant="tonal" color="primary">
+          <v-card-text>
+            <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+              <div>
+                <p class="text-caption text-medium-emphasis mb-1">
+                  Plano atual
+                </p>
+                <p class="text-h6 font-weight-bold">
+                  {{ authStore.planLabel }}
+                </p>
+                <p v-if="subscription.expiresAt" class="text-body-2 text-medium-emphasis mb-0">
+                  Ativo até {{ formatSubscriptionDate(subscription.expiresAt) }}
+                </p>
+              </div>
+              <v-chip color="success" size="small">
+                Ativo
+              </v-chip>
+            </div>
+          </v-card-text>
+        </v-card>
       </section>
 
       <div v-if="isLoading" class="planos-page__loading">
@@ -196,26 +244,16 @@ function handleSubscribe(planId: string) {
             </div>
             <div class="planos-page__card-actions">
               <v-btn
-                v-if="isCurrentPlanActive(plan.id)"
-                block
-                size="large"
-                variant="outlined"
-                disabled
-              >
-                Plano atual
-              </v-btn>
-              <v-btn
-                v-else
                 type="button"
-                color="primary"
-                variant="flat"
+                :color="isCurrentPlanActive(plan.id) ? 'default' : 'primary'"
+                :variant="isCurrentPlanActive(plan.id) ? 'outlined' : 'flat'"
                 block
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
-                @click.stop.prevent="handleSubscribe(plan.id)"
+                @click.stop.prevent="onPlanAction(plan.id)"
               >
-                Assinar
+                {{ planButtonLabel(plan.id) }}
               </v-btn>
             </div>
           </div>

@@ -26,9 +26,9 @@ export const useAuthStore = defineStore('auth', () => {
     const p = user.value?.plan ?? 'FREE'
     const labels: Record<PlanType, string> = {
       FREE: 'Grátis',
-      MONTHLY: 'Premium Mensal',
-      SEMIANNUAL: 'Premium Semestral',
-      ANNUAL: 'Premium Anual',
+      MONTHLY: 'Pro Mensal',
+      SEMIANNUAL: 'Pro Semestral',
+      ANNUAL: 'Elite Anual',
     }
     return labels[p]
   })

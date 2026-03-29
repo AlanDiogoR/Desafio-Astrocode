@@ -15,10 +15,11 @@ export function useSubscription() {
 
   const isPro = computed(() => subscriptionStatus.value?.isActive === true)
   const isFree = computed(() => !isPro.value)
+  const isElite = computed(() => subscriptionStatus.value?.isElite === true)
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ['subscription-status'] })
   }
 
-  return { subscriptionStatus, isPro, isFree, isLoading, invalidate }
+  return { subscriptionStatus, isPro, isFree, isElite, isLoading, invalidate }
 }
