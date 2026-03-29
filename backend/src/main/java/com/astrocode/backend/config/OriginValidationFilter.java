@@ -89,6 +89,17 @@ public class OriginValidationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/actuator/") || path.startsWith("/api/webhooks/") || path.startsWith("/swagger");
+        if (path.startsWith("/actuator/") || path.startsWith("/api/webhooks/") || path.startsWith("/swagger")) {
+            return true;
+        }
+        // Mercado Pago envia POST sem Origin/Referer — não bloquear o webhook de assinaturas
+        if (path.startsWith("/api/subscriptions/webhook")) {
+            return true;
+        }
+        // Login/refresh podem ser chamados sem Origin (CLI, ferramentas, integrações)
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/refresh")) {
+            return true;
+        }
+        return false;
     }
 }

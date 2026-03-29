@@ -1,3 +1,5 @@
+import type { SubscriptionResponse } from '~/services/subscription/me'
+
 export interface PaymentRequest {
   token: string
   transactionAmount: number
@@ -25,10 +27,22 @@ export interface PaymentResponse {
   message: string
 }
 
+/** Formato usado pelo composable useSubscription (derivado de /subscription/me). */
 export interface SubscriptionStatus {
   plan: 'FREE' | 'PRO'
   isActive: boolean
   expiresAt: string | null
+}
+
+function mapSubscriptionMeToStatus(me: SubscriptionResponse): SubscriptionStatus {
+  const isPaid = me.planType !== 'FREE' && me.status === 'ACTIVE'
+  const exp = me.expiresAt ? new Date(me.expiresAt) : null
+  const isActive = Boolean(isPaid && exp && exp.getTime() > Date.now())
+  return {
+    plan: isActive ? 'PRO' : 'FREE',
+    isActive,
+    expiresAt: me.expiresAt,
+  }
 }
 
 export const subscriptionService = {
@@ -38,9 +52,10 @@ export const subscriptionService = {
     return response
   },
 
+  /** Usa GET /api/subscription/me (mesmo contrato do restante do app). */
   async getStatus(): Promise<SubscriptionStatus> {
     const { $api } = useNuxtApp()
-    const { data } = await $api.get<SubscriptionStatus>('/subscriptions/status')
-    return data
+    const { data } = await $api.get<SubscriptionResponse>('/subscription/me')
+    return mapSubscriptionMeToStatus(data)
   },
 }
