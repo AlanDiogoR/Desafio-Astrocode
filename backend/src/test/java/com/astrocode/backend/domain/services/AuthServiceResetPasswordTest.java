@@ -5,6 +5,7 @@ import com.astrocode.backend.domain.entities.PasswordResetCode;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.InvalidResetCodeException;
 import com.astrocode.backend.domain.repositories.PasswordResetCodeRepository;
+import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class AuthServiceResetPasswordTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private SubscriptionRepository subscriptionRepository;
 
     @Mock
     private PasswordResetCodeRepository resetCodeRepository;
@@ -127,6 +131,7 @@ class AuthServiceResetPasswordTest {
                 .thenReturn(Optional.of(resetCode));
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
+        when(subscriptionRepository.findByUserId(userId)).thenReturn(Optional.empty());
         when(passwordEncoder.encode("newPass123")).thenReturn(encodedNewPassword);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(jwtService.generateToken(any(), anyString(), any(), any()))

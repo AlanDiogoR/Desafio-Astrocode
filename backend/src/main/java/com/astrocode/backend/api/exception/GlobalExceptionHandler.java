@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -278,10 +279,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         String correlationId = org.slf4j.MDC.get(CorrelationIdFilter.CORRELATION_ID);
-        log.error("5xx erro interno correlationId={} exception={} mensagem={}", correlationId,
-                ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        String method = request != null ? request.getMethod() : "?";
+        String uri = request != null ? request.getRequestURI() : "?";
+        log.error("[500 ERROR] {} {} correlationId={} exception={} message={}",
+                method, uri, correlationId, ex.getClass().getName(), ex.getMessage(), ex);
         var errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Erro interno do servidor",

@@ -9,8 +9,10 @@ import com.astrocode.backend.domain.exceptions.EmailNotVerifiedException;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
 import com.astrocode.backend.domain.exceptions.InvalidResetCodeException;
 import com.astrocode.backend.domain.exceptions.InvalidTokenException;
+import com.astrocode.backend.domain.entities.Subscription;
 import com.astrocode.backend.domain.repositories.PasswordResetCodeRepository;
 import com.astrocode.backend.domain.model.enums.PlanType;
+import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +40,7 @@ public class AuthService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final PasswordResetCodeRepository resetCodeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -50,11 +53,13 @@ public class AuthService {
     private String frontendUrl;
 
     public AuthService(UserRepository userRepository,
+                       SubscriptionRepository subscriptionRepository,
                        PasswordResetCodeRepository resetCodeRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        MailService mailService) {
         this.userRepository = userRepository;
+        this.subscriptionRepository = subscriptionRepository;
         this.resetCodeRepository = resetCodeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -95,8 +100,11 @@ public class AuthService {
     }
 
     private LoginResponse buildLoginResponse(User user) {
-        var sub = user.getSubscription();
-        var planType = sub != null ? sub.getPlanType() : PlanType.FREE;
+        // Fonte de verdade: tabela subscriptions (evita inconsistência do @OneToOne inverso após cadastro)
+        Subscription sub = subscriptionRepository.findByUserId(user.getId()).orElse(null);
+        PlanType planType = sub != null ? sub.getPlanType() : PlanType.FREE;
+        boolean isPro = sub != null && sub.hasActivePaidSubscription();
+        boolean isElite = sub != null && sub.isEliteAnnualPlan();
 
         String accessToken = jwtService.generateToken(user.getId(), user.getEmail(),
                 planType, sub != null ? sub.getExpiresAt() : null);
@@ -113,8 +121,8 @@ public class AuthService {
                 user.getName(),
                 user.getEmail(),
                 planType.name(),
-                user.isPro(),
-                user.isElite(),
+                isPro,
+                isElite,
                 sub != null ? sub.getExpiresAt() : null
         );
     }

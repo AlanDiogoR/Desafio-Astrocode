@@ -1,7 +1,5 @@
 package com.astrocode.backend.domain.entities;
 
-import com.astrocode.backend.domain.model.enums.PlanType;
-import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -97,18 +95,11 @@ public class User {
     private String refreshTokenHash;
 
     public boolean isPro() {
-        if (subscription == null) return false;
-        if (subscription.getStatus() != SubscriptionStatus.ACTIVE) return false;
-        if (subscription.getPlanType() == PlanType.FREE) return false;
-        if (subscription.getExpiresAt() != null
-                && java.time.OffsetDateTime.now().isAfter(subscription.getExpiresAt())) {
-            return false;
-        }
-        return true;
+        return subscription != null && subscription.hasActivePaidSubscription();
     }
 
     public boolean isElite() {
-        return isPro() && subscription.getPlanType() == PlanType.ANNUAL;
+        return subscription != null && subscription.isEliteAnnualPlan();
     }
 
     @PrePersist
