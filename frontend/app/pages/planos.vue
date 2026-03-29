@@ -108,13 +108,25 @@ function getMonthlyEquivalent(price: number, months: number): string | null {
 
 const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
 
+type MpPlanId = 'PRO_MONTHLY' | 'PRO_SEMIANNUAL' | 'PRO_ANNUAL'
+
+function apiPlanToMpPlanId(planId: string): MpPlanId {
+  const map: Record<string, MpPlanId> = {
+    MONTHLY: 'PRO_MONTHLY',
+    SEMIANNUAL: 'PRO_SEMIANNUAL',
+    ANNUAL: 'PRO_ANNUAL',
+  }
+  return map[planId] ?? 'PRO_MONTHLY'
+}
+
 function goAssinar(planId: string) {
+  const mp = apiPlanToMpPlanId(planId)
   if (!authStore.isLoggedIn) {
-    const checkoutUrl = `/planos/checkout?plano=${planId}`
+    const checkoutUrl = `/subscription/checkout?plan=${mp}`
     void router.push(`/login?redirect=${encodeURIComponent(checkoutUrl)}`)
     return
   }
-  void router.push({ path: '/planos/checkout', query: { plano: planId } })
+  void router.push({ path: '/subscription/checkout', query: { plan: mp } })
 }
 
 </script>

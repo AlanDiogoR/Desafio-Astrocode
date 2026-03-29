@@ -107,20 +107,9 @@ function apiPlanToMpPlanId(planId: string): MpPlanId {
   return id
 }
 
-const isMpLoading = ref(false)
-
-async function handleMpSubscribe(planId: string) {
-  isMpLoading.value = true
-  try {
-    const { subscriptionService } = await import('~/services/subscription/subscriptionService')
-    const mpPlanId = apiPlanToMpPlanId(planId)
-    const { checkoutUrl } = await subscriptionService.createCheckout(mpPlanId)
-    window.location.href = checkoutUrl
-  } catch {
-    toast?.error('Erro ao iniciar o pagamento. Tente novamente.')
-  } finally {
-    isMpLoading.value = false
-  }
+function handleSubscribe(planId: string) {
+  const mpPlanId = apiPlanToMpPlanId(planId)
+  navigateTo(`/subscription/checkout?plan=${mpPlanId}`)
 }
 </script>
 
@@ -143,7 +132,7 @@ async function handleMpSubscribe(planId: string) {
         Planos Grivy
       </h1>
       <p class="planos-page__subtitle">
-        Escolha o plano e conclua o pagamento no Mercado Pago
+        Escolha o plano e pague com cartão com segurança na próxima tela
       </p>
 
       <section v-if="subscription" class="planos-page__current mb-8">
@@ -224,9 +213,7 @@ async function handleMpSubscribe(planId: string) {
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
-                :loading="isMpLoading"
-                :disabled="isMpLoading"
-                @click.stop.prevent="handleMpSubscribe(plan.id)"
+                @click.stop.prevent="handleSubscribe(plan.id)"
               >
                 Assinar
               </v-btn>

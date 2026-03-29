@@ -10,9 +10,6 @@ const PUBLIC_PATHS = [
   '/forgot-password',
   '/planos',
   '/verify-email',
-  '/subscription/success',
-  '/subscription/cancelled',
-  '/subscription/pending',
 ] as const
 
 function isPublicRoute(path: string): path is (typeof PUBLIC_PATHS)[number] {

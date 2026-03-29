@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { subscriptionService, type PaymentResponse } from '~/services/subscription/subscriptionService'
+
 const props = defineProps<{
   publicKey: string
-  planType: string
+  /** Ex.: PRO_MONTHLY (Mercado Pago checkout plan id) */
+  planId: string
   amount: number
 }>()
 
 const emit = defineEmits<{
-  success: [result: unknown]
+  success: [result: PaymentResponse]
+  pending: [result: PaymentResponse]
   error: [message: string]
 }>()
 
@@ -96,22 +100,33 @@ onMounted(async () => {
             return Promise.reject(new Error('payment_method_id ausente'))
           }
 
-          const { $api } = useNuxtApp()
-          return import('~/services/subscription/checkout')
-            .then(({ checkout }) =>
-              checkout($api, {
-                planType: props.planType,
-                token,
-                paymentMethodId,
-                installments: formData.installments ?? 1,
-                payerEmail,
-                payerIdentificationType: formData.payer?.identification?.type,
-                payerIdentificationNumber: formData.payer?.identification?.number,
-                issuerId,
-              })
-            )
+          return subscriptionService
+            .processPayment({
+              token,
+              transactionAmount: props.amount,
+              installments: formData.installments ?? 1,
+              paymentMethodId,
+              planId: props.planId,
+              payer: {
+                email: payerEmail,
+                identification:
+                  formData.payer?.identification?.type && formData.payer?.identification?.number
+                    ? {
+                        type: formData.payer.identification.type,
+                        number: formData.payer.identification.number,
+                      }
+                    : undefined,
+              },
+              issuerId,
+            })
             .then((result) => {
-              emit('success', result)
+              if (result.status === 'approved') {
+                emit('success', result)
+              } else if (result.status === 'pending' || result.status === 'in_process') {
+                emit('pending', result)
+              } else {
+                emit('error', result.message)
+              }
             })
             .catch((e: unknown) => {
               const err = e as { response?: { data?: { message?: string } } }

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Plans, type MpPlanId } from '~/constants/plans'
+import type { PaymentResponse } from '~/services/subscription/subscriptionService'
+
 definePageMeta({
   layout: 'default',
 })
@@ -9,50 +12,37 @@ const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 const { $api } = useNuxtApp()
 const { refetch: refetchUser } = useUser()
 
-const VALID_PLAN_IDS = ['MONTHLY', 'SEMIANNUAL', 'ANNUAL'] as const
+const VALID_MP_PLANS: MpPlanId[] = ['PRO_MONTHLY', 'PRO_SEMIANNUAL', 'PRO_ANNUAL']
 const REDIRECT_DELAY_MS = 2500
 
 const planId = computed(() => {
-  const p = (route.query.plano as string) || 'MONTHLY'
-  return VALID_PLAN_IDS.includes(p as (typeof VALID_PLAN_IDS)[number]) ? p : 'MONTHLY'
+  const p = (route.query.plan as string) || 'PRO_MONTHLY'
+  return VALID_MP_PLANS.includes(p as MpPlanId) ? (p as MpPlanId) : 'PRO_MONTHLY'
 })
 
-const mpPlanId = computed(() => {
-  const map: Record<string, 'PRO_MONTHLY' | 'PRO_SEMIANNUAL' | 'PRO_ANNUAL'> = {
-    MONTHLY: 'PRO_MONTHLY',
-    SEMIANNUAL: 'PRO_SEMIANNUAL',
-    ANNUAL: 'PRO_ANNUAL',
-  }
-  return map[planId.value] ?? 'PRO_MONTHLY'
-})
-
-const planLabel = computed(() => {
-  const labels: Record<string, string> = {
-    MONTHLY: 'Pro Mensal',
-    SEMIANNUAL: 'Pro Semestral',
-    ANNUAL: 'Elite Anual',
-  }
-  return labels[planId.value] ?? planId.value
-})
+const selectedPlan = computed(() => Plans[planId.value])
 
 const plans = ref<Array<{ id: string; price: number }>>([])
 const planAmount = computed(() => {
-  const plan = plans.value.find((p) => p.id === planId.value)
-  return plan?.price ?? 19.9
+  const map: Record<MpPlanId, string> = {
+    PRO_MONTHLY: 'MONTHLY',
+    PRO_SEMIANNUAL: 'SEMIANNUAL',
+    PRO_ANNUAL: 'ANNUAL',
+  }
+  const apiId = map[planId.value]
+  const plan = plans.value.find((p) => p.id === apiId)
+  return plan?.price ?? selectedPlan.value.price
 })
 
 const mpPublicKey = ref('')
 const isLoadingConfig = ref(true)
 const success = ref(false)
+const pendingInfo = ref<PaymentResponse | null>(null)
 const errorMessage = ref<string | null>(null)
-const resultData = ref<unknown>(null)
 
 onMounted(async () => {
-  if (!VALID_PLAN_IDS.includes(planId.value as (typeof VALID_PLAN_IDS)[number])) {
-    return navigateTo('/dashboard/planos')
-  }
   if (!authStore.isLoggedIn) {
-    const redirectUrl = `/planos/checkout?plano=${planId.value}`
+    const redirectUrl = `/subscription/checkout?plan=${planId.value}`
     return navigateTo('/login?redirect=' + encodeURIComponent(redirectUrl), { replace: true })
   }
   try {
@@ -73,32 +63,34 @@ onMounted(async () => {
   }
 })
 
-async function handleSuccess(result: unknown) {
-  resultData.value = result
+async function handleSuccess(result: PaymentResponse) {
+  pendingInfo.value = null
   success.value = true
   errorMessage.value = null
-  toast?.success('Assinatura ativada com sucesso! Redirecionando...')
+  toast?.success(result.message || 'Assinatura ativada! Redirecionando...')
   const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
-  const { useQueryClient } = await import('@tanstack/vue-query')
   const res = await refetchUser()
   if (res.data) {
     authStore.setUser(mapApiUserToStoreUser(res.data))
   }
+  const { useQueryClient } = await import('@tanstack/vue-query')
   useQueryClient().invalidateQueries({ queryKey: ['subscription-status'] })
   setTimeout(() => {
     navigateTo('/dashboard', { replace: true })
   }, REDIRECT_DELAY_MS)
 }
 
-function handlePending() {
-  toast?.success('Pagamento em análise. Você receberá a confirmação em breve.')
+function handlePending(result: PaymentResponse) {
+  pendingInfo.value = result
+  success.value = false
+  errorMessage.value = null
+  toast?.success(result.message || 'Pagamento em análise.')
 }
 
 function handleError(msg: string) {
   errorMessage.value = msg
   toast?.error(msg)
 }
-
 </script>
 
 <template>
@@ -122,7 +114,7 @@ function handleError(msg: string) {
       </div>
       <template v-else>
         <h1 class="checkout-page__title">
-          Checkout - {{ planLabel }}
+          Assinar {{ selectedPlan.name }}
         </h1>
         <p class="checkout-page__amount text-h6 mb-4">
           {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planAmount) }}
@@ -137,16 +129,20 @@ function handleError(msg: string) {
       </v-alert>
 
       <v-alert v-if="success" type="success" class="mb-4">
-        Assinatura ativada com sucesso! Redirecionando para sua conta...
+        Pagamento aprovado! Redirecionando para sua conta...
         <v-btn class="mt-2" color="primary" to="/dashboard">
           Ir agora
         </v-btn>
       </v-alert>
 
+      <v-alert v-if="pendingInfo" type="info" class="mb-4" border="start">
+        {{ pendingInfo.message }}
+      </v-alert>
+
       <div v-if="!success && !isLoadingConfig && mpPublicKey" class="checkout-page__form">
         <MercadoPagoCardForm
           :public-key="mpPublicKey"
-          :plan-id="mpPlanId"
+          :plan-id="planId"
           :amount="planAmount"
           @success="handleSuccess"
           @pending="handlePending"

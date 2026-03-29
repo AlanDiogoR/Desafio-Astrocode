@@ -1,40 +1,31 @@
 package com.astrocode.backend.domain.services;
 
-import com.astrocode.backend.api.dto.subscription.CheckoutRequest;
-import com.astrocode.backend.api.dto.subscription.CheckoutResponse;
+import com.astrocode.backend.api.dto.subscription.PaymentRequest;
+import com.astrocode.backend.api.dto.subscription.PaymentResponse;
 import com.astrocode.backend.api.dto.subscription.PlanInfo;
-import com.astrocode.backend.api.dto.subscription.PreferenceCheckoutResponse;
 import com.astrocode.backend.api.dto.subscription.SubscriptionResponse;
-import com.astrocode.backend.api.dto.subscription.SubscriptionStatusApiResponse;
+import com.astrocode.backend.api.dto.subscription.SubscriptionStatusResponse;
 import com.astrocode.backend.domain.entities.Subscription;
 import com.astrocode.backend.domain.entities.User;
-import com.astrocode.backend.domain.exceptions.PaymentRejectedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.model.MpCheckoutPlanId;
 import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
-import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
-import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferencePayerRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
-import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -46,31 +37,22 @@ import java.util.UUID;
 public class SubscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(SubscriptionService.class);
-    private static final BigDecimal PRICE_MONTHLY = new BigDecimal("9.90");
+    private static final BigDecimal PRICE_MONTHLY = new BigDecimal("19.90");
     private static final BigDecimal PRICE_SEMIANNUAL = new BigDecimal("49.90");
-    private static final BigDecimal PRICE_ANNUAL = new BigDecimal("89.90");
-    private static final BigDecimal MIN_ANNUAL_THRESHOLD = new BigDecimal("80");
+    private static final BigDecimal PRICE_ANNUAL = new BigDecimal("179.90");
+    private static final BigDecimal MIN_ANNUAL_THRESHOLD = new BigDecimal("150");
     private static final BigDecimal MIN_SEMIANNUAL_THRESHOLD = new BigDecimal("40");
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final PaymentClient paymentClient;
-    private final PreferenceClient preferenceClient;
-
-    @Value("${app.frontend-url:http://localhost:3000}")
-    private String frontendUrl;
-
-    @Value("${app.webhook.base-url:}")
-    private String webhookBaseUrl;
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository,
-                              UserRepository userRepository,
-                              PaymentClient paymentClient,
-                              PreferenceClient preferenceClient) {
+                               UserRepository userRepository,
+                               PaymentClient paymentClient) {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
         this.paymentClient = paymentClient;
-        this.preferenceClient = preferenceClient;
     }
 
     public Optional<Subscription> findByUserId(UUID userId) {
@@ -102,149 +84,115 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public SubscriptionStatusApiResponse getSubscriptionStatusForApi(UUID userId) {
+    public SubscriptionStatusResponse getStatus(UUID userId) {
         Subscription sub = getSubscriptionOrThrow(userId);
-        String status;
+        String plan;
         if (sub.getStatus() == SubscriptionStatus.CANCELLED) {
-            status = "CANCELLED";
+            plan = "FREE";
         } else if (sub.getPlanType() != PlanType.FREE && sub.getStatus() == SubscriptionStatus.ACTIVE) {
-            status = "PRO";
+            plan = "PRO";
         } else {
-            status = "FREE";
+            plan = "FREE";
         }
-        boolean isActive = "PRO".equals(status)
+        boolean isActive = "PRO".equals(plan)
                 && sub.getExpiresAt() != null
                 && sub.getExpiresAt().isAfter(OffsetDateTime.now());
         LocalDateTime expires = sub.getExpiresAt() != null ? sub.getExpiresAt().toLocalDateTime() : null;
-        return new SubscriptionStatusApiResponse(status, expires, isActive);
+        return new SubscriptionStatusResponse(isActive ? "PRO" : "FREE", isActive, expires);
     }
 
     /**
-     * Checkout por Preferência Mercado Pago (redirect). O webhook usa o mesmo {@code external_reference}
-     * {@code sub:{subscriptionId}:{PlanType}} que o fluxo transparente.
+     * Checkout transparente: token do cartão gerado no browser (MP.js).
      */
     @Transactional
-    public PreferenceCheckoutResponse createPreferenceCheckout(UUID userId, String planId) {
-        PlanType planType = MpCheckoutPlanId.toPlanType(planId);
+    public PaymentResponse processPayment(UUID userId, PaymentRequest request) {
+        PlanType planType = MpCheckoutPlanId.toPlanType(request.planId());
         if (planType == PlanType.FREE) {
-            throw new IllegalStateException("Plano FREE não requer checkout");
-        }
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-        Subscription subscription = getOrCreateFree(user);
-        BigDecimal unitPrice = getPrice(planType);
-        String externalRef = "sub:" + subscription.getId() + ":" + planType.name();
-
-        String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
-        if (webhookBaseUrl == null || webhookBaseUrl.isBlank()) {
-            throw new IllegalStateException(
-                    "APP_WEBHOOK_BASE_URL não configurado. Defina a URL pública do backend para notificações do Mercado Pago.");
-        }
-        String notify = webhookBaseUrl.replaceAll("/$", "") + "/api/subscriptions/webhook";
-
-        PreferenceItemRequest item = PreferenceItemRequest.builder()
-                .title("Grivy Pro — " + planType.name())
-                .quantity(1)
-                .unitPrice(unitPrice)
-                .currencyId("BRL")
-                .build();
-
-        PreferenceRequest prefReq = PreferenceRequest.builder()
-                .items(List.of(item))
-                .payer(PreferencePayerRequest.builder().email(user.getEmail()).build())
-                .externalReference(externalRef)
-                .backUrls(PreferenceBackUrlsRequest.builder()
-                        .success(base + "/subscription/success")
-                        .failure(base + "/subscription/cancelled")
-                        .pending(base + "/subscription/pending")
-                        .build())
-                .autoReturn("approved")
-                .notificationUrl(notify)
-                .build();
-
-        try {
-            Preference pref = preferenceClient.create(prefReq);
-            String checkoutUrl = pref.getSandboxInitPoint() != null && !pref.getSandboxInitPoint().isBlank()
-                    ? pref.getSandboxInitPoint()
-                    : pref.getInitPoint();
-            if (checkoutUrl == null || checkoutUrl.isBlank()) {
-                throw new PaymentRejectedException("Mercado Pago não retornou URL de checkout.");
-            }
-            return new PreferenceCheckoutResponse(checkoutUrl, pref.getId());
-        } catch (MPException | MPApiException e) {
-            throw new PaymentRejectedException("Erro ao criar preferência no Mercado Pago: " + e.getMessage(), e);
-        }
-    }
-
-    @Transactional
-    public CheckoutResponse processPayment(UUID userId, CheckoutRequest request) {
-        if (request.planType() == PlanType.FREE) {
             throw new IllegalStateException("Plano FREE não requer pagamento");
         }
 
+        BigDecimal expectedAmount = getPrice(planType).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal sentAmount = request.transactionAmount().setScale(2, RoundingMode.HALF_UP);
+        if (expectedAmount.compareTo(sentAmount) != 0) {
+            throw new IllegalArgumentException("Valor não confere com o plano selecionado.");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         Subscription subscription = getOrCreateFree(user);
-        BigDecimal amount = getPrice(request.planType());
-        String externalRef = "sub:" + subscription.getId() + ":" + request.planType().name();
+        String externalRef = "sub:" + subscription.getId() + ":" + planType.name();
 
         var payerBuilder = PaymentPayerRequest.builder()
-                .email(request.payerEmail());
-
-        if (request.payerIdentificationType() != null && !request.payerIdentificationType().isBlank()
-                && request.payerIdentificationNumber() != null && !request.payerIdentificationNumber().isBlank()) {
-            payerBuilder.identification(IdentificationRequest.builder()
-                    .type(request.payerIdentificationType())
-                    .number(request.payerIdentificationNumber())
-                    .build());
+                .email(request.payer().email());
+        if (request.payer().firstName() != null && !request.payer().firstName().isBlank()) {
+            payerBuilder.firstName(request.payer().firstName());
+        }
+        if (request.payer().lastName() != null && !request.payer().lastName().isBlank()) {
+            payerBuilder.lastName(request.payer().lastName());
+        }
+        if (request.payer().identification() != null
+                && request.payer().identification().number() != null
+                && !request.payer().identification().number().isBlank()) {
+            payerBuilder.identification(
+                    com.mercadopago.client.common.IdentificationRequest.builder()
+                            .type(request.payer().identification().type())
+                            .number(request.payer().identification().number())
+                            .build()
+            );
         }
 
         var paymentRequestBuilder = PaymentCreateRequest.builder()
-                .transactionAmount(amount)
                 .token(request.token())
-                .paymentMethodId(request.paymentMethodId())
+                .transactionAmount(request.transactionAmount())
                 .installments(request.installments())
-                .description("Grivy - Plano " + request.planType().name())
+                .paymentMethodId(request.paymentMethodId())
+                .description("Grivy - Plano " + planType.name())
                 .externalReference(externalRef)
                 .payer(payerBuilder.build())
                 .statementDescriptor("GRIVY");
         if (request.issuerId() != null && !request.issuerId().isBlank()) {
             paymentRequestBuilder.issuerId(request.issuerId());
         }
-        var paymentRequest = paymentRequestBuilder.build();
 
         Payment payment;
         try {
-            payment = paymentClient.create(paymentRequest);
-        } catch (MPException | MPApiException e) {
-            throw new PaymentRejectedException("Erro ao processar pagamento: " + e.getMessage(), e);
+            payment = paymentClient.create(paymentRequestBuilder.build());
+        } catch (MPApiException e) {
+            log.error("[MP API ERROR] status={} message={}", e.getStatusCode(), e.getMessage());
+            throw new IllegalStateException("Erro na API do Mercado Pago: " + e.getMessage());
+        } catch (MPException e) {
+            log.error("[MP ERROR] {}", e.getMessage());
+            throw new IllegalStateException("Erro ao processar pagamento: " + e.getMessage());
         }
 
         String status = payment.getStatus();
-        if ("rejected".equals(status) || "cancelled".equals(status)) {
-            String detail = payment.getStatusDetail() != null ? payment.getStatusDetail() : status;
-            throw new PaymentRejectedException("Pagamento recusado: " + detail);
-        }
+        log.info("[MP] Pagamento criado: id={} status={} detail={}",
+                payment.getId(), status, payment.getStatusDetail());
 
         subscription.setMpPaymentId(payment.getId() != null ? String.valueOf(payment.getId()) : null);
         subscription.setMpExternalReference(externalRef);
 
         if ("approved".equals(status)) {
-            activatePaidPlan(subscription, request.planType(), amount, payment.getId());
+            activatePaidPlan(subscription, planType, request.transactionAmount(), payment.getId());
+            subscription = subscriptionRepository.save(subscription);
+            log.info("AUDITORIA pagamento checkout: userId={} subscriptionId={} planType={} mpPaymentId={} status={} amount={}",
+                    userId, subscription.getId(), planType, payment.getId(), status, request.transactionAmount());
+            return new PaymentResponse(
+                    payment.getId(),
+                    status,
+                    payment.getStatusDetail(),
+                    "Pagamento aprovado! Bem-vindo ao Grivy Pro."
+            );
         }
+
         subscription = subscriptionRepository.save(subscription);
 
-        log.info("AUDITORIA pagamento checkout: userId={} subscriptionId={} planType={} mpPaymentId={} status={} amount={}",
-                userId, subscription.getId(), request.planType(), payment.getId(), status, amount);
-
-        return new CheckoutResponse(
-                subscription.getId(),
-                subscription.getPlanType(),
-                subscription.getStatus(),
-                subscription.getAmountPaid(),
-                subscription.getMpPaymentId(),
-                subscription.getExpiresAt()
+        return new PaymentResponse(
+                payment.getId(),
+                status,
+                payment.getStatusDetail(),
+                translateStatusDetail(payment.getStatusDetail())
         );
     }
 
@@ -254,7 +202,8 @@ public class SubscriptionService {
         try {
             payment = paymentClient.get(mpPaymentId);
         } catch (Exception e) {
-            throw new PaymentRejectedException("Erro ao obter pagamento do Mercado Pago", e);
+            log.error("Erro ao obter pagamento do Mercado Pago: {}", e.getMessage());
+            return;
         }
 
         if (payment == null || !"approved".equals(payment.getStatus())) {
@@ -312,9 +261,15 @@ public class SubscriptionService {
     }
 
     private PlanType inferPlanFromAmount(BigDecimal amount) {
-        if (amount == null) return PlanType.MONTHLY;
-        if (amount.compareTo(PRICE_ANNUAL) <= 0 && amount.compareTo(MIN_ANNUAL_THRESHOLD) >= 0) return PlanType.ANNUAL;
-        if (amount.compareTo(PRICE_SEMIANNUAL) <= 0 && amount.compareTo(MIN_SEMIANNUAL_THRESHOLD) >= 0) return PlanType.SEMIANNUAL;
+        if (amount == null) {
+            return PlanType.MONTHLY;
+        }
+        if (amount.compareTo(PRICE_ANNUAL) <= 0 && amount.compareTo(MIN_ANNUAL_THRESHOLD) >= 0) {
+            return PlanType.ANNUAL;
+        }
+        if (amount.compareTo(PRICE_SEMIANNUAL) <= 0 && amount.compareTo(MIN_SEMIANNUAL_THRESHOLD) >= 0) {
+            return PlanType.SEMIANNUAL;
+        }
         return PlanType.MONTHLY;
     }
 
@@ -387,5 +342,25 @@ public class SubscriptionService {
                 subscription.getAmountPaid(),
                 subscription.getCreatedAt()
         );
+    }
+
+    private String translateStatusDetail(String detail) {
+        if (detail == null) {
+            return "Pagamento não aprovado. Tente novamente.";
+        }
+        return switch (detail) {
+            case "cc_rejected_insufficient_amount" -> "Saldo insuficiente no cartão.";
+            case "cc_rejected_bad_filled_card_number" -> "Número do cartão inválido.";
+            case "cc_rejected_bad_filled_date" -> "Data de validade inválida.";
+            case "cc_rejected_bad_filled_security_code" -> "Código de segurança inválido.";
+            case "cc_rejected_blacklist" -> "Cartão não autorizado. Contate seu banco.";
+            case "cc_rejected_call_for_authorize" -> "Ligue para seu banco para autorizar o pagamento.";
+            case "cc_rejected_card_disabled" -> "Cartão desabilitado. Ative-o com seu banco.";
+            case "cc_rejected_duplicated_payment" -> "Pagamento duplicado. Aguarde antes de tentar novamente.";
+            case "cc_rejected_high_risk" -> "Pagamento recusado por segurança. Tente outro cartão.";
+            case "pending_contingency" -> "Pagamento em análise. Aguarde a confirmação.";
+            case "pending_review_manual" -> "Pagamento em revisão. Confirmaremos em breve por e-mail.";
+            default -> "Pagamento não aprovado (" + detail + "). Tente com outro cartão.";
+        };
     }
 }

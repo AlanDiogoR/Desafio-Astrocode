@@ -1,7 +1,5 @@
 package com.astrocode.backend.api.controllers;
 
-import com.astrocode.backend.api.dto.subscription.CheckoutRequest;
-import com.astrocode.backend.api.dto.subscription.CheckoutResponse;
 import com.astrocode.backend.api.dto.subscription.PlanInfo;
 import com.astrocode.backend.api.dto.subscription.SubscriptionResponse;
 import com.astrocode.backend.domain.entities.User;
@@ -11,14 +9,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Assinaturas", description = "Planos, checkout e gestão de assinatura")
+@Tag(name = "Assinaturas", description = "Planos e gestão de assinatura")
 @RestController
 @RequestMapping("/api/subscription")
 public class SubscriptionController {
@@ -54,24 +51,6 @@ public class SubscriptionController {
         }
         var subscription = subscriptionService.getSubscriptionOrThrow(user.getId());
         return ResponseEntity.ok(subscriptionService.toResponse(subscription));
-    }
-
-    @Operation(summary = "Checkout", description = "Processa pagamento para upgrade de plano")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pagamento processado"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "402", description = "Pagamento recusado"),
-            @ApiResponse(responseCode = "401", description = "Não autenticado")
-    })
-    @SecurityRequirement(name = "bearer-jwt")
-    @PostMapping("/checkout")
-    public ResponseEntity<CheckoutResponse> checkout(@AuthenticationPrincipal User user,
-                                                      @RequestBody @Valid CheckoutRequest request) {
-        if (user == null) {
-            return ResponseEntity.status(401).build();
-        }
-        var response = subscriptionService.processPayment(user.getId(), request);
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Cancelar assinatura", description = "Cancela a assinatura paga do usuário")

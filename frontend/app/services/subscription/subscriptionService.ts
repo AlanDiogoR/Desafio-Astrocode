@@ -1,26 +1,46 @@
-export interface PreferenceCheckoutResponse {
-  checkoutUrl: string
-  preferenceId: string
+export interface PaymentRequest {
+  token: string
+  transactionAmount: number
+  installments: number
+  paymentMethodId: string
+  planId: string
+  payer: {
+    email: string
+    firstName?: string
+    lastName?: string
+    identification?: {
+      type: string
+      number: string
+    }
+  }
+  issuerId?: string
 }
 
-export type SubscriptionStatusLevel = 'FREE' | 'PRO' | 'CANCELLED'
+export type PaymentStatus = 'approved' | 'rejected' | 'pending' | 'in_process'
 
-export interface SubscriptionStatusApi {
-  status: SubscriptionStatusLevel
-  expiresAt: string | null
+export interface PaymentResponse {
+  paymentId: number
+  status: PaymentStatus | string
+  statusDetail: string
+  message: string
+}
+
+export interface SubscriptionStatus {
+  plan: 'FREE' | 'PRO'
   isActive: boolean
+  expiresAt: string | null
 }
 
 export const subscriptionService = {
-  async createCheckout(planId: string): Promise<PreferenceCheckoutResponse> {
+  async processPayment(data: PaymentRequest): Promise<PaymentResponse> {
     const { $api } = useNuxtApp()
-    const { data } = await $api.post<PreferenceCheckoutResponse>('/subscriptions/checkout', { planId })
-    return data
+    const { data: response } = await $api.post<PaymentResponse>('/subscriptions/process-payment', data)
+    return response
   },
 
-  async getStatus(): Promise<SubscriptionStatusApi> {
+  async getStatus(): Promise<SubscriptionStatus> {
     const { $api } = useNuxtApp()
-    const { data } = await $api.get<SubscriptionStatusApi>('/subscriptions/status')
+    const { data } = await $api.get<SubscriptionStatus>('/subscriptions/status')
     return data
   },
 }

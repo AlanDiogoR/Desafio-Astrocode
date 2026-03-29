@@ -2,7 +2,6 @@ package com.astrocode.backend.config;
 
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.preference.PreferenceClient;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +21,7 @@ public class MercadoPagoConfigBean {
     public void init() {
         if (accessToken != null && !accessToken.isBlank()) {
             MercadoPagoConfig.setAccessToken(accessToken);
+            log.info("[MP CONFIG] Mercado Pago inicializado com access token configurado.");
         } else {
             log.warn("[CONFIG] mp.access-token não configurado. Pagamentos não funcionarão.");
         }
@@ -30,10 +30,5 @@ public class MercadoPagoConfigBean {
     @Bean
     public PaymentClient paymentClient() {
         return new PaymentClient();
-    }
-
-    @Bean
-    public PreferenceClient preferenceClient() {
-        return new PreferenceClient();
     }
 }

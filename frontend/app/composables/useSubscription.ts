@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { subscriptionService } from '~/services/subscription/subscriptionService'
 
 export function useSubscription() {
+  const queryClient = useQueryClient()
   const { isValid: hasApiConfig } = useApiConfig()
   const { authToken } = useAuthCookies()
 
@@ -15,5 +16,9 @@ export function useSubscription() {
   const isPro = computed(() => subscriptionStatus.value?.isActive === true)
   const isFree = computed(() => !isPro.value)
 
-  return { subscriptionStatus, isPro, isFree, isLoading }
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ['subscription-status'] })
+  }
+
+  return { subscriptionStatus, isPro, isFree, isLoading, invalidate }
 }
