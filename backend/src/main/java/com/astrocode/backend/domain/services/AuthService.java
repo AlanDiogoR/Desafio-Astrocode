@@ -14,6 +14,7 @@ import com.astrocode.backend.domain.repositories.PasswordResetCodeRepository;
 import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 public class AuthService {
@@ -68,18 +70,32 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailWithSubscription(request.email())
-                .orElseThrow(InvalidCredentialsException::new);
+        try {
+            User user = userRepository.findByEmailWithSubscription(request.email())
+                    .orElseThrow(InvalidCredentialsException::new);
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new InvalidCredentialsException();
+            if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+
+            if (!user.isEmailVerified()) {
+                throw new EmailNotVerifiedException();
+            }
+
+            return buildLoginResponse(user);
+        } catch (InvalidCredentialsException | EmailNotVerifiedException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[LOGIN 500] Erro inesperado no login para email={} | classe={} | mensagem={}",
+                    request.email(),
+                    e.getClass().getName(),
+                    e.getMessage(),
+                    e);
+            if (e instanceof RuntimeException runtime) {
+                throw runtime;
+            }
+            throw new RuntimeException(e);
         }
-
-        if (!user.isEmailVerified()) {
-            throw new EmailNotVerifiedException();
-        }
-
-        return buildLoginResponse(user);
     }
 
     @Transactional
