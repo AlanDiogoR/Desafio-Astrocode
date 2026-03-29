@@ -5,11 +5,10 @@ import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.Transaction;
 import com.astrocode.backend.domain.entities.User;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import com.astrocode.backend.domain.model.enums.AccountType;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,6 +73,7 @@ class TransactionControllerIntegrationTest {
                 .name("Transaction Test User")
                 .email("tx.controller@" + UUID.randomUUID() + ".com")
                 .password(passwordEncoder.encode("senha123"))
+                .emailVerified(true)
                 .build();
         savedUser = userRepository.save(user);
 
@@ -107,12 +107,8 @@ class TransactionControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String setCookie = result.getResponse().getHeader("Set-Cookie");
-        if (setCookie != null && setCookie.contains("auth_token=")) {
-            String cookiePart = setCookie.split(";")[0];
-            return cookiePart.substring("auth_token=".length());
-        }
-        throw new IllegalStateException("Token não encontrado no Set-Cookie");
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        return root.get("accessToken").asText();
     }
 
     @Test

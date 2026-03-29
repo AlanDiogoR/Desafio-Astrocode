@@ -7,16 +7,19 @@ import com.astrocode.backend.domain.entities.Category;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
 import com.astrocode.backend.domain.exceptions.InvalidPasswordException;
+import com.astrocode.backend.domain.exceptions.InvalidTokenException;
 import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -26,13 +29,19 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
 
     public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
-                       SubscriptionRepository subscriptionRepository, PasswordEncoder passwordEncoder) {
+                       SubscriptionRepository subscriptionRepository, PasswordEncoder passwordEncoder,
+                       MailService mailService) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
     }
 
     public UserResponse updateProfile(User user, UpdateProfileRequest request) {
@@ -79,10 +88,13 @@ public class UserService {
             throw new EmailAlreadyExistsException(request.email());
         }
 
+        String verificationToken = UUID.randomUUID().toString();
         var user = User.builder()
                 .name(request.name())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
+                .emailVerified(false)
+                .emailVerificationToken(verificationToken)
                 .build();
 
         User savedUser;
@@ -101,7 +113,30 @@ public class UserService {
                         .build()
         );
 
+        String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
+        mailService.sendEmailVerification(savedUser.getEmail(), base + "/verify-email?token=" + verificationToken);
+
         return toResponse(userRepository.findByIdWithSubscription(savedUser.getId()).orElse(savedUser));
+    }
+
+    @Transactional
+    public void verifyEmail(String token) {
+        if (token == null || token.isBlank()) {
+            throw new InvalidTokenException("Token inválido");
+        }
+        User user = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new InvalidTokenException("Token inválido ou expirado"));
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteCurrentUser(User principal, String password) {
+        if (!passwordEncoder.matches(password, principal.getPassword())) {
+            throw new InvalidPasswordException();
+        }
+        userRepository.delete(principal);
     }
 
     private void createDefaultCategories(User user) {

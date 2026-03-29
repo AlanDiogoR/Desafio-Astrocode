@@ -41,6 +41,7 @@ class AuthServiceTest {
                 .name("Auth Test User")
                 .email("auth.test@" + UUID.randomUUID() + ".com")
                 .password(passwordEncoder.encode("senha123"))
+                .emailVerified(true)
                 .build();
         savedUser = userRepository.save(user);
     }
@@ -53,7 +54,8 @@ class AuthServiceTest {
         var response = authService.login(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.token()).isNotBlank();
+        assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isNotBlank();
         assertThat(response.name()).isEqualTo("Auth Test User");
     }
 

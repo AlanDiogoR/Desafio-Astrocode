@@ -55,14 +55,14 @@ class RateLimitIntegrationTest {
     }
 
     @Test
-    @DisplayName("11 requisições de login em 1 minuto → a 11ª retorna 429 com header Retry-After")
-    void login_11RequestsIn1Minute_11thReturns429() throws Exception {
+    @DisplayName("6 requisições de login em 1 minuto → a 6ª retorna 429 com header Retry-After")
+    void login_6RequestsIn1Minute_6thReturns429() throws Exception {
         Map<String, String> body = new HashMap<>();
         body.put("email", savedUser.getEmail());
         body.put("password", "senhaErrada");
 
         ResultActions lastResult = null;
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 6; i++) {
             lastResult = mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(body)));

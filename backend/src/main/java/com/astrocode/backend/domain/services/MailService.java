@@ -18,6 +18,17 @@ public class MailService {
 
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
     private static final String SUBJECT = "Grivy - Código de recuperação de senha";
+    private static final String EMAIL_VERIFICATION_SUBJECT = "Grivy - Confirme seu e-mail";
+    private static final String EMAIL_VERIFICATION_TEMPLATE = """
+            Olá!
+
+            Confirme seu cadastro no Grivy acessando o link abaixo:
+
+            %s
+
+            Se você não criou uma conta, ignore este e-mail.
+
+            Grivy - Controle Financeiro""";
     private static final String RECURRING_INSUFFICIENT_BALANCE_SUBJECT = "Grivy - Despesa recorrente não registrada";
     private static final String BODY_TEMPLATE = """
             Olá!
@@ -52,6 +63,16 @@ public class MailService {
                 .defaultHeader("accept", "application/json")
                 .defaultHeader("content-type", MediaType.APPLICATION_JSON_VALUE)
                 .build();
+    }
+
+    public void sendEmailVerification(String toEmail, String verificationUrl) {
+        String body = String.format(EMAIL_VERIFICATION_TEMPLATE, verificationUrl);
+        if (brevoApiKey.isBlank()) {
+            log.info("[DEV] Link de verificação para {}: {}", toEmail, verificationUrl);
+            return;
+        }
+        sendViaBrevo(toEmail, EMAIL_VERIFICATION_SUBJECT, body, (e) ->
+                log.warn("[FALLBACK] Brevo falhou ao enviar verificação para {}.", toEmail));
     }
 
     public void sendPasswordResetCode(String toEmail, String code) {

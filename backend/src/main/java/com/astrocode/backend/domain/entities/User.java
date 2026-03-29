@@ -86,6 +86,16 @@ public class User {
     @ToString.Exclude
     private Subscription subscription;
 
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
+    @Column(name = "email_verification_token", length = 255)
+    private String emailVerificationToken;
+
+    @Column(name = "refresh_token_hash", length = 64)
+    private String refreshTokenHash;
+
     public boolean isPro() {
         if (subscription == null) return false;
         if (subscription.getStatus() != SubscriptionStatus.ACTIVE) return false;

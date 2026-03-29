@@ -6,6 +6,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE,
+      /** Public Key Mercado Pago (Checkout Pro / SDK no cliente, se necessário) */
+      mpPublicKey: process.env.NUXT_PUBLIC_MP_PUBLIC_KEY ?? '',
     },
   },
 

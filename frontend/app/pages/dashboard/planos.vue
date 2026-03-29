@@ -5,7 +5,6 @@ definePageMeta({
 
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
-const router = useRouter()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
@@ -93,8 +92,35 @@ function getMonthlyEquivalent(price: number, months: number): string | null {
 
 const monthlyEquivalents = computed(() => paidPlans.value.map((p) => getMonthlyEquivalent(p.price, p.months)))
 
-function goCheckout(planId: string) {
-  void router.push({ path: '/planos/checkout', query: { plano: planId } })
+type MpPlanId = 'PRO_MONTHLY' | 'PRO_SEMIANNUAL' | 'PRO_ANNUAL'
+
+function apiPlanToMpPlanId(planId: string): MpPlanId {
+  const map: Record<string, MpPlanId> = {
+    MONTHLY: 'PRO_MONTHLY',
+    SEMIANNUAL: 'PRO_SEMIANNUAL',
+    ANNUAL: 'PRO_ANNUAL',
+  }
+  const id = map[planId]
+  if (!id) {
+    throw new Error(`Plano não suportado no checkout Mercado Pago: ${planId}`)
+  }
+  return id
+}
+
+const isMpLoading = ref(false)
+
+async function handleMpSubscribe(planId: string) {
+  isMpLoading.value = true
+  try {
+    const { subscriptionService } = await import('~/services/subscription/subscriptionService')
+    const mpPlanId = apiPlanToMpPlanId(planId)
+    const { checkoutUrl } = await subscriptionService.createCheckout(mpPlanId)
+    window.location.href = checkoutUrl
+  } catch {
+    toast?.error('Erro ao iniciar o pagamento. Tente novamente.')
+  } finally {
+    isMpLoading.value = false
+  }
 }
 </script>
 
@@ -117,7 +143,7 @@ function goCheckout(planId: string) {
         Planos Grivy
       </h1>
       <p class="planos-page__subtitle">
-        Escolha o plano e conclua o pagamento no checkout
+        Escolha o plano e conclua o pagamento no Mercado Pago
       </p>
 
       <section v-if="subscription" class="planos-page__current mb-8">
@@ -198,7 +224,9 @@ function goCheckout(planId: string) {
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
-                @click.stop.prevent="goCheckout(plan.id)"
+                :loading="isMpLoading"
+                :disabled="isMpLoading"
+                @click.stop.prevent="handleMpSubscribe(plan.id)"
               >
                 Assinar
               </v-btn>

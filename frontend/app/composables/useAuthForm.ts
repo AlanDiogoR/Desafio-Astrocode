@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getErrorMessage } from '~/utils/errorHandler'
 import { login as loginApi } from '~/services/auth/login'
 import { register as registerApi } from '~/services/auth/register'
+import { resendVerificationEmail } from '~/services/auth/resendVerification'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Campo obrigatório').email('E-mail inválido'),
@@ -15,7 +16,14 @@ const registerSchema = loginSchema.extend({
 })
 
 const emailSchema = z.string().min(1, 'Campo obrigatório').email('E-mail inválido')
-const passwordSchema = z.string().min(1, 'Campo obrigatório').min(8, 'A senha deve ter pelo menos 8 caracteres')
+const passwordStrengthRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$/
+const passwordSchema = z
+  .string()
+  .min(1, 'Campo obrigatório')
+  .regex(
+    passwordStrengthRegex,
+    'Senha: 8+ caracteres, 1 maiúscula, 1 número e 1 caractere especial'
+  )
 const nameSchema = z.string().min(1, 'Campo obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres')
 
 interface ApiErrorResponse {
@@ -37,6 +45,8 @@ export function useAuthForm() {
     name: false,
   })
   const hasAttemptedSubmit = ref(false)
+  const showResendVerification = ref(false)
+  const resendPending = ref(false)
 
   const authStore = useAuthStore()
   const router = useRouter()
@@ -128,8 +138,13 @@ export function useAuthForm() {
   function handleLoginError(error: unknown) {
     const axiosError = error as AxiosError<ApiErrorResponse>
     const status = axiosError.response?.status
+    const msg = axiosError.response?.data?.message
+    showResendVerification.value = false
     if (status === 401) {
       passwordError.value = 'E-mail ou senha inválidos'
+    } else if (status === 403 && typeof msg === 'string' && msg.includes('Confirme seu email')) {
+      passwordError.value = msg
+      showResendVerification.value = true
     } else {
       toast.error(getErrorMessage(error, 'Falha ao conectar com o servidor.'))
     }
@@ -155,36 +170,32 @@ export function useAuthForm() {
   const loginMutation = useMutation({
     mutationFn: (payload: { email: string; password: string }) => loginApi(payload),
     onSuccess: (data) => {
-      authStore.setUser({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        plan: (data.plan ?? 'FREE') as import('~/stores/auth').PlanType,
-        isPro: data.isPro ?? false,
-        isElite: data.isElite ?? false,
-        planExpiresAt: data.planExpiresAt ?? null,
-      })
+      const nuxtApp = useNuxtApp()
+      const apply = nuxtApp.$applySessionFromLoginResponse as undefined | ((d: typeof data) => void)
+      if (typeof apply === 'function') {
+        apply(data)
+      } else {
+        const { setSessionTokens } = useAuthCookies()
+        setSessionTokens(data.accessToken, data.refreshToken)
+        authStore.setUser({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          plan: (data.plan ?? 'FREE') as import('~/stores/auth').PlanType,
+          isPro: data.isPro ?? false,
+          isElite: data.isElite ?? false,
+          planExpiresAt: data.planExpiresAt ?? null,
+        })
+      }
       toast.success('Bem-vindo(a) ao Grivy!')
     },
     onError: handleLoginError,
   })
 
   const registerMutation = useMutation({
-    mutationFn: async (payload: { name: string; email: string; password: string }) => {
-      await registerApi(payload)
-      return loginApi({ email: payload.email, password: payload.password })
-    },
-    onSuccess: (data) => {
-      authStore.setUser({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        plan: (data.plan ?? 'FREE') as import('~/stores/auth').PlanType,
-        isPro: data.isPro ?? false,
-        isElite: data.isElite ?? false,
-        planExpiresAt: data.planExpiresAt ?? null,
-      })
-      toast.success('Bem-vindo(a) ao Grivy!')
+    mutationFn: (payload: { name: string; email: string; password: string }) => registerApi(payload),
+    onSuccess: () => {
+      toast.success('Conta criada! Verifique seu e-mail para ativar a conta.')
     },
     onError: handleRegisterError,
   })
@@ -209,11 +220,25 @@ export function useAuthForm() {
         email: email.value,
         password: password.value,
       })
-      const route = useRoute()
-      const redirect = route.query.redirect as string
-      router.replace(redirect && redirect.startsWith('/') ? redirect : '/dashboard')
+      router.replace('/login')
     } catch {
       /* onError já tratou */
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!email.value.trim()) {
+      toast.error('Informe o e-mail.')
+      return
+    }
+    resendPending.value = true
+    try {
+      await resendVerificationEmail(email.value.trim())
+      toast.success('Se o e-mail existir e não estiver verificado, enviaremos um novo link.')
+    } catch {
+      toast.error('Não foi possível reenviar. Tente novamente.')
+    } finally {
+      resendPending.value = false
     }
   }
 
@@ -250,6 +275,9 @@ export function useAuthForm() {
     name,
     loginMutation,
     registerMutation,
+    showResendVerification,
+    resendPending,
+    handleResendVerification,
     emailError,
     passwordError,
     nameError,

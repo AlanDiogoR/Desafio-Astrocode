@@ -5,6 +5,7 @@ export function useLogout() {
   const authStore = useAuthStore()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const { clearSessionTokens } = useAuthCookies()
 
   async function performLogout() {
     try {
@@ -12,6 +13,7 @@ export function useLogout() {
     } catch {
       /* ignora erro - cookie pode já estar expirado */
     }
+    clearSessionTokens()
     authStore.clearAuth()
     if (import.meta.client) {
       queryClient.clear()

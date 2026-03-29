@@ -5,6 +5,7 @@ import com.astrocode.backend.domain.exceptions.AccountNotOwnedException;
 import com.astrocode.backend.domain.exceptions.DuplicateAccountNameException;
 import com.astrocode.backend.domain.exceptions.CategoryTypeMismatchException;
 import com.astrocode.backend.domain.exceptions.EmailAlreadyExistsException;
+import com.astrocode.backend.domain.exceptions.EmailNotVerifiedException;
 import com.astrocode.backend.domain.exceptions.InsufficientBalanceException;
 import com.astrocode.backend.domain.exceptions.InvalidCredentialsException;
 import com.astrocode.backend.domain.exceptions.InvalidPasswordException;
@@ -56,6 +57,16 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNotVerifiedException(EmailNotVerifiedException ex) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)

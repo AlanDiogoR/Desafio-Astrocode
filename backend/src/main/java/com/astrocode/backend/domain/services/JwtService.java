@@ -23,7 +23,7 @@ import java.util.UUID;
 @Service
 public class JwtService {
 
-    private static final int JWT_EXPIRATION_DAYS = 7;
+    private static final int ACCESS_TOKEN_EXPIRATION_MINUTES = 15;
     private static final String USER_ID_CLAIM = "user_id";
     private static final String EMAIL_CLAIM = "email";
     private static final String PLAN_CLAIM = "plan";
@@ -52,7 +52,7 @@ public class JwtService {
 
     public String generateToken(UUID userId, String email, PlanType planType, OffsetDateTime planExpiresAt) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(JWT_EXPIRATION_DAYS, ChronoUnit.DAYS);
+        Instant expiration = now.plus(ACCESS_TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES);
 
         var builder = Jwts.builder()
                 .claim(USER_ID_CLAIM, userId.toString())

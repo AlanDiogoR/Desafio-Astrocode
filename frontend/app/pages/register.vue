@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import zxcvbn from 'zxcvbn'
+
 definePageMeta({
   layout: 'auth',
 })
@@ -21,21 +23,17 @@ const showPassword = ref(false)
 
 const passwordStrength = computed(() => {
   const p = password.value
-  let score = 0
-  if (p.length >= 8) score++
-  if (/[A-Z]/.test(p)) score++
-  if (/[0-9]/.test(p)) score++
-  if (/[^A-Za-z0-9]/.test(p)) score++
-  return Math.min(score, 4)
+  if (!p) return 0
+  return zxcvbn(p).score
 })
 const passwordStrengthPercent = computed(() => (passwordStrength.value / 4) * 100)
 const passwordStrengthColor = computed(() => {
-  const colors = ['#dc2626', '#f59e0b', '#22c55e', '#087f5b']
-  return colors[passwordStrength.value]
+  const colors = ['#dc2626', '#f59e0b', '#eab308', '#22c55e', '#087f5b']
+  return colors[passwordStrength.value] ?? '#dc2626'
 })
 const passwordStrengthLabel = computed(() => {
-  const labels = ['Fraca', 'Razoável', 'Boa', 'Forte']
-  return labels[passwordStrength.value]
+  const labels = ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte']
+  return labels[passwordStrength.value] ?? 'Muito fraca'
 })
 
 async function onSubmit() {

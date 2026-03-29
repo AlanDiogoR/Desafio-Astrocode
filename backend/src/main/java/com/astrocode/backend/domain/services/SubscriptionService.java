@@ -3,11 +3,14 @@ package com.astrocode.backend.domain.services;
 import com.astrocode.backend.api.dto.subscription.CheckoutRequest;
 import com.astrocode.backend.api.dto.subscription.CheckoutResponse;
 import com.astrocode.backend.api.dto.subscription.PlanInfo;
+import com.astrocode.backend.api.dto.subscription.PreferenceCheckoutResponse;
 import com.astrocode.backend.api.dto.subscription.SubscriptionResponse;
+import com.astrocode.backend.api.dto.subscription.SubscriptionStatusApiResponse;
 import com.astrocode.backend.domain.entities.Subscription;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.exceptions.PaymentRejectedException;
 import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
+import com.astrocode.backend.domain.model.MpCheckoutPlanId;
 import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
@@ -16,15 +19,23 @@ import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferencePayerRequest;
+import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -44,13 +55,22 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final PaymentClient paymentClient;
+    private final PreferenceClient preferenceClient;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
+    @Value("${app.webhook.base-url:}")
+    private String webhookBaseUrl;
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository,
                               UserRepository userRepository,
-                              PaymentClient paymentClient) {
+                              PaymentClient paymentClient,
+                              PreferenceClient preferenceClient) {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
         this.paymentClient = paymentClient;
+        this.preferenceClient = preferenceClient;
     }
 
     public Optional<Subscription> findByUserId(UUID userId) {
@@ -79,6 +99,81 @@ public class SubscriptionService {
     public Subscription getSubscriptionOrThrow(UUID userId) {
         return findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assinatura não encontrada"));
+    }
+
+    @Transactional(readOnly = true)
+    public SubscriptionStatusApiResponse getSubscriptionStatusForApi(UUID userId) {
+        Subscription sub = getSubscriptionOrThrow(userId);
+        String status;
+        if (sub.getStatus() == SubscriptionStatus.CANCELLED) {
+            status = "CANCELLED";
+        } else if (sub.getPlanType() != PlanType.FREE && sub.getStatus() == SubscriptionStatus.ACTIVE) {
+            status = "PRO";
+        } else {
+            status = "FREE";
+        }
+        boolean isActive = "PRO".equals(status)
+                && sub.getExpiresAt() != null
+                && sub.getExpiresAt().isAfter(OffsetDateTime.now());
+        LocalDateTime expires = sub.getExpiresAt() != null ? sub.getExpiresAt().toLocalDateTime() : null;
+        return new SubscriptionStatusApiResponse(status, expires, isActive);
+    }
+
+    /**
+     * Checkout por Preferência Mercado Pago (redirect). O webhook usa o mesmo {@code external_reference}
+     * {@code sub:{subscriptionId}:{PlanType}} que o fluxo transparente.
+     */
+    @Transactional
+    public PreferenceCheckoutResponse createPreferenceCheckout(UUID userId, String planId) {
+        PlanType planType = MpCheckoutPlanId.toPlanType(planId);
+        if (planType == PlanType.FREE) {
+            throw new IllegalStateException("Plano FREE não requer checkout");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        Subscription subscription = getOrCreateFree(user);
+        BigDecimal unitPrice = getPrice(planType);
+        String externalRef = "sub:" + subscription.getId() + ":" + planType.name();
+
+        String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
+        if (webhookBaseUrl == null || webhookBaseUrl.isBlank()) {
+            throw new IllegalStateException(
+                    "APP_WEBHOOK_BASE_URL não configurado. Defina a URL pública do backend para notificações do Mercado Pago.");
+        }
+        String notify = webhookBaseUrl.replaceAll("/$", "") + "/api/subscriptions/webhook";
+
+        PreferenceItemRequest item = PreferenceItemRequest.builder()
+                .title("Grivy Pro — " + planType.name())
+                .quantity(1)
+                .unitPrice(unitPrice)
+                .currencyId("BRL")
+                .build();
+
+        PreferenceRequest prefReq = PreferenceRequest.builder()
+                .items(List.of(item))
+                .payer(PreferencePayerRequest.builder().email(user.getEmail()).build())
+                .externalReference(externalRef)
+                .backUrls(PreferenceBackUrlsRequest.builder()
+                        .success(base + "/subscription/success")
+                        .failure(base + "/subscription/cancelled")
+                        .pending(base + "/subscription/pending")
+                        .build())
+                .autoReturn("approved")
+                .notificationUrl(notify)
+                .build();
+
+        try {
+            Preference pref = preferenceClient.create(prefReq);
+            String checkoutUrl = pref.getSandboxInitPoint() != null && !pref.getSandboxInitPoint().isBlank()
+                    ? pref.getSandboxInitPoint()
+                    : pref.getInitPoint();
+            if (checkoutUrl == null || checkoutUrl.isBlank()) {
+                throw new PaymentRejectedException("Mercado Pago não retornou URL de checkout.");
+            }
+            return new PreferenceCheckoutResponse(checkoutUrl, pref.getId());
+        } catch (MPException | MPApiException e) {
+            throw new PaymentRejectedException("Erro ao criar preferência no Mercado Pago: " + e.getMessage(), e);
+        }
     }
 
     @Transactional

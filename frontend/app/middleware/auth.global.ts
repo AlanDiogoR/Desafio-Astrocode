@@ -3,10 +3,20 @@ interface FetchError {
   response?: { status?: number }
 }
 
-const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/planos'] as const
+const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/planos',
+  '/verify-email',
+  '/subscription/success',
+  '/subscription/cancelled',
+  '/subscription/pending',
+] as const
 
 function isPublicRoute(path: string): path is (typeof PUBLIC_PATHS)[number] {
-  return PUBLIC_PATHS.includes(path as (typeof PUBLIC_PATHS)[number])
+  return (PUBLIC_PATHS as readonly string[]).includes(path)
 }
 
 function isUnauthorized(error: unknown): boolean {
@@ -24,10 +34,18 @@ function safeRedirectTarget(query: unknown): string | null {
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const { isValid: hasApiConfig } = useApiConfig()
+  const { authToken } = useAuthCookies()
 
   if (!hasApiConfig) return
 
   const isPublic = isPublicRoute(to.path)
+
+  if (import.meta.server) {
+    if (!isPublic && !authToken.value) {
+      return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
+    }
+    return
+  }
 
   if (authStore.isLoggedIn) {
     if (isPublic && (to.path === '/login' || to.path === '/register')) {
@@ -40,9 +58,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  // $api só existe no cliente; no SSR não dá para chamar /users/me com a sessão do browser.
-  if (import.meta.server) {
-    return
+  if (authToken.value && !authStore.isLoggedIn) {
+    const { refetch } = useUser()
+    const result = await refetch()
+    if (result.data && !result.isError) {
+      const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
+      authStore.setUser(mapApiUserToStoreUser(result.data))
+      if (to.path === '/login' || to.path === '/register') {
+        const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
+        return navigateTo(postLogin)
+      }
+      if (to.path === '/planos') {
+        return navigateTo('/dashboard/planos')
+      }
+      return
+    }
+  }
+
+  if (!authToken.value) {
+    if (isPublic) return
+    authStore.clearAuth()
+    return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
   }
 
   const { refetch } = useUser()

@@ -3,17 +3,17 @@ package com.astrocode.backend.api.controllers;
 import com.astrocode.backend.api.dto.auth.ForgotPasswordRequest;
 import com.astrocode.backend.api.dto.auth.LoginRequest;
 import com.astrocode.backend.api.dto.auth.LoginResponse;
+import com.astrocode.backend.api.dto.auth.RefreshTokenRequest;
+import com.astrocode.backend.api.dto.auth.ResendVerificationRequest;
 import com.astrocode.backend.api.dto.auth.ResetPasswordRequest;
 import com.astrocode.backend.domain.services.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,12 +21,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
+
 @Tag(name = "Autenticação", description = "Login, recuperação de senha e alteração de senha")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
-    private static final int COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
     private final AuthService authService;
     private final com.astrocode.backend.config.LoginRateLimiter loginRateLimiter;
@@ -34,37 +35,42 @@ public class AuthController {
 
     public AuthController(AuthService authService,
                           com.astrocode.backend.config.LoginRateLimiter loginRateLimiter,
-                          @Value("${app.trusted-proxies:}") String trustedProxies) {
+                          @org.springframework.beans.factory.annotation.Value("${app.trusted-proxies:}") String trustedProxies) {
         this.authService = authService;
         this.loginRateLimiter = loginRateLimiter;
         this.trustedProxies = trustedProxies != null ? trustedProxies.trim() : "";
     }
 
-    @Operation(summary = "Login", description = "Define cookie httpOnly com JWT e retorna dados do usuário (token não vem no body)")
+    @Operation(summary = "Login", description = "Retorna access token, refresh token e dados do usuário (SPA persiste cookies no cliente)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
             @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request,
-                                                HttpServletRequest httpRequest,
-                                                HttpServletResponse httpResponse) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request,
+                                   HttpServletRequest httpRequest) {
         String clientIp = getClientIp(httpRequest);
         var bucket = loginRateLimiter.getBucketForIp(clientIp);
         if (!bucket.tryConsume(1)) {
-            return ResponseEntity.status(429)
-                    .header("Retry-After", "60")
-                    .build();
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header(HttpHeaders.RETRY_AFTER, "60")
+                    .body(Map.of("error", "Muitas tentativas. Aguarde 1 minuto."));
         }
         LoginResponse response = authService.login(request);
-        var cookie = new Cookie("auth_token", response.token());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "None");
-        httpResponse.addCookie(cookie);
-        return ResponseEntity.ok(response.withoutToken());
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Refresh token", description = "Emite novo access token e rotaciona refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
+    }
+
+    @Operation(summary = "Reenviar e-mail de verificação", description = "Público; não revela se o e-mail existe")
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(@RequestBody @Valid ResendVerificationRequest request) {
+        authService.resendVerificationEmail(request.email());
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Recuperar senha", description = "Envia e-mail com link/código para redefinição de senha")
@@ -78,42 +84,26 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Redefinir senha", description = "Redefine a senha usando o código recebido por e-mail e define cookie httpOnly com JWT")
+    @Operation(summary = "Redefinir senha", description = "Redefine a senha usando o código recebido por e-mail")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Senha alterada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Código inválido ou expirado")
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<LoginResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request,
-                                                       HttpServletResponse httpResponse) {
+    public ResponseEntity<LoginResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         LoginResponse response = authService.resetPasswordWithCode(request);
-        var cookie = new Cookie("auth_token", response.token());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "None");
-        httpResponse.addCookie(cookie);
-        return ResponseEntity.ok(response.withoutToken());
+        return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Logout", description = "Remove o cookie de autenticação")
+    @Operation(summary = "Logout", description = "Encerra sessão no cliente (tokens invalidados ao rotacionar refresh)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logout realizado")
     })
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse httpResponse) {
-        var cookie = new Cookie("auth_token", "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "None");
-        httpResponse.addCookie(cookie);
+    public ResponseEntity<Void> logout() {
         return ResponseEntity.ok().build();
     }
 
-    /** IP para rate limit: com {@code app.trusted-proxies}, confia em {@code X-Forwarded-For} só se {@code RemoteAddr} for proxy ({@link IpAddressMatcher}). */
     private String getClientIp(HttpServletRequest request) {
         String remoteAddr = request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
         if (trustedProxies.isBlank()) {

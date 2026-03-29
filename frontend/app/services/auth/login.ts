@@ -4,7 +4,9 @@ interface LoginPayload {
 }
 
 export interface LoginResponse {
-  token?: string | null
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
   id: string
   name: string
   email: string

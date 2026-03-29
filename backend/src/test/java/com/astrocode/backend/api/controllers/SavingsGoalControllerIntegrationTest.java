@@ -52,6 +52,7 @@ class SavingsGoalControllerIntegrationTest {
                 .name("Goal Test User")
                 .email("goal.controller@" + UUID.randomUUID() + ".com")
                 .password(passwordEncoder.encode("senha123"))
+                .emailVerified(true)
                 .build();
         savedUser = userRepository.save(user);
         authToken = obtainToken(savedUser.getEmail(), "senha123");
@@ -69,7 +70,7 @@ class SavingsGoalControllerIntegrationTest {
                 .andReturn();
 
         String response = result.getResponse().getContentAsString();
-        return objectMapper.readTree(response).get("token").asText();
+        return objectMapper.readTree(response).get("accessToken").asText();
     }
 
     @Test

@@ -12,6 +12,9 @@ const {
   handleLogin,
   clearFieldError,
   markAsTouched,
+  showResendVerification,
+  resendPending,
+  handleResendVerification,
 } = useAuthForm()
 
 const isPending = computed(() => Boolean(unref(loginMutation.isPending)))
@@ -81,6 +84,19 @@ async function onSubmit() {
       >
         Entrar
       </AppButton>
+
+      <div v-if="showResendVerification" class="mt-4 text-center">
+        <AppButton
+          type="button"
+          color="primary"
+          :block="false"
+          :loading="resendPending"
+          :disabled="resendPending"
+          @click="handleResendVerification"
+        >
+          Reenviar e-mail de verificação
+        </AppButton>
+      </div>
     </v-form>
 
     <p class="page-footer mt-8 text-center">

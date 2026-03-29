@@ -3,6 +3,7 @@ package com.astrocode.backend.api.controllers;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.repositories.BankAccountRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +58,7 @@ class BankAccountControllerIntegrationTest {
                 .name("Controller Test User")
                 .email("bank.controller@" + UUID.randomUUID() + ".com")
                 .password(passwordEncoder.encode("senha123"))
+                .emailVerified(true)
                 .build();
         savedUser = userRepository.save(user);
         authToken = obtainToken(savedUser.getEmail(), "senha123");
@@ -73,12 +75,8 @@ class BankAccountControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String setCookie = result.getResponse().getHeader("Set-Cookie");
-        if (setCookie != null && setCookie.contains("auth_token=")) {
-            String cookiePart = setCookie.split(";")[0];
-            return cookiePart.substring("auth_token=".length());
-        }
-        throw new IllegalStateException("Token não encontrado no Set-Cookie");
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        return root.get("accessToken").asText();
     }
 
     @Test

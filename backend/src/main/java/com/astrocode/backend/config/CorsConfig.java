@@ -1,5 +1,6 @@
 package com.astrocode.backend.config;
 
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,15 +29,18 @@ public class CorsConfig {
 
     private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
 
-    private static final List<String> DEFAULT_ORIGINS = List.of(
-            "https://grivy.netlify.app",
-            "https://www.grivy.netlify.app",
-            "http://localhost:3000",
-            "http://localhost:5173"
-    );
-
     @Value("${app.cors.allowed-origins:}")
     private String allowedOriginsConfig;
+
+    @PostConstruct
+    public void validateConfig() {
+        if (allowedOriginsConfig == null || allowedOriginsConfig.isBlank()) {
+            throw new IllegalStateException(
+                    "APP_CORS_ORIGINS não está configurado. "
+                            + "Defina a variável de ambiente com a URL do frontend (ex: https://grivy.netlify.app)"
+            );
+        }
+    }
 
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
@@ -67,13 +71,10 @@ public class CorsConfig {
     }
 
     private List<String> getAllowedOrigins() {
-        if (allowedOriginsConfig != null && !allowedOriginsConfig.isBlank()) {
-            return Arrays.stream(allowedOriginsConfig.split(","))
-                    .map(String::trim)
-                    .map(s -> s.replaceAll("/$", ""))
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-        }
-        return DEFAULT_ORIGINS;
+        return Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .map(s -> s.replaceAll("/$", ""))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }

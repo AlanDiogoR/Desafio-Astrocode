@@ -7,7 +7,9 @@ import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LoginResponse(
-        String token,
+        String accessToken,
+        String refreshToken,
+        long expiresIn,
         UUID id,
         String name,
         String email,
@@ -16,7 +18,4 @@ public record LoginResponse(
         boolean isElite,
         OffsetDateTime planExpiresAt
 ) {
-    public LoginResponse withoutToken() {
-        return new LoginResponse(null, id, name, email, plan, isPro, isElite, planExpiresAt);
-    }
 }

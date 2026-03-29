@@ -25,8 +25,7 @@ public class LoginRateLimiter {
                 return existing;
             }
             Bucket bucket = Bucket.builder()
-                    .addLimit(Bandwidth.simple(10, Duration.ofMinutes(1)))
-                    .addLimit(Bandwidth.simple(50, Duration.ofHours(1)))
+                    .addLimit(Bandwidth.simple(5, Duration.ofMinutes(1)))
                     .build();
             return new CacheEntry(bucket, now + TTL_MS);
         }).bucket();

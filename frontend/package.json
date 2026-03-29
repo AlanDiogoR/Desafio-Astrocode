@@ -32,7 +32,8 @@
     "vue-router": "^4.6.4",
     "vue3-hot-toast": "^0.0.5",
     "vuetify": "^3.11.8",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@netlify/nuxt": "^0.2.22",

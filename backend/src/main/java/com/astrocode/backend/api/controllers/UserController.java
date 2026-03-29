@@ -1,5 +1,6 @@
 package com.astrocode.backend.api.controllers;
 
+import com.astrocode.backend.api.dto.user.DeleteAccountRequest;
 import com.astrocode.backend.api.dto.user.UpdateProfileRequest;
 import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
 import com.astrocode.backend.api.dto.user.UserResponse;
@@ -14,11 +15,13 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Usuários", description = "Cadastro, perfil e dados do usuário autenticado")
@@ -72,5 +75,29 @@ public class UserController {
     public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRegistrationRequest request) {
         var userResponse = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
+
+    @Operation(summary = "Confirmar e-mail", description = "Valida token enviado por e-mail (público)")
+    @GetMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
+        userService.verifyEmail(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Excluir minha conta", description = "Remove todos os dados do usuário (LGPD)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Conta excluída"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "400", description = "Senha inválida")
+    })
+    @SecurityRequirement(name = "bearer-jwt")
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal User user,
+                                         @RequestBody @Valid DeleteAccountRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        userService.deleteCurrentUser(user, request.password());
+        return ResponseEntity.noContent().build();
     }
 }
