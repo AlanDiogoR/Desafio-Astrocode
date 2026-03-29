@@ -54,6 +54,10 @@ public class AuthService {
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
+    /** Se false, permite login sem e-mail verificado (ex.: Brevo/IP bloqueado). Produção: defina APP_REQUIRE_EMAIL_VERIFICATION=true. */
+    @Value("${app.require-email-verification:false}")
+    private boolean requireEmailVerification;
+
     public AuthService(UserRepository userRepository,
                        SubscriptionRepository subscriptionRepository,
                        PasswordResetCodeRepository resetCodeRepository,
@@ -78,7 +82,7 @@ public class AuthService {
                 throw new InvalidCredentialsException();
             }
 
-            if (!user.isEmailVerified()) {
+            if (requireEmailVerification && !user.isEmailVerified()) {
                 throw new EmailNotVerifiedException();
             }
 

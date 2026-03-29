@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
@@ -84,6 +87,7 @@ public class User {
     @ToString.Exclude
     private Subscription subscription;
 
+    @JdbcTypeCode(SqlTypes.BOOLEAN)
     @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private boolean emailVerified = false;
