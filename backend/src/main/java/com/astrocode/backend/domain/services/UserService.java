@@ -12,6 +12,8 @@ import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -114,7 +118,11 @@ public class UserService {
         );
 
         String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
-        mailService.sendEmailVerification(savedUser.getEmail(), base + "/verify-email?token=" + verificationToken);
+        try {
+            mailService.sendEmailVerification(savedUser.getEmail(), base + "/verify-email?token=" + verificationToken);
+        } catch (Exception e) {
+            log.warn("[MAIL] Falha ao enviar e-mail de verificação para {}: {}", savedUser.getEmail(), e.getMessage());
+        }
 
         return toResponse(userRepository.findByIdWithSubscription(savedUser.getId()).orElse(savedUser));
     }

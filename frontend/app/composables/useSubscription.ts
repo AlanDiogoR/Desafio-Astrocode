@@ -13,13 +13,34 @@ export function useSubscription() {
     enabled: computed(() => !!hasApiConfig && !!authToken.value),
   })
 
+  const planType = computed(
+    () => subscriptionStatus.value?.planType ?? 'FREE',
+  )
+
   const isPro = computed(() => subscriptionStatus.value?.isActive === true)
   const isFree = computed(() => !isPro.value)
   const isElite = computed(() => subscriptionStatus.value?.isElite === true)
+
+  const hasOpenFinance = computed(() => planType.value === 'ANNUAL' && isPro.value)
+
+  const hasCreditCards = computed(() =>
+    ['MONTHLY', 'SEMIANNUAL', 'ANNUAL'].includes(planType.value) && isPro.value,
+  )
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ['subscription-status'] })
   }
 
-  return { subscriptionStatus, isPro, isFree, isElite, isLoading, invalidate }
+  return {
+    subscriptionStatus,
+    isPro,
+    isFree,
+    isElite,
+    isLoading,
+    invalidate,
+    refresh: invalidate,
+    planType,
+    hasOpenFinance,
+    hasCreditCards,
+  }
 }

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppButton from '~/components/ui/AppButton.vue'
+
 definePageMeta({
   layout: 'dashboard',
 })
@@ -32,15 +34,23 @@ function formatSubscriptionDate(iso: string) {
   })
 }
 
-function planButtonLabel(planId: string) {
+const currentPlanName = computed(() => {
+  const id = resolvedCurrentPlanId.value
+  const fromApi = plans.value.find((p) => p.id === id)?.name
+  if (fromApi) return fromApi
+  return authStore.planLabel ?? 'Grátis'
+})
+
+function getPlanButtonLabel(planId: string) {
   if (isCurrentPlanActive(planId)) return 'Plano atual'
-  if (hasActivePaidSubscription.value) return 'Mudar para este plano'
-  return 'Assinar'
+  if (planId === 'FREE') return 'Fazer downgrade'
+  return hasActivePaidSubscription.value ? 'Mudar para este plano' : 'Assinar agora'
 }
 
-function onPlanAction(planId: string) {
-  if (isCurrentPlanActive(planId)) {
-    toast?.info('Você já está neste plano.')
+function handleSelectPlan(planId: string) {
+  if (isCurrentPlanActive(planId)) return
+  if (planId === 'FREE') {
+    toast?.info('Para voltar ao plano Grátis, entre em contato com o suporte em breve.')
     return
   }
   handleSubscribe(planId)
@@ -170,21 +180,21 @@ function handleSubscribe(planId: string) {
       </p>
 
       <section v-if="subscription?.status === 'ACTIVE'" class="planos-page__current mb-8">
-        <v-card variant="tonal" color="primary">
-          <v-card-text>
+        <v-card variant="tonal" color="primary" rounded="xl">
+          <v-card-text class="pa-5">
             <div class="d-flex align-center justify-space-between flex-wrap gap-3">
               <div>
                 <p class="text-caption text-medium-emphasis mb-1">
-                  Plano atual
+                  Seu plano atual
                 </p>
                 <p class="text-h6 font-weight-bold">
-                  {{ authStore.planLabel }}
+                  {{ currentPlanName }}
                 </p>
                 <p v-if="subscription.expiresAt" class="text-body-2 text-medium-emphasis mb-0">
                   Ativo até {{ formatSubscriptionDate(subscription.expiresAt) }}
                 </p>
               </div>
-              <v-chip color="success" size="small">
+              <v-chip color="success" size="small" prepend-icon="mdi-check-circle">
                 Ativo
               </v-chip>
             </div>
@@ -243,18 +253,14 @@ function handleSubscribe(planId: string) {
               </p>
             </div>
             <div class="planos-page__card-actions">
-              <v-btn
-                type="button"
+              <AppButton
                 :color="isCurrentPlanActive(plan.id) ? 'default' : 'primary'"
                 :variant="isCurrentPlanActive(plan.id) ? 'outlined' : 'flat'"
-                block
-                size="large"
-                rounded="lg"
-                class="planos-page__assinar-btn"
-                @click.stop.prevent="onPlanAction(plan.id)"
+                :disabled="isCurrentPlanActive(plan.id)"
+                @click.stop.prevent="handleSelectPlan(plan.id)"
               >
-                {{ planButtonLabel(plan.id) }}
-              </v-btn>
+                {{ getPlanButtonLabel(plan.id) }}
+              </AppButton>
             </div>
           </div>
         </article>

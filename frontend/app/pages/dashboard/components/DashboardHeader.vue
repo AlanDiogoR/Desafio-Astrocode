@@ -7,6 +7,10 @@ const authStore = useAuthStore()
 const router = useRouter()
 const { openEditProfileModal } = useDashboard()
 
+function goDashboard() {
+  void router.push('/dashboard')
+}
+
 function goPlanos() {
   void router.push('/dashboard/planos')
 }
@@ -24,11 +28,26 @@ const userInitials = computed(() => {
 
 <template>
   <header class="dashboard-header">
-    <div class="dashboard-header__logo">
-      <AppLogo
+    <div class="dashboard-header__left d-flex align-center gap-1 flex-shrink-0 min-width-0">
+      <div
+        class="dashboard-header__logo"
+        role="link"
+        tabindex="0"
+        @click="goDashboard"
+        @keydown.enter="goDashboard"
+      >
+        <AppLogo color="primary" :size="28" />
+      </div>
+      <v-btn
+        to="/dashboard/open-finance"
+        variant="text"
         color="primary"
-        :size="28"
-      />
+        class="text-none dashboard-header__open-finance"
+        prepend-icon="mdi-bank-transfer"
+      >
+        <span class="d-none d-sm-inline">Open Finance</span>
+        <span class="d-sm-none">Finance</span>
+      </v-btn>
     </div>
     <div class="dashboard-header__actions d-flex align-center gap-2">
       <v-btn
@@ -71,8 +90,17 @@ const userInitials = computed(() => {
   background-color: white;
 }
 
+.dashboard-header__left {
+  flex: 1;
+  min-width: 0;
+}
+
 .dashboard-header__logo {
   flex-shrink: 0;
+}
+
+.dashboard-header__open-finance {
+  font-weight: 600;
 }
 
 .dashboard-header__actions {

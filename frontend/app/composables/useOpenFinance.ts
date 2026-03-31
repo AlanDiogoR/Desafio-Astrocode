@@ -66,7 +66,10 @@ export function useOpenFinance() {
       const status = err?.response?.status
       const dataMsg = err?.response?.data?.message
       let msg = 'Erro ao abrir Open Finance.'
-      if (status === 402 || status === 403) {
+      if (status === 503) {
+        msg = 'Open Finance temporariamente indisponível. Tente novamente mais tarde.'
+      }
+      else if (status === 402 || status === 403) {
         msg = 'Open Finance está disponível no plano Elite Anual.'
       }
       else if (typeof dataMsg === 'string' && dataMsg.length > 0) {

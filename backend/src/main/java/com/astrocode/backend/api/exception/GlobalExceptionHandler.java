@@ -221,7 +221,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
-        String safeMessage = sanitizeSensitiveMessage(ex.getMessage());
+        String raw = ex.getMessage();
+        if (raw != null && raw.startsWith("Open Finance não está configurado")) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorResponse(503, raw, OffsetDateTime.now()));
+        }
+        String safeMessage = sanitizeSensitiveMessage(raw);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(400, safeMessage, OffsetDateTime.now()));
     }
