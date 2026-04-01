@@ -5,7 +5,7 @@ public class PlanUpgradeRequiredException extends RuntimeException {
     private final String feature;
 
     public PlanUpgradeRequiredException(String feature) {
-        super("Você atingiu o limite do plano gratuito. Faça upgrade para continuar.");
+        super("Esse recurso faz parte do Grivy Pro ou Elite. Faça upgrade para desbloquear.");
         this.feature = feature;
     }
 

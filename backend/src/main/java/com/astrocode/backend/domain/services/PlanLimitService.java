@@ -47,7 +47,9 @@ public class PlanLimitService {
         long count = transactionRepository.countByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
         if (count >= FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH) {
             throw new PlanUpgradeRequiredException(
-                    "Você atingiu o limite de " + FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH + " transações no mês no plano gratuito. Faça upgrade para continuar.",
+                    "Seu controle financeiro está evoluindo! Você atingiu o limite de "
+                            + FREE_PLAN_TRANSACTION_LIMIT_PER_MONTH
+                            + " transações do plano Free. Libere transações ilimitadas agora no Grivy Pro e nunca mais perca um lançamento.",
                     "transactions");
         }
     }
@@ -63,7 +65,9 @@ public class PlanLimitService {
         long count = bankAccountRepository.countByUser_Id(userId);
         if (count >= FREE_PLAN_ACCOUNT_LIMIT) {
             throw new PlanUpgradeRequiredException(
-                    "Você atingiu o limite de " + FREE_PLAN_ACCOUNT_LIMIT + " contas no plano gratuito. Faça upgrade para continuar.",
+                    "Seu controle financeiro está evoluindo! Você atingiu o limite de "
+                            + FREE_PLAN_ACCOUNT_LIMIT
+                            + " contas do plano Free. Faça upgrade para o Grivy Pro e organize todas as suas contas em um só lugar.",
                     "accounts");
         }
     }
@@ -79,7 +83,9 @@ public class PlanLimitService {
         long activeCount = savingsGoalRepository.countActiveByUserId(userId);
         if (activeCount >= FREE_PLAN_ACTIVE_GOAL_LIMIT) {
             throw new PlanUpgradeRequiredException(
-                    "Você atingiu o limite de " + FREE_PLAN_ACTIVE_GOAL_LIMIT + " metas ativas no plano gratuito. Faça upgrade para continuar.",
+                    "Seu controle financeiro está evoluindo! Você atingiu o limite de "
+                            + FREE_PLAN_ACTIVE_GOAL_LIMIT
+                            + " metas ativas do plano Free. Libere metas ilimitadas no Grivy Pro e acompanhe todos os seus sonhos.",
                     "goals");
         }
     }

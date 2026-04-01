@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { clearStubbedNuxtStateKey } from '../../../vitest.setup'
 import { useMonthSelector } from '~/composables/useMonthSelector'
 
 describe('useMonthSelector', () => {
+  beforeEach(() => {
+    clearStubbedNuxtStateKey('dashboard-month-key')
+  })
+
   it('goToNextMonth a partir de dezembro vai para janeiro do ano seguinte', () => {
     const { selectedDate, goToNextMonth } = useMonthSelector()
     selectedDate.value = new Date(2024, 11, 15) // 15 dez 2024

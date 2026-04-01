@@ -11,6 +11,7 @@ import com.astrocode.backend.domain.exceptions.ResourceNotFoundException;
 import com.astrocode.backend.domain.model.MpCheckoutPlanId;
 import com.astrocode.backend.domain.model.enums.PlanType;
 import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
+import com.astrocode.backend.config.SubscriptionPricingProperties;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.mercadopago.client.payment.PaymentClient;
@@ -37,22 +38,20 @@ import java.util.UUID;
 public class SubscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(SubscriptionService.class);
-    private static final BigDecimal PRICE_MONTHLY = new BigDecimal("19.90");
-    private static final BigDecimal PRICE_SEMIANNUAL = new BigDecimal("49.90");
-    private static final BigDecimal PRICE_ANNUAL = new BigDecimal("179.90");
-    private static final BigDecimal MIN_ANNUAL_THRESHOLD = new BigDecimal("150");
-    private static final BigDecimal MIN_SEMIANNUAL_THRESHOLD = new BigDecimal("40");
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final PaymentClient paymentClient;
+    private final SubscriptionPricingProperties pricing;
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository,
                                UserRepository userRepository,
-                               PaymentClient paymentClient) {
+                               PaymentClient paymentClient,
+                               SubscriptionPricingProperties pricing) {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
         this.paymentClient = paymentClient;
+        this.pricing = pricing;
     }
 
     public Optional<Subscription> findByUserId(UUID userId) {
@@ -264,10 +263,10 @@ public class SubscriptionService {
         if (amount == null) {
             return PlanType.MONTHLY;
         }
-        if (amount.compareTo(PRICE_ANNUAL) <= 0 && amount.compareTo(MIN_ANNUAL_THRESHOLD) >= 0) {
+        if (amount.compareTo(pricing.getAnnual()) <= 0 && amount.compareTo(pricing.getMinAnnualThreshold()) >= 0) {
             return PlanType.ANNUAL;
         }
-        if (amount.compareTo(PRICE_SEMIANNUAL) <= 0 && amount.compareTo(MIN_SEMIANNUAL_THRESHOLD) >= 0) {
+        if (amount.compareTo(pricing.getSemiannual()) <= 0 && amount.compareTo(pricing.getMinSemiannualThreshold()) >= 0) {
             return PlanType.SEMIANNUAL;
         }
         return PlanType.MONTHLY;
@@ -308,9 +307,9 @@ public class SubscriptionService {
     public BigDecimal getPrice(PlanType planType) {
         return switch (planType) {
             case FREE -> BigDecimal.ZERO;
-            case MONTHLY -> PRICE_MONTHLY;
-            case SEMIANNUAL -> PRICE_SEMIANNUAL;
-            case ANNUAL -> PRICE_ANNUAL;
+            case MONTHLY -> pricing.getMonthly();
+            case SEMIANNUAL -> pricing.getSemiannual();
+            case ANNUAL -> pricing.getAnnual();
         };
     }
 
@@ -326,9 +325,9 @@ public class SubscriptionService {
     public List<PlanInfo> listPlans() {
         return List.of(
                 new PlanInfo(PlanType.FREE, "Grátis", BigDecimal.ZERO, 0, "2 contas, 30 transações/mês, 2 metas"),
-                new PlanInfo(PlanType.MONTHLY, "Pro Mensal", PRICE_MONTHLY, 1, "Tudo ilimitado + cartões de crédito"),
-                new PlanInfo(PlanType.SEMIANNUAL, "Pro Semestral", PRICE_SEMIANNUAL, 6, "Tudo ilimitado + cartões de crédito (16% OFF)"),
-                new PlanInfo(PlanType.ANNUAL, "Elite Anual", PRICE_ANNUAL, 12, "Tudo ilimitado + cartões + Open Finance (24% OFF)")
+                new PlanInfo(PlanType.MONTHLY, "Pro Mensal", pricing.getMonthly(), 1, "Tudo ilimitado + cartões de crédito"),
+                new PlanInfo(PlanType.SEMIANNUAL, "Pro Semestral", pricing.getSemiannual(), 6, "Tudo ilimitado + cartões de crédito (16% OFF)"),
+                new PlanInfo(PlanType.ANNUAL, "Elite Anual", pricing.getAnnual(), 12, "Tudo ilimitado + cartões + Open Finance (24% OFF)")
         );
     }
 

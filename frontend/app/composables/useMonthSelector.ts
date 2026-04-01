@@ -1,5 +1,19 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { MONTH_NAMES } from '~/constants/transactions'
+
+const DASHBOARD_MONTH_KEY = 'dashboard-month-key'
+
+function parseMonthKey(key: string): Date {
+  const [y, m] = key.split('-').map(Number)
+  if (Number.isFinite(y) && Number.isFinite(m)) {
+    return new Date(y, m - 1, 1)
+  }
+  return new Date()
+}
+
+function toMonthKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
 export interface DisplayedMonth {
   date: Date
@@ -8,7 +22,16 @@ export interface DisplayedMonth {
 }
 
 export function useMonthSelector() {
-  const selectedDate = ref(new Date())
+  const persistedMonthKey = useState<string>(DASHBOARD_MONTH_KEY, () => toMonthKey(new Date()))
+  const selectedDate = ref(parseMonthKey(persistedMonthKey.value))
+
+  watch(
+    selectedDate,
+    (d) => {
+      persistedMonthKey.value = toMonthKey(d)
+    },
+    { deep: true },
+  )
 
   const displayedMonths = computed<DisplayedMonth[]>(() => {
     const current = new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), 1)

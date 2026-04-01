@@ -37,6 +37,7 @@ const planAmount = computed(() => {
 const mpPublicKey = ref('')
 const isLoadingConfig = ref(true)
 const success = ref(false)
+const showEliteCelebration = ref(false)
 const pendingInfo = ref<PaymentResponse | null>(null)
 const errorMessage = ref<string | null>(null)
 
@@ -66,6 +67,7 @@ onMounted(async () => {
 async function handleSuccess(result: PaymentResponse) {
   pendingInfo.value = null
   success.value = true
+  showEliteCelebration.value = planId.value === 'PRO_ANNUAL'
   errorMessage.value = null
   toast?.success(result.message || 'Assinatura ativada! Redirecionando...')
   const { mapApiUserToStoreUser } = await import('~/utils/mapUser')
@@ -95,6 +97,18 @@ function handleError(msg: string) {
 
 <template>
   <div class="checkout-page">
+    <div v-if="showEliteCelebration && success" class="checkout-confetti" aria-hidden="true">
+      <span
+        v-for="n in 48"
+        :key="n"
+        class="checkout-confetti__piece"
+        :style="{
+          '--t': `${0.7 + (n % 6) * 0.15}s`,
+          '--l': `${(n * 37) % 100}%`,
+          '--h': `${(n * 53) % 360}`,
+        }"
+      />
+    </div>
     <div class="checkout-page__container">
       <div class="checkout-page__nav d-flex gap-2 mb-4">
         <v-btn variant="text" color="primary" :to="'/dashboard/planos'">
@@ -128,7 +142,24 @@ function handleError(msg: string) {
         </v-btn>
       </v-alert>
 
-      <v-alert v-if="success" type="success" class="mb-4">
+      <v-alert
+        v-if="success && showEliteCelebration"
+        type="success"
+        variant="flat"
+        class="mb-4 checkout-elite-alert"
+        prominent
+      >
+        <div class="text-h6 font-weight-bold mb-2">
+          Parabéns! Você agora é Grivy Elite.
+        </div>
+        <p class="text-body-1 mb-3">
+          Sua jornada para a liberdade financeira começa agora. Estamos redirecionando você para o painel.
+        </p>
+        <v-btn color="primary" variant="flat" to="/dashboard">
+          Ir para o dashboard
+        </v-btn>
+      </v-alert>
+      <v-alert v-else-if="success" type="success" class="mb-4">
         Pagamento aprovado! Redirecionando para sua conta...
         <v-btn class="mt-2" color="primary" to="/dashboard">
           Ir agora
@@ -184,5 +215,39 @@ function handleError(msg: string) {
 
 .checkout-page__form {
   margin-top: 16px;
+}
+
+.checkout-elite-alert {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+  color: #065f46 !important;
+}
+
+.checkout-confetti {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 3000;
+}
+
+.checkout-confetti__piece {
+  position: absolute;
+  top: -12px;
+  left: var(--l);
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0.95;
+  animation: checkout-confetti-fall var(--t) ease-in forwards;
+  background: hsl(var(--h) 72% 48%);
+}
+
+@keyframes checkout-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+  }
 }
 </style>

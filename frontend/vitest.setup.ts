@@ -3,6 +3,10 @@ import { vi } from 'vitest'
 
 const stateMap = new Map<string, { value: unknown }>()
 
+export function clearStubbedNuxtStateKey(key: string) {
+  stateMap.delete(key)
+}
+
 vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
   if (!stateMap.has(key)) {
     stateMap.set(key, { value: init() })

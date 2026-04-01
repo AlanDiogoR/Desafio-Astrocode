@@ -54,6 +54,9 @@ onUnmounted(() => {
       <NuxtLayout>
         <NuxtPage :key="route.fullPath" />
       </NuxtLayout>
+      <ClientOnly>
+        <PlanUpgradeModal />
+      </ClientOnly>
       <Toaster
         :toast-options="{
           success: {

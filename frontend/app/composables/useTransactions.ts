@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useQuery } from '@tanstack/vue-query'
 import { getErrorMessage } from '~/utils/errorHandler'
 import type { TransactionFilters } from '~/services/transactions'
@@ -48,8 +49,12 @@ export function useTransactions(filters: Ref<TransactionFiltersState | undefined
     queryFn: () => listTransactions(apiFilters.value ?? {}),
     enabled: computed(() => !!authStore.user),
     onError: (err) => {
+      if (import.meta.client && axios.isAxiosError(err) && err.response?.status === 402) {
+        return
+      }
       if (import.meta.client) {
-        toast.error(getErrorMessage(err, 'Erro ao carregar transações.'))
+        const msg = getErrorMessage(err, 'Erro ao carregar transações.')
+        if (msg) toast.error(msg)
       }
     },
   })

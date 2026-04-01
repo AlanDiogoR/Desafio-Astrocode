@@ -51,7 +51,7 @@ public class CreditCardService {
     }
 
     @Transactional
-    @RequiresPro(message = "Cartão de crédito está disponível no plano PRO. Faça upgrade para continuar.")
+    @RequiresPro(message = "Cartões de crédito e faturas completas estão no Grivy Pro. Faça upgrade e acompanhe cada gasto sem surpresas.")
     public CreditCard create(CreditCardRequest request, UUID userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));

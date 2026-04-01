@@ -52,7 +52,7 @@ public class OpenFinanceService {
 
         if (!user.isElite()) {
             throw new PlanUpgradeRequiredException(
-                    "Open Finance está disponível no plano Elite Anual. Faça upgrade para conectar seus bancos.",
+                    "Conexão bancária regulada (Pluggy) está no Grivy Elite Anual. Faça upgrade e importe transações automaticamente com total segurança.",
                     "openFinance");
         }
 
@@ -76,7 +76,7 @@ public class OpenFinanceService {
 
         if (!user.isElite()) {
             throw new PlanUpgradeRequiredException(
-                    "Open Finance está disponível no plano Elite Anual.",
+                    "Sincronização Open Finance (Pluggy) é exclusiva do Elite Anual. Faça upgrade para manter seus dados sempre atualizados.",
                     "openFinance");
         }
 

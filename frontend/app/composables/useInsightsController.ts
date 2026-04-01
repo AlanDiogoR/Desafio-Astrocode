@@ -26,6 +26,21 @@ export function useInsightsController(year: Ref<number>, month: Ref<number>) {
     }
   })
 
+  /** Maior categoria de despesa do mês (para insight, mesmo abaixo do limite do SpendingAlert). */
+  const dominantExpenseShare = computed(() => {
+    const byCat = summary.value?.byCategory ?? []
+    if (byCat.length === 0) return null
+    const top = byCat[0]
+    const total = summary.value?.totalExpense ?? 0
+    if (total <= 0) return null
+    const percentage = Math.round((top.totalAmount / total) * 100)
+    return {
+      categoryName: top.categoryName,
+      percentage,
+      totalAmount: top.totalAmount,
+    }
+  })
+
   const shouldShowAlert = computed(() => topCategory.value !== null)
 
   const byCategory = computed(() => summary.value?.byCategory ?? [])
@@ -33,6 +48,7 @@ export function useInsightsController(year: Ref<number>, month: Ref<number>) {
 
   return {
     topCategory,
+    dominantExpenseShare,
     shouldShowAlert,
     isPending,
     byCategory,

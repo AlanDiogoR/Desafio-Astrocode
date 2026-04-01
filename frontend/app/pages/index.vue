@@ -65,6 +65,30 @@ const faqs = [
 ]
 
 const year = new Date().getFullYear()
+
+/** Onboarding grátis — mesma rota para todos os CTAs principais */
+const registerOnboarding = '/register?onboarding=gratis'
+
+const testimonials = [
+  {
+    name: 'Marina Oliveira',
+    role: 'São Paulo, SP',
+    text: 'Parei de esquecer assinaturas e pequenos gastos. O painel do mês virou meu ritual de domingo.',
+    rating: 5,
+  },
+  {
+    name: 'Rafael Costa',
+    role: 'Belo Horizonte, MG',
+    text: 'Em duas semanas já sabia para onde ia cada real. O Free me convenceu e fechei o Elite Anual.',
+    rating: 5,
+  },
+  {
+    name: 'Juliana M.',
+    role: 'Curitiba, PR',
+    text: 'Metas e cartão no mesmo lugar — não uso mais planilha solta no celular.',
+    rating: 5,
+  },
+]
 </script>
 
 <template>
@@ -75,7 +99,7 @@ const year = new Date().getFullYear()
         <AppButton variant="text" :block="false" @click="navigateTo('/login')">
           Entrar
         </AppButton>
-        <AppButton color="primary" :block="false" @click="navigateTo('/register')">
+        <AppButton color="primary" :block="false" @click="navigateTo(registerOnboarding)">
           Começar grátis
         </AppButton>
       </div>
@@ -83,22 +107,22 @@ const year = new Date().getFullYear()
 
     <section class="landing-hero text-center py-16 px-4">
       <v-chip color="primary" variant="tonal" size="small" class="mb-6">
-        ✨ Controle financeiro simplificado
+        Onboarding grátis em minutos
       </v-chip>
 
-      <h1 class="text-h3 text-md-h2 font-weight-bold mb-4" style="max-width: 700px; margin: 0 auto">
-        Suas finanças organizadas,<br>
-        <span style="color: rgb(var(--v-theme-primary))">do jeito que você merece</span>
+      <h1 class="text-h3 text-md-h2 font-weight-bold mb-4" style="max-width: 720px; margin: 0 auto">
+        Pare de perder dinheiro para o esquecimento.<br>
+        <span style="color: rgb(var(--v-theme-primary))">Controle tudo no Grivy.</span>
       </h1>
 
-      <p class="text-body-1 text-medium-emphasis mb-8" style="max-width: 520px; margin: 0 auto">
-        Controle contas, transações e metas de economia em um só lugar.
-        Comece gratuitamente e evolua quando quiser.
+      <p class="text-body-1 text-medium-emphasis mb-8" style="max-width: 540px; margin: 0 auto">
+        Contas, transações, metas e cartões em um só lugar — com segurança de quem usa Open Finance (Pluggy)
+        e pagamentos Mercado Pago. Comece grátis e evolua para o Elite quando quiser.
       </p>
 
       <div class="d-flex gap-3 justify-center flex-wrap mb-12">
-        <AppButton color="primary" size="large" @click="navigateTo('/register')">
-          Criar conta grátis
+        <AppButton color="primary" size="large" @click="navigateTo(registerOnboarding)">
+          Começar onboarding grátis
         </AppButton>
         <AppButton variant="outlined" size="large" @click="navigateTo('/login')">
           Já tenho conta
@@ -186,6 +210,98 @@ const year = new Date().getFullYear()
       </v-row>
     </section>
 
+    <section class="landing-social py-16 px-4" style="background: rgba(var(--v-theme-surface-variant), 0.35)">
+      <div class="text-center mb-10">
+        <h2 class="text-h4 font-weight-bold mb-3">
+          Quem usa, recomenda
+        </h2>
+        <p class="text-medium-emphasis">
+          Depoimentos de quem organizou a vida financeira com o Grivy
+        </p>
+      </div>
+      <v-row justify="center" class="mx-auto" style="max-width: 1000px">
+        <v-col
+          v-for="t in testimonials"
+          :key="t.name"
+          cols="12"
+          md="4"
+        >
+          <v-card rounded="xl" class="h-100 pa-2" elevation="2">
+            <v-card-text>
+              <div class="d-flex align-center gap-1 mb-3">
+                <v-icon
+                  v-for="n in t.rating"
+                  :key="n"
+                  icon="mdi-star"
+                  color="warning"
+                  size="20"
+                />
+              </div>
+              <p class="text-body-2 text-high-emphasis mb-4">
+                “{{ t.text }}”
+              </p>
+              <p class="text-subtitle-2 font-weight-bold mb-0">
+                {{ t.name }}
+              </p>
+              <p class="text-caption text-medium-emphasis">
+                {{ t.role }}
+              </p>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </section>
+
+    <section class="landing-authority py-12 px-4">
+      <v-row justify="center" align="center" class="mx-auto ga-6" style="max-width: 900px">
+        <v-col cols="12" md="6">
+          <h2 class="text-h5 font-weight-bold mb-3">
+            Segurança de verdade
+          </h2>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Conexão bancária via <strong>Pluggy</strong> (Open Finance regulado) e pagamentos processados pelo
+            <strong>Mercado Pago</strong>. Autenticação JWT, dados isolados por usuário — seu dinheiro, sua privacidade.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <v-chip color="primary" variant="tonal" prepend-icon="mdi-shield-lock-outline">
+              Open Finance Pluggy
+            </v-chip>
+            <v-chip color="primary" variant="tonal" prepend-icon="mdi-credit-card-check-outline">
+              Mercado Pago
+            </v-chip>
+          </div>
+        </v-col>
+        <v-col cols="12" md="5">
+          <v-card rounded="xl" variant="outlined" class="pa-4" style="border-color: rgba(var(--v-theme-primary), 0.35)">
+            <v-card-text class="text-body-2">
+              <v-icon icon="mdi-check-decagram" color="primary" class="mb-2" />
+              <p class="mb-0 text-high-emphasis">
+                Mesma stack que você já confia no dia a dia — sem gambiarra e sem compartilhar dados entre usuários.
+              </p>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </section>
+
+    <section class="landing-scarcity py-12 px-4" style="background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12) 0%, rgba(var(--v-theme-surface-variant), 0.5) 100%)">
+      <div class="mx-auto text-center" style="max-width: 640px">
+        <v-chip color="warning" variant="flat" size="small" class="mb-4">
+          Oferta de lançamento
+        </v-chip>
+        <h2 class="text-h5 font-weight-bold mb-3">
+          Elite Anual com benefícios de quem chegou primeiro
+        </h2>
+        <p class="text-body-2 text-medium-emphasis mb-6">
+          Open Finance ilimitado, importação automática e suporte prioritário — condições especiais enquanto durar a campanha de lançamento.
+          Crie sua conta grátis e faça upgrade quando fizer sentido.
+        </p>
+        <AppButton color="primary" size="large" @click="navigateTo(registerOnboarding)">
+          Entrar no onboarding grátis
+        </AppButton>
+      </div>
+    </section>
+
     <section
       class="landing-pricing py-16 px-4"
       style="background: rgba(var(--v-theme-surface-variant), 0.4)"
@@ -220,7 +336,7 @@ const year = new Date().getFullYear()
                 <li class="mb-2 text-medium-emphasis">❌ Cartões de crédito</li>
                 <li class="text-medium-emphasis">❌ Open Finance</li>
               </ul>
-              <AppButton block variant="outlined" class="mt-6" @click="navigateTo('/register')">
+              <AppButton block variant="outlined" class="mt-6" @click="navigateTo(registerOnboarding)">
                 Começar grátis
               </AppButton>
             </v-card-text>
@@ -246,7 +362,7 @@ const year = new Date().getFullYear()
                 <li class="mb-2">✅ Categorias ilimitadas</li>
                 <li class="text-medium-emphasis">❌ Open Finance</li>
               </ul>
-              <AppButton block color="primary" variant="outlined" class="mt-6" @click="navigateTo('/register')">
+              <AppButton block color="primary" variant="outlined" class="mt-6" @click="navigateTo(registerOnboarding)">
                 Assinar
               </AppButton>
             </v-card-text>
@@ -275,7 +391,7 @@ const year = new Date().getFullYear()
                 <li class="mb-2">✅ Categorias ilimitadas</li>
                 <li class="text-medium-emphasis">❌ Open Finance</li>
               </ul>
-              <AppButton block color="primary" variant="outlined" class="mt-6" @click="navigateTo('/register')">
+              <AppButton block color="primary" variant="outlined" class="mt-6" @click="navigateTo(registerOnboarding)">
                 Assinar
               </AppButton>
             </v-card-text>
@@ -305,7 +421,7 @@ const year = new Date().getFullYear()
                 <li class="mb-2">✅ Importação automática</li>
                 <li>✅ Suporte prioritário</li>
               </ul>
-              <AppButton block color="primary" class="mt-6" @click="navigateTo('/register')">
+              <AppButton block color="primary" class="mt-6" @click="navigateTo(registerOnboarding)">
                 Começar agora
               </AppButton>
             </v-card-text>
@@ -336,8 +452,8 @@ const year = new Date().getFullYear()
       <p class="text-medium-emphasis mb-8">
         Crie sua conta gratuitamente e organize suas finanças hoje mesmo.
       </p>
-      <AppButton color="primary" size="large" @click="navigateTo('/register')">
-        Criar conta grátis
+      <AppButton color="primary" size="large" @click="navigateTo(registerOnboarding)">
+        Criar conta — onboarding grátis
       </AppButton>
     </section>
 
@@ -347,7 +463,7 @@ const year = new Date().getFullYear()
         <NuxtLink to="/login" class="text-medium-emphasis text-decoration-none">
           Entrar
         </NuxtLink>
-        <NuxtLink to="/register" class="text-medium-emphasis text-decoration-none">
+        <NuxtLink :to="registerOnboarding" class="text-medium-emphasis text-decoration-none">
           Criar conta
         </NuxtLink>
         <NuxtLink to="/planos" class="text-medium-emphasis text-decoration-none">

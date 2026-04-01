@@ -4,7 +4,7 @@ import MonthSelector from '~/components/transactions/MonthSelector.vue'
 import TransactionCard from '~/components/transactions/TransactionCard.vue'
 import TransactionEmptyState from '~/components/transactions/TransactionEmptyState.vue'
 import TransactionsFab from '~/components/transactions/TransactionsFab.vue'
-import SpendingAlert from '~/components/transactions/SpendingAlert.vue'
+import MonthlyInsightBanner from '~/components/transactions/MonthlyInsightBanner.vue'
 import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewTransactionModal from '~/components/modals/NewTransactionModal.vue'
@@ -41,7 +41,10 @@ const {
 
 const insightYear = computed(() => selectedDate.value.getFullYear())
 const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
-const { topCategory, shouldShowAlert } = useInsightsController(insightYear, insightMonth)
+const { dominantExpenseShare } = useInsightsController(insightYear, insightMonth)
+const showMonthlyInsight = computed(
+  () => dominantExpenseShare.value != null && dominantExpenseShare.value.percentage >= 35,
+)
 const selectedType = ref<TransactionTypeOption>(TRANSACTION_TYPES[0])
 const showFilters = ref(false)
 const iconLoadFailed = reactive(new Map<string, boolean>())
@@ -152,6 +155,12 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
       />
     </div>
     <div class="transaction-list__scroll d-flex flex-column">
+      <MonthlyInsightBanner
+        v-if="!isPending && showMonthlyInsight && dominantExpenseShare"
+        :category-name="dominantExpenseShare.categoryName"
+        :percentage="dominantExpenseShare.percentage"
+        class="px-1"
+      />
       <div class="d-flex gap-2 flex-wrap mb-3 px-1">
         <v-chip
           v-for="filter in quickFilters"
@@ -190,12 +199,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         v-else-if="transactions.length > 0"
         class="transaction-list__cards d-flex flex-column ga-3"
       >
-        <SpendingAlert
-          v-if="topCategory"
-          :category-name="topCategory.categoryName"
-          :percentage="topCategory.percentage"
-          :visible="shouldShowAlert"
-        />
         <TransactionCard
           v-for="transaction in transactions"
           :key="transaction.id"

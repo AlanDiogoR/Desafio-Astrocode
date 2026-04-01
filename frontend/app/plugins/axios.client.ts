@@ -7,6 +7,7 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
   const { authToken, refreshToken, setSessionTokens, clearSessionTokens } = useAuthCookies()
+  const { showUpgrade } = usePlanUpgradeGate()
 
   const apiBase = config.public.apiBase as string | undefined
   const hasValidApiBase = typeof apiBase === 'string' && apiBase.trim().length > 0
@@ -126,6 +127,14 @@ export default defineNuxtPlugin(() => {
         clearSessionTokens()
         authStore.clearAuth()
         redirectToLoginWithToast()
+      }
+
+      if (status === 402 && import.meta.client) {
+        const data = error.response?.data as { message?: string; feature?: string } | undefined
+        showUpgrade(
+          data?.message ?? 'Faça upgrade para continuar.',
+          data?.feature ?? null,
+        )
       }
 
       return Promise.reject(error)

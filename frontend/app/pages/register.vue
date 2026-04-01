@@ -5,6 +5,9 @@ definePageMeta({
   layout: 'auth',
 })
 
+const route = useRoute()
+const isOnboardingGratis = computed(() => route.query.onboarding === 'gratis')
+
 const {
   name,
   email,
@@ -47,7 +50,12 @@ async function onSubmit() {
       <AppLogo color="#868E96" :size="28" />
     </div>
     <h1 class="page-title text-h4 font-weight-bold text-center mb-1 mt-0">Crie sua conta</h1>
-    <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
+    <p class="auth-subtitle text-body-1 text-center" :class="isOnboardingGratis ? 'mb-2' : 'mb-8'">
+      {{ isOnboardingGratis ? 'Onboarding grátis — organize suas finanças em poucos minutos.' : 'Acesse sua plataforma de controle financeiro' }}
+    </p>
+    <p v-if="isOnboardingGratis" class="text-body-2 text-medium-emphasis text-center mb-8">
+      Depois do cadastro você já cai no painel com os primeiros passos.
+    </p>
 
     <v-form class="w-100" @submit.prevent="onSubmit">
       <ClientOnly>

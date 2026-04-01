@@ -28,6 +28,10 @@ export function getErrorMessage(error: unknown, fallback = DEFAULT_MESSAGE): str
   const status = axiosError.response?.status
   const data = axiosError.response?.data
 
+  if (status === 402) {
+    return ''
+  }
+
   if (data?.message) {
     const msg = data.message.trim()
     const override = Object.entries(MESSAGE_OVERRIDES).find(([key]) => msg.startsWith(key))
