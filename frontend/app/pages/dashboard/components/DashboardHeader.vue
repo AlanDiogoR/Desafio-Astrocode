@@ -48,6 +48,15 @@ const userInitials = computed(() => {
         <span class="d-none d-sm-inline">Open Finance</span>
         <span class="d-sm-none">Finance</span>
       </v-btn>
+      <v-btn
+        to="/dashboard/cartoes"
+        variant="text"
+        color="primary"
+        class="text-none dashboard-header__nav-link d-none d-sm-inline-flex"
+        prepend-icon="mdi-credit-card-outline"
+      >
+        Cartões
+      </v-btn>
     </div>
     <div class="dashboard-header__actions d-flex align-center gap-2">
       <v-btn

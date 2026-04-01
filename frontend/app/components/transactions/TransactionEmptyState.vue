@@ -1,42 +1,51 @@
 <script setup lang="ts">
+import AppButton from '~/components/ui/AppButton.vue'
+
+defineProps<{
+  hasFilters?: boolean
+}>()
+
 const emit = defineEmits<{
-  (e: 'add-transaction'): void
+  'add-transaction': []
+  'clear-filters': []
 }>()
 </script>
 
 <template>
   <div
-    class="transaction-list__empty d-flex flex-column align-center justify-center flex-grow-1"
+    class="transaction-list__empty d-flex flex-column align-center justify-center flex-grow-1 text-center py-10"
   >
-    <img
-      src="/images/Ilustra.png"
-      alt="Sem transações"
-      class="transaction-list__empty-img"
-    >
-    <p class="text-body-1 text-medium-emphasis text-center mt-2" style="max-width: 260px;">
-      Nenhuma transação neste período.
+    <v-icon icon="mdi-receipt-text-outline" size="56" color="primary" opacity="0.3" class="mb-4" />
+    <p class="text-h6 font-weight-medium mb-2">
+      Nenhuma transação encontrada
     </p>
-    <v-btn
-      variant="tonal"
+    <p class="text-body-2 text-medium-emphasis mb-6" style="max-width: 280px">
+      {{ hasFilters ? 'Tente ajustar os filtros.' : 'Adicione sua primeira transação usando o botão abaixo.' }}
+    </p>
+    <AppButton
+      v-if="!hasFilters"
       color="primary"
-      size="small"
+      variant="tonal"
       prepend-icon="mdi-plus"
-      class="mt-2"
+      :block="false"
       @click="emit('add-transaction')"
     >
-      Nova transação
-    </v-btn>
+      Adicionar transação
+    </AppButton>
+    <AppButton
+      v-else
+      variant="text"
+      :block="false"
+      @click="emit('clear-filters')"
+    >
+      Limpar filtros
+    </AppButton>
   </div>
 </template>
 
 <style scoped>
 .transaction-list__empty {
-  gap: 16px;
+  gap: 0;
   min-height: 200px;
-}
-
-.transaction-list__empty-img {
-  width: auto;
-  height: auto;
 }
 </style>

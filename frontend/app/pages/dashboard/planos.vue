@@ -217,19 +217,16 @@ function handleSubscribe(planId: string) {
           v-for="(plan, index) in paidPlans"
           :key="plan.id"
           class="planos-page__card"
+          :class="{ 'planos-page__card--annual': plan.id === 'ANNUAL' }"
         >
+          <div v-if="plan.id === 'ANNUAL'" class="planos-page__popular-wrap text-center mb-n2">
+            <v-chip color="primary" size="small" prepend-icon="mdi-fire">
+              Mais popular
+            </v-chip>
+          </div>
           <div class="planos-page__card-inner">
             <div class="planos-page__card-header">
               <v-icon icon="mdi-star-four-points" size="32" color="primary" class="planos-page__card-icon" />
-              <v-chip
-                v-if="plan.id === 'MONTHLY' && paidPlans.length > 1"
-                size="small"
-                color="primary"
-                variant="flat"
-                class="planos-page__badge"
-              >
-                Mais popular
-              </v-chip>
             </div>
             <h3 class="planos-page__card-title">
               {{ plan.name }}
@@ -308,6 +305,11 @@ function handleSubscribe(planId: string) {
   align-items: stretch;
 }
 
+.planos-page__popular-wrap {
+  position: relative;
+  z-index: 1;
+}
+
 .planos-page__card {
   border-radius: 16px;
   border: 1px solid var(--color-border);
@@ -315,6 +317,11 @@ function handleSubscribe(planId: string) {
   transition: box-shadow 0.2s ease;
   min-width: 0;
   background: var(--color-surface);
+}
+
+.planos-page__card--annual {
+  border: 2px solid rgb(var(--v-theme-primary));
+  box-shadow: 0 4px 16px rgba(8, 127, 91, 0.12);
 }
 
 .planos-page__card:hover {

@@ -35,7 +35,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    @Value("${app.frontend-url:http://localhost:3000}")
+    @Value("${app.frontend-url:https://grivy.netlify.app}")
     private String frontendUrl;
 
     public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
@@ -117,7 +117,9 @@ public class UserService {
                         .build()
         );
 
-        String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
+        String base = frontendUrl != null && !frontendUrl.isBlank()
+                ? frontendUrl.replaceAll("/$", "")
+                : "https://grivy.netlify.app";
         try {
             mailService.sendEmailVerification(savedUser.getEmail(), base + "/verify-email?token=" + verificationToken);
         } catch (Exception e) {

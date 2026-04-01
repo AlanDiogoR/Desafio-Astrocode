@@ -9,6 +9,9 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+const authStore = useAuthStore()
+const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+
 const { areValuesVisible } = useDashboardController()
 const {
   isConfirmDeleteModalOpen,
@@ -17,6 +20,15 @@ const {
   closeConfirmDeleteModal,
 } = useDashboard()
 const { handleConfirm } = useConfirmDelete()
+
+onMounted(() => {
+  if (!import.meta.client) return
+  if (!authStore.user) return
+  if (localStorage.getItem('grivy_welcomed')) return
+  localStorage.setItem('grivy_welcomed', 'true')
+  const first = authStore.user.name?.trim().split(/\s+/)[0] ?? 'usuário'
+  toast.success(`Bem-vindo ao Grivy, ${first}!`)
+})
 </script>
 
 <template>

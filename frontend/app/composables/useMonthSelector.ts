@@ -39,5 +39,53 @@ export function useMonthSelector() {
     selectedDate.value = new Date(date)
   }
 
-  return { selectedDate, displayedMonths, goToPrevMonth, goToNextMonth, selectMonth }
+  const formattedMonth = computed(() =>
+    selectedDate.value.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+  )
+
+  const currentMonthKey = computed(() => {
+    const d = selectedDate.value
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
+
+  const lastTwelveMonths = computed(() => {
+    const months: Array<{ label: string; value: string; year: number; month: number }> = []
+    const now = new Date()
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      months.push({
+        label: d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        year: d.getFullYear(),
+        month: d.getMonth() + 1,
+      })
+    }
+    return months
+  })
+
+  const isCurrentCalendarMonth = computed(() => {
+    const d = selectedDate.value
+    const now = new Date()
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  })
+
+  function selectMonthByKey(value: string) {
+    const [y, m] = value.split('-').map(Number)
+    if (Number.isFinite(y) && Number.isFinite(m)) {
+      selectedDate.value = new Date(y, m - 1, 1)
+    }
+  }
+
+  return {
+    selectedDate,
+    displayedMonths,
+    goToPrevMonth,
+    goToNextMonth,
+    selectMonth,
+    formattedMonth,
+    currentMonthKey,
+    lastTwelveMonths,
+    isCurrentCalendarMonth,
+    selectMonthByKey,
+  }
 }

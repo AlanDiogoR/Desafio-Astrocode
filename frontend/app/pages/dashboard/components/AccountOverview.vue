@@ -11,6 +11,7 @@ import EditAccountModal from '~/components/modals/EditAccountModal.vue'
 import NewCreditCardModal from '~/components/modals/NewCreditCardModal.vue'
 import EditCreditCardModal from '~/components/modals/EditCreditCardModal.vue'
 import CreditCardBillModal from '~/components/modals/CreditCardBillModal.vue'
+import AppButton from '~/components/ui/AppButton.vue'
 import { useCarousel } from '~/composables/useCarousel'
 
 const { openNewAccountModal, openNewCreditCardModal } = useDashboard()
@@ -22,6 +23,44 @@ const {
   areValuesVisible,
   isLoading,
 } = useDashboardController()
+
+const { totalIncomeMonth, totalExpenseMonth, totalBalance } = useDashboardData()
+const { isFree } = useSubscription()
+
+/** Atualiza com o dashboard (ex.: após novas transações) e mantém mês/ano correntes. */
+const monthTxFilters = computed(() => {
+  void totalBalance.value
+  const n = new Date()
+  return { year: n.getFullYear(), month: n.getMonth() + 1, size: 1 }
+})
+const { totalElements: transactionCountMonth } = useTransactions(monthTxFilters)
+
+const transactionUsagePercent = computed(() =>
+  Math.min(100, (Number(transactionCountMonth.value) / 30) * 100),
+)
+
+const monthlyNet = computed(() => totalIncomeMonth.value - totalExpenseMonth.value)
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
+}
+
+const dismissedUpgradeBanner = ref(false)
+
+onMounted(() => {
+  if (import.meta.client) {
+    dismissedUpgradeBanner.value = sessionStorage.getItem('dismissed_upgrade_banner') === 'true'
+  }
+})
+
+watch(dismissedUpgradeBanner, (val) => {
+  if (val && import.meta.client) {
+    sessionStorage.setItem('dismissed_upgrade_banner', 'true')
+  }
+})
 
 const { carouselRef, scroll } = useCarousel()
 const { carouselRef: creditCardsCarouselRef, scroll: creditCardsScroll } = useCarousel()
@@ -43,14 +82,8 @@ function togglePrivacy() {
           Saldo total
         </p>
         <div class="d-flex align-center balance-section__row">
-          <div v-if="isLoading" class="balance-skeleton-wrapper">
-            <v-progress-circular
-              indeterminate
-              color="white"
-              size="36"
-              class="balance-skeleton__spinner"
-            />
-            <v-skeleton-loader type="text" width="140" class="balance-skeleton ma-0" />
+          <div v-if="isLoading" class="balance-skeleton-wrapper balance-skeleton-wrapper--card">
+            <v-skeleton-loader type="card" width="100%" max-width="280" class="balance-skeleton-card" />
           </div>
           <p v-else class="balance-value ma-0">
             {{ formattedTotalBalance }}
@@ -67,6 +100,88 @@ function togglePrivacy() {
             <v-icon :icon="areValuesVisible ? 'mdi-eye-outline' : 'mdi-eye-off-outline'" />
           </v-btn>
         </div>
+        <div v-if="isLoading" class="d-flex gap-2 flex-wrap mt-3">
+          <v-skeleton-loader type="chip" width="140" height="28" rounded="pill" />
+          <v-skeleton-loader type="chip" width="140" height="28" rounded="pill" />
+          <v-skeleton-loader type="chip" width="160" height="28" rounded="pill" />
+        </div>
+        <div v-else class="d-flex gap-3 flex-wrap mt-3">
+          <v-chip
+            color="success"
+            variant="tonal"
+            size="small"
+            prepend-icon="mdi-trending-up"
+          >
+            +{{ formatCurrency(totalIncomeMonth) }} este mês
+          </v-chip>
+          <v-chip
+            color="error"
+            variant="tonal"
+            size="small"
+            prepend-icon="mdi-trending-down"
+          >
+            -{{ formatCurrency(totalExpenseMonth) }} este mês
+          </v-chip>
+          <v-chip
+            :color="monthlyNet >= 0 ? 'primary' : 'warning'"
+            variant="tonal"
+            size="small"
+            prepend-icon="mdi-scale-balance"
+          >
+            Balanço: {{ formatCurrency(monthlyNet) }}
+          </v-chip>
+        </div>
+        <v-alert
+          v-if="isFree && !dismissedUpgradeBanner"
+          type="info"
+          variant="tonal"
+          rounded="xl"
+          class="mt-4 mb-0"
+          closable
+          @click:close="dismissedUpgradeBanner = true"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-crown" color="primary" />
+          </template>
+          <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
+            <span>
+              <strong>Desbloqueie tudo com o Pro</strong> — cartões de crédito,
+              transações ilimitadas e Open Finance.
+            </span>
+            <AppButton
+              size="small"
+              color="primary"
+              variant="text"
+              :block="false"
+              class="align-self-start"
+              @click="navigateTo('/dashboard/planos')"
+            >
+              Ver planos
+            </AppButton>
+          </div>
+        </v-alert>
+        <v-alert
+          v-if="isFree && transactionUsagePercent >= 80"
+          type="warning"
+          variant="tonal"
+          rounded="xl"
+          class="mt-3 mb-0"
+        >
+          <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
+            <span>
+              Você usou {{ transactionCountMonth }}/30 transações este mês.
+            </span>
+            <AppButton
+              size="small"
+              variant="text"
+              :block="false"
+              class="align-self-start"
+              @click="navigateTo('/dashboard/planos')"
+            >
+              Fazer upgrade
+            </AppButton>
+          </div>
+        </v-alert>
       </section>
       <GoalsList
         :goals="goals"
@@ -317,26 +432,15 @@ function togglePrivacy() {
   margin: 0 0 4px 0;
 }
 
-.balance-skeleton-wrapper {
+.balance-skeleton-wrapper--card {
   position: relative;
-  min-width: 140px;
+  min-width: 200px;
+  width: 100%;
+  max-width: 280px;
 }
 
-.balance-skeleton__spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  opacity: 0.95;
-}
-
-.balance-skeleton-wrapper .balance-skeleton {
-  opacity: 0.5;
-}
-
-.balance-skeleton :deep(.v-skeleton-loader__text) {
-  background: rgba(255, 255, 255, 0.3);
+.balance-skeleton-card :deep(.v-skeleton-loader__bone) {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .balance-value {

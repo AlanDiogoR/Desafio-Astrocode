@@ -18,8 +18,14 @@ const { openPluggyConnect, isConnecting } = useOpenFinance()
         v-if="!hasOpenFinance"
         icon="mdi-bank-transfer"
         title="Open Finance"
-        description="Conecte suas contas bancárias automaticamente e importe transações de todos os seus bancos em um só lugar."
+        description="Conecte seus bancos e importe transações automaticamente."
         required-plan="Elite Anual"
+        :benefits="[
+          'Importação automática de transações',
+          'Saldo em tempo real de todos os bancos',
+          'Suporte a 50+ instituições financeiras',
+          'Sincronização diária automática',
+        ]"
         @retry="refreshSubscription"
       />
 

@@ -1,89 +1,86 @@
 <script setup lang="ts">
-import type { DisplayedMonth } from '~/composables/useMonthSelector'
+export interface MonthQuickItem {
+  label: string
+  value: string
+  year: number
+  month: number
+}
 
 defineProps<{
-  displayedMonths: DisplayedMonth[]
+  formattedMonth: string
+  lastTwelveMonths: MonthQuickItem[]
+  currentMonthKey: string
+  isNextDisabled: boolean
   onPrev: () => void
   onNext: () => void
-  onSelectMonth: (date: Date) => void
+  onSelectMonthKey: (value: string) => void
 }>()
+
+const showDatePicker = ref(false)
 </script>
 
 <template>
-  <div class="month-selector d-flex align-center">
+  <div class="month-selector d-flex align-center gap-2">
     <v-btn
-      icon
+      icon="mdi-chevron-left"
       variant="text"
-      size="x-small"
+      size="small"
       class="month-nav"
-      color="grey"
       @click="onPrev"
-    >
-      <v-icon icon="mdi-chevron-left" size="20" />
-    </v-btn>
-    <div class="month-selector__months">
-      <button
-        v-for="(month, index) in displayedMonths"
-        :key="index"
-        type="button"
-        class="month-btn"
-        :class="{ 'month-btn--current': month.isCurrent }"
-        @click="onSelectMonth(month.date)"
-      >
-        {{ month.label }}
-      </button>
-    </div>
+    />
+    <v-menu v-model="showDatePicker" :close-on-content-click="true">
+      <template #activator="{ props: menuProps }">
+        <v-btn
+          v-bind="menuProps"
+          variant="tonal"
+          size="small"
+          rounded="pill"
+          class="month-selector__pill text-none"
+        >
+          {{ formattedMonth }}
+          <v-icon end size="16">
+            mdi-chevron-down
+          </v-icon>
+        </v-btn>
+      </template>
+      <v-card min-width="260" rounded="xl">
+        <v-card-text class="pa-2">
+          <v-list density="compact" nav>
+            <v-list-item
+              v-for="m in lastTwelveMonths"
+              :key="m.value"
+              :title="m.label"
+              :active="m.value === currentMonthKey"
+              color="primary"
+              rounded="lg"
+              @click="onSelectMonthKey(m.value); showDatePicker = false"
+            />
+          </v-list>
+        </v-card-text>
+      </v-card>
+    </v-menu>
     <v-btn
-      icon
+      icon="mdi-chevron-right"
       variant="text"
-      size="x-small"
+      size="small"
       class="month-nav"
-      color="grey"
+      :disabled="isNextDisabled"
       @click="onNext"
-    >
-      <v-icon icon="mdi-chevron-right" size="20" />
-    </v-btn>
+    />
   </div>
 </template>
 
 <style scoped>
 .month-selector {
   padding: 12px 0 16px;
-  gap: 16px;
 }
 
 .month-nav {
   color: #868e96;
 }
 
-.month-selector__months {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-}
-
-.month-btn {
-  padding: 8px 16px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: #868e96;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: color 0.2s, font-weight 0.2s, background-color 0.2s, box-shadow 0.2s;
-}
-
-.month-btn:hover {
-  color: #495057;
-}
-
-.month-btn--current {
-  font-weight: 700;
-  color: #212529;
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+.month-selector__pill {
+  max-width: min(100%, 220px);
+  text-transform: capitalize;
 }
 </style>

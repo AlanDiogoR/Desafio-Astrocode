@@ -51,7 +51,7 @@ public class AuthService {
     @Value("${app.security.password-reset-min-duration-ms:200}")
     private long passwordResetMinDurationMs;
 
-    @Value("${app.frontend-url:http://localhost:3000}")
+    @Value("${app.frontend-url:https://grivy.netlify.app}")
     private String frontendUrl;
 
     /** Se false, permite login sem e-mail verificado (ex.: Brevo/IP bloqueado). Produção: defina APP_REQUIRE_EMAIL_VERIFICATION=true. */
@@ -206,7 +206,9 @@ public class AuthService {
         String token = java.util.UUID.randomUUID().toString();
         user.setEmailVerificationToken(token);
         userRepository.save(user);
-        String base = frontendUrl != null ? frontendUrl.replaceAll("/$", "") : "http://localhost:3000";
+        String base = frontendUrl != null && !frontendUrl.isBlank()
+                ? frontendUrl.replaceAll("/$", "")
+                : "https://grivy.netlify.app";
         mailService.sendEmailVerification(normalized, base + "/verify-email?token=" + token);
     }
 

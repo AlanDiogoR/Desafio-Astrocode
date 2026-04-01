@@ -28,7 +28,16 @@ const {
   transactionFilters,
 } = useDashboard()
 
-const { selectedDate, displayedMonths, goToPrevMonth, goToNextMonth, selectMonth } = useMonthSelector()
+const {
+  selectedDate,
+  goToPrevMonth,
+  goToNextMonth,
+  formattedMonth,
+  currentMonthKey,
+  lastTwelveMonths,
+  isCurrentCalendarMonth,
+  selectMonthByKey,
+} = useMonthSelector()
 
 const insightYear = computed(() => selectedDate.value.getFullYear())
 const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
@@ -78,6 +87,32 @@ function handleIconError(id: string) {
   iconLoadFailed.set(id, true)
 }
 
+const hasListFilters = computed(
+  () => selectedType.value.value !== 'all' || transactionFilters.value?.bankAccountId != null,
+)
+
+const quickFilters = [
+  { value: 'ALL' as const, label: 'Todas', icon: 'mdi-format-list-bulleted', type: TRANSACTION_TYPES[0] },
+  { value: 'INCOME' as const, label: 'Receitas', icon: 'mdi-trending-up', type: TRANSACTION_TYPES[1] },
+  { value: 'EXPENSE' as const, label: 'Despesas', icon: 'mdi-trending-down', type: TRANSACTION_TYPES[2] },
+]
+
+const activeQuickFilter = computed(() => {
+  const v = selectedType.value.value
+  if (v === 'all') return 'ALL'
+  if (v === 'income') return 'INCOME'
+  return 'EXPENSE'
+})
+
+function setQuickFilter(entry: (typeof quickFilters)[number]) {
+  handleTypeSelect(entry.type)
+}
+
+function clearTransactionFilters() {
+  selectedType.value = TRANSACTION_TYPES[0]
+  transactionFilters.value = undefined
+}
+
 function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
   openEditTransactionModal({
     id: transaction.id,
@@ -107,21 +142,33 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
         @open-monthly-summary="openMonthlySummaryModal"
       />
       <MonthSelector
-        :displayed-months="displayedMonths"
+        :formatted-month="formattedMonth"
+        :last-twelve-months="lastTwelveMonths"
+        :current-month-key="currentMonthKey"
+        :is-next-disabled="isCurrentCalendarMonth"
         :on-prev="goToPrevMonth"
         :on-next="goToNextMonth"
-        :on-select-month="selectMonth"
+        :on-select-month-key="selectMonthByKey"
       />
     </div>
     <div class="transaction-list__scroll d-flex flex-column">
+      <div class="d-flex gap-2 flex-wrap mb-3 px-1">
+        <v-chip
+          v-for="filter in quickFilters"
+          :key="filter.value"
+          :color="activeQuickFilter === filter.value ? 'primary' : undefined"
+          :variant="activeQuickFilter === filter.value ? 'flat' : 'tonal'"
+          size="small"
+          @click="setQuickFilter(filter)"
+        >
+          <v-icon start size="14">
+            {{ filter.icon }}
+          </v-icon>
+          {{ filter.label }}
+        </v-chip>
+      </div>
       <div v-if="isPending" class="transaction-list__skeleton">
-        <div class="transaction-list__skeleton-spinner">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="48"
-          />
-        </div>
+        <v-skeleton-loader type="card" rounded="xl" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" />
@@ -159,7 +206,12 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
           @icon-error="handleIconError"
         />
       </div>
-      <TransactionEmptyState v-else @add-transaction="openNewTransactionModal('EXPENSE')" />
+      <TransactionEmptyState
+        v-else
+        :has-filters="hasListFilters"
+        @add-transaction="openNewTransactionModal('EXPENSE')"
+        @clear-filters="clearTransactionFilters"
+      />
       <v-pagination
         v-if="totalPages > 1"
         v-model="displayPage"
@@ -229,15 +281,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
 .transaction-list__skeleton {
   padding: 8px 0;
   position: relative;
-}
-
-.transaction-list__skeleton-spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  opacity: 0.95;
 }
 
 @media (max-width: 959px) {
