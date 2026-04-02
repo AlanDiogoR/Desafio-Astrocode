@@ -4,7 +4,6 @@ import MonthSelector from '~/components/transactions/MonthSelector.vue'
 import TransactionCard from '~/components/transactions/TransactionCard.vue'
 import TransactionEmptyState from '~/components/transactions/TransactionEmptyState.vue'
 import TransactionsFab from '~/components/transactions/TransactionsFab.vue'
-import MonthlyInsightBanner from '~/components/transactions/MonthlyInsightBanner.vue'
 import TransactionFiltersModal from '~/components/transactions/TransactionFiltersModal.vue'
 import NewAccountModal from '~/components/modals/NewAccountModal.vue'
 import NewTransactionModal from '~/components/modals/NewTransactionModal.vue'
@@ -39,12 +38,6 @@ const {
   selectMonthByKey,
 } = useMonthSelector()
 
-const insightYear = computed(() => selectedDate.value.getFullYear())
-const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
-const { dominantExpenseShare } = useInsightsController(insightYear, insightMonth)
-const showMonthlyInsight = computed(
-  () => dominantExpenseShare.value != null && dominantExpenseShare.value.percentage >= 35,
-)
 const selectedType = ref<TransactionTypeOption>(TRANSACTION_TYPES[0])
 const showFilters = ref(false)
 const iconLoadFailed = reactive(new Map<string, boolean>())
@@ -94,23 +87,6 @@ const hasListFilters = computed(
   () => selectedType.value.value !== 'all' || transactionFilters.value?.bankAccountId != null,
 )
 
-const quickFilters = [
-  { value: 'ALL' as const, label: 'Todas', icon: 'mdi-format-list-bulleted', type: TRANSACTION_TYPES[0] },
-  { value: 'INCOME' as const, label: 'Receitas', icon: 'mdi-trending-up', type: TRANSACTION_TYPES[1] },
-  { value: 'EXPENSE' as const, label: 'Despesas', icon: 'mdi-trending-down', type: TRANSACTION_TYPES[2] },
-]
-
-const activeQuickFilter = computed(() => {
-  const v = selectedType.value.value
-  if (v === 'all') return 'ALL'
-  if (v === 'income') return 'INCOME'
-  return 'EXPENSE'
-})
-
-function setQuickFilter(entry: (typeof quickFilters)[number]) {
-  handleTypeSelect(entry.type)
-}
-
 function clearTransactionFilters() {
   selectedType.value = TRANSACTION_TYPES[0]
   transactionFilters.value = undefined
@@ -155,27 +131,6 @@ function handleTransactionClick(transaction: (typeof transactions.value)[0]) {
       />
     </div>
     <div class="transaction-list__scroll d-flex flex-column">
-      <MonthlyInsightBanner
-        v-if="!isPending && showMonthlyInsight && dominantExpenseShare"
-        :category-name="dominantExpenseShare.categoryName"
-        :percentage="dominantExpenseShare.percentage"
-        class="px-1"
-      />
-      <div class="d-flex gap-2 flex-wrap mb-3 px-1">
-        <v-chip
-          v-for="filter in quickFilters"
-          :key="filter.value"
-          :color="activeQuickFilter === filter.value ? 'primary' : undefined"
-          :variant="activeQuickFilter === filter.value ? 'flat' : 'tonal'"
-          size="small"
-          @click="setQuickFilter(filter)"
-        >
-          <v-icon start size="14">
-            {{ filter.icon }}
-          </v-icon>
-          {{ filter.label }}
-        </v-chip>
-      </div>
       <div v-if="isPending" class="transaction-list__skeleton">
         <v-skeleton-loader type="card" rounded="xl" class="mb-3" />
         <v-skeleton-loader type="list-item-avatar-three-line" class="mb-3" />

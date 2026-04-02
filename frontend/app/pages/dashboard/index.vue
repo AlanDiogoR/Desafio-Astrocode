@@ -5,6 +5,7 @@ import TransactionList from './components/TransactionList.vue'
 import DashboardTour from '~/components/dashboard/DashboardTour.vue'
 import ConfirmDeleteModal from '~/components/modals/ConfirmDeleteModal.vue'
 import EditProfileModal from '~/components/modals/EditProfileModal.vue'
+import MonthlyInsightBanner from '~/components/transactions/MonthlyInsightBanner.vue'
 
 definePageMeta({
   layout: 'dashboard',
@@ -21,6 +22,14 @@ const {
   closeConfirmDeleteModal,
 } = useDashboard()
 const { handleConfirm } = useConfirmDelete()
+
+const { selectedDate } = useMonthSelector()
+const insightYear = computed(() => selectedDate.value.getFullYear())
+const insightMonth = computed(() => selectedDate.value.getMonth() + 1)
+const { dominantExpenseShare, isPending: isInsightPending } = useInsightsController(
+  insightYear,
+  insightMonth,
+)
 
 onMounted(() => {
   if (!import.meta.client) return
@@ -48,7 +57,15 @@ onMounted(() => {
         <AccountOverview />
       </div>
       <div class="dashboard-col dashboard-col--right">
-        <TransactionList :show-privacy="areValuesVisible" />
+        <div class="dashboard-transactions-column">
+          <MonthlyInsightBanner
+            v-if="!isInsightPending && dominantExpenseShare && dominantExpenseShare.percentage / 100 >= 0.6"
+            :category-name="dominantExpenseShare.categoryName"
+            :percentage="dominantExpenseShare.percentage"
+            class="mb-3 flex-shrink-0"
+          />
+          <TransactionList :show-privacy="areValuesVisible" />
+        </div>
       </div>
     </div>
   </div>
@@ -75,6 +92,25 @@ onMounted(() => {
   border-radius: 16px;
   overflow: hidden;
   min-height: 0;
+}
+
+.dashboard-transactions-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .dashboard-transactions-column {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .dashboard-transactions-column :deep(.transaction-list) {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 @media (min-width: 960px) {

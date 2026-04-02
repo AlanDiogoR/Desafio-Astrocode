@@ -99,7 +99,7 @@
                 R$ 25.576,80
               </p>
             </div>
-            <div class="d-flex ga-2">
+            <div class="d-flex flex-wrap gap-2 justify-end" style="max-width:180px">
               <v-chip color="success" variant="flat" size="x-small">
                 +R$ 8.200 este mês
               </v-chip>
@@ -205,22 +205,24 @@
                 Acompanhe como seu patrimônio cresce mês a mês.
               </p>
               <div
-                class="d-flex align-end justify-space-between ga-1 mt-6"
-                style="height: 80px"
+                class="d-flex align-end justify-space-between gap-1 mt-4"
+                style="height: 64px; padding: 0 4px"
               >
                 <div
                   v-for="(h, i) in balanceHistory"
                   :key="i"
-                  class="flex-1 rounded-t"
+                  class="rounded-t flex-1"
                   :style="{
-                    height: `${h}%`,
+                    height: h + '%',
+                    minHeight: '8px',
                     background: 'rgb(var(--v-theme-primary))',
-                    opacity: 0.3 + i * 0.1,
+                    opacity: 0.25 + (i * 0.07),
                   }"
                 />
               </div>
-              <div class="d-flex justify-space-between mt-2">
+              <div class="d-flex justify-space-between mt-2 px-1">
                 <span class="text-caption text-medium-emphasis">Jan</span>
+                <span class="text-caption text-medium-emphasis">Fev</span>
                 <span class="text-caption text-medium-emphasis">Jun</span>
               </div>
               <v-chip color="success" variant="flat" size="small" class="mt-3">
@@ -240,12 +242,16 @@
                 Defina objetivos e acompanhe o progresso em tempo real.
               </p>
               <div v-for="goal in previewGoals" :key="goal.name" class="mb-3">
-                <div class="d-flex justify-space-between mb-1">
-                  <span class="text-caption font-weight-medium">{{ goal.name }}</span>
-                  <span class="text-caption text-primary font-weight-bold">{{ goal.pct }}%</span>
+                <div class="d-flex justify-space-between align-center mb-1">
+                  <span class="text-caption font-weight-medium text-truncate" style="max-width: 140px">
+                    {{ goal.name }}
+                  </span>
+                  <span class="text-caption text-primary font-weight-bold ml-2 flex-shrink-0">
+                    {{ Math.round((goal.current / goal.target) * 100) }}%
+                  </span>
                 </div>
                 <v-progress-linear
-                  :model-value="goal.pct"
+                  :model-value="Math.round((goal.current / goal.target) * 100)"
                   color="primary"
                   rounded
                   height="8"
@@ -302,21 +308,30 @@
           sm="6"
           md="3"
         >
-          <div
-            v-if="plan.id === 'ANNUAL'"
-            class="text-center mb-n3"
-            style="position: relative; z-index: 1"
-          >
-            <v-chip color="primary" size="small" prepend-icon="mdi-fire">
-              Mais popular
-            </v-chip>
-          </div>
+          <div style="position: relative; padding-top: 18px">
+            <div
+              v-if="plan.id === 'ANNUAL'"
+              style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 2;
+                white-space: nowrap;
+              "
+            >
+              <v-chip color="primary" size="small" prepend-icon="mdi-fire">
+                Mais popular
+              </v-chip>
+            </div>
 
-          <v-card
-            rounded="xl"
-            class="h-100"
-            :style="plan.id === 'ANNUAL' ? 'border: 2px solid rgb(var(--v-theme-primary))' : ''"
-          >
+            <v-card
+              rounded="xl"
+              class="h-100"
+              :style="plan.id === 'ANNUAL'
+                ? 'border: 2px solid rgb(var(--v-theme-primary)); margin-top: 0'
+                : 'border: 1px solid transparent'"
+            >
             <v-card-text class="pa-5">
               <div class="d-flex align-center ga-2 mb-2">
                 <p class="text-overline text-medium-emphasis">
@@ -367,6 +382,7 @@
               </v-btn>
             </v-card-text>
           </v-card>
+          </div>
         </v-col>
       </v-row>
     </section>
@@ -481,9 +497,9 @@ const previewCategories = [
 const balanceHistory = [40, 50, 45, 60, 70, 65, 80, 75, 85, 90, 95, 100]
 
 const previewGoals = [
-  { name: 'Viagem Europa', pct: 68 },
-  { name: 'Reserva emergência', pct: 42 },
-  { name: 'Notebook novo', pct: 85 },
+  { name: 'Viagem Europa', current: 6800, target: 10000 },
+  { name: 'Reserva emergência', current: 4200, target: 10000 },
+  { name: 'Moto', current: 25000, target: 25000 },
 ]
 
 const banks = ['Nubank', 'Inter', 'Itaú', 'Bradesco', 'Santander', 'Caixa', 'BB', 'XP']
@@ -676,8 +692,17 @@ const faqs = [
 
 .landing__data-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+@media (min-width: 600px) {
+  .landing__data-cards {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
 }
 
 .landing__stats {
@@ -709,5 +734,47 @@ const faqs = [
 
 .landing__footer-link:hover {
   color: rgb(var(--v-theme-primary));
+}
+
+@media (max-width: 600px) {
+  .landing__hero {
+    padding: 48px 16px 40px;
+  }
+
+  .landing__headline {
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+  }
+
+  .landing__subheadline {
+    font-size: 0.95rem;
+  }
+
+  .landing__section {
+    padding: 48px 16px;
+  }
+
+  .landing__section--alt {
+    padding: 48px 16px;
+  }
+
+  .landing__stats {
+    gap: 24px;
+  }
+
+  .landing__nav-inner {
+    padding: 12px 16px;
+  }
+
+  .landing__cta {
+    padding: 48px 16px;
+  }
+
+  .landing__footer {
+    padding: 20px 16px;
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
 }
 </style>
