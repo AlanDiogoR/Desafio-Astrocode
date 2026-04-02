@@ -28,14 +28,35 @@ const text = computed(() => {
     v-if="severity && text"
     :type="severity"
     variant="tonal"
-    rounded="lg"
-    density="comfortable"
-    class="mb-3"
+    rounded="md"
+    density="compact"
+    class="monthly-insight-banner mb-2"
     border="start"
   >
-    <div class="d-flex align-start gap-2">
-      <v-icon :icon="severity === 'warning' ? 'mdi-alert' : 'mdi-lightbulb-on-outline'" class="mt-1 flex-shrink-0" />
-      <span class="text-body-2">{{ text }}</span>
+    <div class="d-flex align-start ga-1">
+      <v-icon
+        :icon="severity === 'warning' ? 'mdi-alert' : 'mdi-lightbulb-on-outline'"
+        size="18"
+        class="flex-shrink-0"
+      />
+      <span class="monthly-insight-banner__text">{{ text }}</span>
     </div>
   </v-alert>
 </template>
+
+<style scoped>
+.monthly-insight-banner {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.monthly-insight-banner :deep(.v-alert__content) {
+  padding-block: 4px;
+  min-width: 0;
+}
+
+.monthly-insight-banner__text {
+  font-size: inherit;
+  line-height: inherit;
+}
+</style>
