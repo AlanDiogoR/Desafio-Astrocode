@@ -39,7 +39,7 @@ const transactionUsagePercent = computed(() =>
   Math.min(100, (Number(transactionCountMonth.value) / 30) * 100),
 )
 
-const monthlyNet = computed(() => totalIncomeMonth.value - totalExpenseMonth.value)
+const balance = computed(() => totalIncomeMonth.value - totalExpenseMonth.value)
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -108,27 +108,30 @@ function togglePrivacy() {
         <div v-else class="d-flex gap-3 flex-wrap mt-3">
           <v-chip
             color="success"
-            variant="tonal"
+            variant="flat"
             size="small"
-            prepend-icon="mdi-trending-up"
+            prepend-icon="mdi-arrow-up"
+            class="font-weight-medium"
           >
-            +{{ formatCurrency(totalIncomeMonth) }} este mês
+            +{{ formatCurrency(totalIncomeMonth) }}
           </v-chip>
           <v-chip
             color="error"
-            variant="tonal"
+            variant="flat"
             size="small"
-            prepend-icon="mdi-trending-down"
+            prepend-icon="mdi-arrow-down"
+            class="font-weight-medium"
           >
-            -{{ formatCurrency(totalExpenseMonth) }} este mês
+            -{{ formatCurrency(totalExpenseMonth) }}
           </v-chip>
           <v-chip
-            :color="monthlyNet >= 0 ? 'primary' : 'warning'"
-            variant="tonal"
+            :color="balance >= 0 ? 'primary' : 'warning'"
+            variant="flat"
             size="small"
             prepend-icon="mdi-scale-balance"
+            class="font-weight-medium"
           >
-            Balanço: {{ formatCurrency(monthlyNet) }}
+            {{ formatCurrency(balance) }}
           </v-chip>
         </div>
         <v-alert

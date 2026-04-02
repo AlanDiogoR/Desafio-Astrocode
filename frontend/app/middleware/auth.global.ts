@@ -45,9 +45,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (authStore.isLoggedIn) {
-    if (to.path === '/') {
-      return navigateTo('/dashboard')
-    }
     if (isPublic && (to.path === '/login' || to.path === '/register')) {
       const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
       return navigateTo(postLogin)
@@ -67,9 +64,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       if (to.path === '/login' || to.path === '/register') {
         const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
         return navigateTo(postLogin)
-      }
-      if (to.path === '/') {
-        return navigateTo('/dashboard')
       }
       if (to.path === '/planos') {
         return navigateTo('/dashboard/planos')
@@ -93,9 +87,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (to.path === '/login' || to.path === '/register') {
       const postLogin = safeRedirectTarget(to.query.redirect as unknown) ?? '/dashboard'
       return navigateTo(postLogin)
-    }
-    if (to.path === '/') {
-      return navigateTo('/dashboard')
     }
     if (to.path === '/planos') {
       return navigateTo('/dashboard/planos')
