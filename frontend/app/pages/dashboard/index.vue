@@ -61,8 +61,7 @@ onMounted(() => {
           <MonthlyInsightBanner
             v-if="!isInsightPending && dominantExpenseShare && dominantExpenseShare.percentage / 100 >= 0.8"
             :category-name="dominantExpenseShare.categoryName"
-            :percentage="dominantExpenseShare.percentage"
-            class="flex-shrink-0"
+            :percent="dominantExpenseShare.percentage"
           />
           <TransactionList :show-privacy="areValuesVisible" />
         </div>
@@ -129,7 +128,7 @@ onMounted(() => {
 
   .dashboard-col {
     flex: 1 1 0;
-    min-width: 280px;
+    min-width: 0;
     min-height: 0;
     display: flex;
     flex-direction: column;

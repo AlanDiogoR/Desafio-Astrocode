@@ -1,23 +1,28 @@
 <script setup lang="ts">
-defineProps<{
-  categoryName: string
-  percentage: number
-}>()
+withDefaults(
+  defineProps<{
+    categoryName: string
+    percent: number
+    show?: boolean
+  }>(),
+  { show: true },
+)
 </script>
 
 <template>
-  <v-alert
-    type="warning"
-    variant="text"
-    density="compact"
-    class="mb-1 px-0"
-    style="font-size: 0.78rem"
+  <div
+    v-if="show"
+    class="d-flex align-center gap-2 px-3 py-2 rounded-lg mb-2 flex-shrink-0"
+    style="
+      background: rgba(var(--v-theme-warning), 0.08);
+      border-left: 3px solid rgb(var(--v-theme-warning));
+      font-size: 0.78rem;
+      line-height: 1.3;
+    "
   >
-    <template #prepend>
-      <v-icon size="14" class="mr-1">
-        mdi-alert-circle-outline
-      </v-icon>
-    </template>
-    {{ categoryName }} representa {{ percentage }}% das despesas deste mês.
-  </v-alert>
+    <v-icon icon="mdi-alert-circle-outline" color="warning" size="14" />
+    <span class="text-medium-emphasis">
+      <strong>{{ categoryName }}</strong> representa {{ percent }}% das despesas deste mês.
+    </span>
+  </div>
 </template>

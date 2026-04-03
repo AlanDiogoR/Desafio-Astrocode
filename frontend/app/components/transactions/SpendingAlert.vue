@@ -19,7 +19,7 @@ const dismissed = ref(
   typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey.value) === 'true',
 )
 
-const isVisible = computed(
+const show = computed(
   () => props.visible && !dismissed.value && props.percentage > 40,
 )
 
@@ -34,34 +34,32 @@ function dismiss() {
 
 <template>
   <Transition name="slide-fade">
-    <v-alert
-      v-if="isVisible"
-      type="warning"
-      variant="text"
-      density="compact"
-      class="mb-1 px-0"
-      style="font-size: 0.78rem"
+    <div
+      v-if="show"
+      class="d-flex align-center gap-2 px-3 py-2 rounded-lg mb-2 flex-shrink-0"
+      style="
+        background: rgba(var(--v-theme-warning), 0.08);
+        border-left: 3px solid rgb(var(--v-theme-warning));
+        font-size: 0.78rem;
+        line-height: 1.3;
+      "
     >
-      <template #prepend>
-        <v-icon size="14" class="mr-1">
-          mdi-alert-circle-outline
-        </v-icon>
-      </template>
-      <span class="d-inline-flex align-center flex-wrap" style="gap: 4px;">
-        {{ categoryName }} representa {{ percentage }}% dos gastos deste mês.
-        <v-btn
-          icon
-          variant="text"
-          size="x-small"
-          density="compact"
-          class="flex-shrink-0"
-          aria-label="Dispensar alerta"
-          @click="dismiss"
-        >
-          <v-icon icon="mdi-close" size="14" />
-        </v-btn>
+      <v-icon icon="mdi-alert-circle-outline" color="warning" size="14" />
+      <span class="text-medium-emphasis flex-grow-1 min-width-0">
+        <strong>{{ categoryName }}</strong> representa {{ percentage }}% dos gastos deste mês.
       </span>
-    </v-alert>
+      <v-btn
+        icon
+        variant="text"
+        size="x-small"
+        density="compact"
+        class="flex-shrink-0"
+        aria-label="Dispensar alerta"
+        @click="dismiss"
+      >
+        <v-icon icon="mdi-close" size="14" />
+      </v-btn>
+    </div>
   </Transition>
 </template>
 
