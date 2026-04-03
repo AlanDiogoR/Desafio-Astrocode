@@ -78,18 +78,15 @@ public class Subscription {
         updatedAt = OffsetDateTime.now();
     }
 
-    /** Plano pago ativo (não FREE, status ACTIVE, não expirado). Usado no login e JWT. */
+    /** Plano pago ativo (não FREE, não expirado; ACTIVE ou CANCELLED até expiresAt). Usado no login e JWT. */
     public boolean hasActivePaidSubscription() {
-        if (status != SubscriptionStatus.ACTIVE) {
-            return false;
-        }
         if (planType == PlanType.FREE) {
             return false;
         }
-        if (expiresAt != null && OffsetDateTime.now().isAfter(expiresAt)) {
+        if (expiresAt == null || OffsetDateTime.now().isAfter(expiresAt)) {
             return false;
         }
-        return true;
+        return status == SubscriptionStatus.ACTIVE || status == SubscriptionStatus.CANCELLED;
     }
 
     public boolean isEliteAnnualPlan() {

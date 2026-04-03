@@ -40,15 +40,18 @@ export interface SubscriptionStatus {
 
 function mapSubscriptionMeToStatus(me: SubscriptionResponse): SubscriptionStatus {
   const planType = me.planType ?? 'FREE'
-  const isPaid = planType !== 'FREE' && me.status === 'ACTIVE'
   const exp = me.expiresAt ? new Date(me.expiresAt) : null
-  const isActive = Boolean(isPaid && exp && exp.getTime() > Date.now())
+  const notExpired = Boolean(exp && exp.getTime() > Date.now())
+  const isPaidAccess =
+    planType !== 'FREE'
+    && notExpired
+    && (me.status === 'ACTIVE' || me.status === 'CANCELLED')
   return {
-    plan: isActive ? 'PRO' : 'FREE',
+    plan: isPaidAccess ? 'PRO' : 'FREE',
     planType,
-    isActive,
+    isActive: isPaidAccess,
     expiresAt: me.expiresAt,
-    isElite: isActive && planType === 'ANNUAL',
+    isElite: isPaidAccess && planType === 'ANNUAL',
   }
 }
 
@@ -64,5 +67,10 @@ export const subscriptionService = {
     const { $api } = useNuxtApp()
     const { data } = await $api.get<SubscriptionResponse>('/subscription/me')
     return mapSubscriptionMeToStatus(data)
+  },
+
+  async cancelSubscription(): Promise<void> {
+    const { $api } = useNuxtApp()
+    await $api.post('/subscription/cancel')
   },
 }

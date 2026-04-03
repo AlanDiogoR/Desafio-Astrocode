@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Cross2Icon, LightningBoltIcon } from '@radix-icons/vue'
-
 const props = defineProps<{
   categoryName: string
   percentage: number
@@ -18,7 +16,7 @@ const currentMonth = computed(() => props.currentMonth ?? now.getMonth() + 1)
 const currentYear = computed(() => props.currentYear ?? now.getFullYear())
 const storageKey = computed(() => `spending-alert-dismissed-${currentYear.value}-${currentMonth.value}`)
 const dismissed = ref(
-  typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey.value) === 'true'
+  typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey.value) === 'true',
 )
 
 const isVisible = computed(
@@ -36,56 +34,38 @@ function dismiss() {
 
 <template>
   <Transition name="slide-fade">
-    <div
+    <v-alert
       v-if="isVisible"
-      class="d-flex align-start ga-3 pa-3 mb-3 rounded-lg border spending-alert__bg"
+      type="warning"
+      variant="text"
+      density="compact"
+      class="mb-1 px-0"
+      style="font-size: 0.78rem"
     >
-      <LightningBoltIcon
-        class="flex-shrink-0 mt-1 spending-alert__icon"
-        width="22"
-        height="22"
-        aria-hidden
-      />
-      <span class="flex-grow-1 min-width-0 text-body-2 spending-alert__text">
-        Atenção: {{ percentage }}% dos seus gastos este mês foram em {{ categoryName }}.
+      <template #prepend>
+        <v-icon size="14" class="mr-1">
+          mdi-alert-circle-outline
+        </v-icon>
+      </template>
+      <span class="d-inline-flex align-center flex-wrap" style="gap: 4px;">
+        {{ categoryName }} representa {{ percentage }}% dos gastos deste mês.
+        <v-btn
+          icon
+          variant="text"
+          size="x-small"
+          density="compact"
+          class="flex-shrink-0"
+          aria-label="Dispensar alerta"
+          @click="dismiss"
+        >
+          <v-icon icon="mdi-close" size="14" />
+        </v-btn>
       </span>
-      <v-btn
-        icon
-        variant="text"
-        size="small"
-        density="compact"
-        class="flex-shrink-0 spending-alert__dismiss"
-        aria-label="Dispensar alerta"
-        @click="dismiss"
-      >
-        <Cross2Icon width="14" height="14" />
-      </v-btn>
-    </div>
+    </v-alert>
   </Transition>
 </template>
 
 <style scoped>
-.spending-alert__bg {
-  background-color: #fff7ed;
-  border-color: #fed7aa;
-}
-
-.spending-alert__text {
-  color: #9a3412;
-}
-
-.spending-alert__dismiss {
-  color: #9a3412;
-}
-
-.spending-alert__dismiss:hover {
-  background: rgba(234, 88, 12, 0.1) !important;
-}
-
-.spending-alert__icon {
-  color: #ea580c;
-}
-
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   transition: all 0.2s ease;

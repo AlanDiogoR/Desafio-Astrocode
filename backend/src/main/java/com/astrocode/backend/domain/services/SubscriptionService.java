@@ -32,6 +32,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
@@ -85,17 +86,12 @@ public class SubscriptionService {
     @Transactional(readOnly = true)
     public SubscriptionStatusResponse getStatus(UUID userId) {
         Subscription sub = getSubscriptionOrThrow(userId);
-        String plan;
-        if (sub.getStatus() == SubscriptionStatus.CANCELLED) {
-            plan = "FREE";
-        } else if (sub.getPlanType() != PlanType.FREE && sub.getStatus() == SubscriptionStatus.ACTIVE) {
-            plan = "PRO";
-        } else {
-            plan = "FREE";
-        }
-        boolean isActive = "PRO".equals(plan)
+        boolean paidUntilExpiry = sub.getPlanType() != PlanType.FREE
                 && sub.getExpiresAt() != null
-                && sub.getExpiresAt().isAfter(OffsetDateTime.now());
+                && sub.getExpiresAt().isAfter(OffsetDateTime.now())
+                && (sub.getStatus() == SubscriptionStatus.ACTIVE
+                || sub.getStatus() == SubscriptionStatus.CANCELLED);
+        boolean isActive = paidUntilExpiry;
         LocalDateTime expires = sub.getExpiresAt() != null ? sub.getExpiresAt().toLocalDateTime() : null;
         return new SubscriptionStatusResponse(isActive ? "PRO" : "FREE", isActive, expires);
     }
@@ -288,8 +284,9 @@ public class SubscriptionService {
     @Transactional
     public void expireSubscriptions() {
         OffsetDateTime now = OffsetDateTime.now();
-        var expired = subscriptionRepository.findByStatusAndExpiresAtBefore(SubscriptionStatus.ACTIVE, now);
-        var toSave = expired.stream()
+        var activeExpired = subscriptionRepository.findByStatusAndExpiresAtBefore(SubscriptionStatus.ACTIVE, now);
+        var cancelledExpired = subscriptionRepository.findByStatusAndExpiresAtBefore(SubscriptionStatus.CANCELLED, now);
+        var toSave = Stream.concat(activeExpired.stream(), cancelledExpired.stream())
                 .filter(sub -> sub.getPlanType() != PlanType.FREE)
                 .peek(sub -> {
                     sub.setStatus(SubscriptionStatus.EXPIRED);

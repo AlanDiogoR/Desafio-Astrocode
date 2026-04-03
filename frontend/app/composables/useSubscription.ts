@@ -28,7 +28,7 @@ export function useSubscription() {
   )
 
   function invalidate() {
-    queryClient.invalidateQueries({ queryKey: ['subscription-status'] })
+    return queryClient.invalidateQueries({ queryKey: ['subscription-status'] })
   }
 
   return {

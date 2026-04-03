@@ -204,28 +204,33 @@
               <p class="text-caption text-medium-emphasis mb-4">
                 Acompanhe como seu patrimônio cresce mês a mês.
               </p>
-              <div
-                class="d-flex align-end justify-space-between gap-1 mt-4"
-                style="height: 64px; padding: 0 4px"
-              >
-                <div
-                  v-for="(h, i) in balanceHistory"
-                  :key="i"
-                  class="rounded-t flex-1"
-                  :style="{
-                    height: h + '%',
-                    minHeight: '8px',
-                    background: 'rgb(var(--v-theme-primary))',
-                    opacity: 0.25 + (i * 0.07),
-                  }"
-                />
+              <div class="mt-4 mb-2">
+                <!-- Barras do gráfico -->
+                <div style="display: flex; align-items: flex-end; gap: 4px; height: 72px; padding: 0 2px;">
+                  <div
+                    v-for="(val, i) in [35, 42, 38, 55, 62, 58, 70, 68, 78, 82, 90, 100]"
+                    :key="i"
+                    :style="{
+                      flex: 1,
+                      height: val + '%',
+                      minHeight: '6px',
+                      borderRadius: '3px 3px 0 0',
+                      background: 'rgb(var(--v-theme-primary))',
+                      opacity: String(0.3 + i * 0.06),
+                    }"
+                  />
+                </div>
+                <!-- Linha de base -->
+                <div style="border-top: 1px solid rgba(0,0,0,0.08); margin: 0 2px;" />
+                <!-- Labels -->
+                <div style="display: flex; justify-content: space-between; padding: 4px 2px 0;">
+                  <span style="font-size: 0.7rem; color: rgba(var(--v-theme-on-surface), 0.5)">Jan</span>
+                  <span style="font-size: 0.7rem; color: rgba(var(--v-theme-on-surface), 0.5)">Jun</span>
+                  <span style="font-size: 0.7rem; color: rgba(var(--v-theme-on-surface), 0.5)">Dez</span>
+                </div>
               </div>
-              <div class="d-flex justify-space-between mt-2 px-1">
-                <span class="text-caption text-medium-emphasis">Jan</span>
-                <span class="text-caption text-medium-emphasis">Fev</span>
-                <span class="text-caption text-medium-emphasis">Jun</span>
-              </div>
-              <v-chip color="success" variant="flat" size="small" class="mt-3">
+
+              <v-chip color="success" variant="flat" size="small" class="mt-2">
                 +12,4% em 6 meses
               </v-chip>
             </v-card-text>
@@ -300,91 +305,79 @@
         </p>
       </div>
 
-      <v-row justify="center" class="mx-auto" style="max-width: 960px">
-        <v-col
+      <div class="plans-grid mx-auto" style="max-width: 960px">
+        <div
           v-for="plan in plans"
           :key="plan.id"
-          cols="12"
-          sm="6"
-          md="3"
+          class="plan-card-wrapper"
         >
-          <div style="position: relative; padding-top: 18px">
-            <div
-              v-if="plan.id === 'ANNUAL'"
-              style="
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 2;
-                white-space: nowrap;
-              "
-            >
-              <v-chip color="primary" size="small" prepend-icon="mdi-fire">
-                Mais popular
-              </v-chip>
-            </div>
+          <!-- Badge popular — só para ANNUAL -->
+          <div v-if="plan.id === 'ANNUAL'" class="plan-badge">
+            <v-chip color="primary" size="x-small" prepend-icon="mdi-fire">
+              Mais popular
+            </v-chip>
+          </div>
 
-            <v-card
-              rounded="xl"
-              class="h-100"
-              :style="plan.id === 'ANNUAL'
-                ? 'border: 2px solid rgb(var(--v-theme-primary)); margin-top: 0'
-                : 'border: 1px solid transparent'"
-            >
-            <v-card-text class="pa-5">
-              <div class="d-flex align-center ga-2 mb-2">
-                <p class="text-overline text-medium-emphasis">
-                  {{ plan.name }}
+          <v-card
+            rounded="xl"
+            height="100%"
+            :style="plan.id === 'ANNUAL'
+              ? 'border: 2px solid rgb(var(--v-theme-primary));'
+              : 'border: 1px solid rgba(var(--v-theme-on-surface), 0.1);'"
+            flat
+          >
+            <v-card-text class="pa-5 d-flex flex-column" style="height: 100%">
+              <div>
+                <div class="d-flex align-center gap-2 mb-1">
+                  <span class="text-overline text-medium-emphasis" style="line-height:1">
+                    {{ plan.name }}
+                  </span>
+                  <v-chip v-if="plan.badge" :color="plan.badgeColor" size="x-small">
+                    {{ plan.badge }}
+                  </v-chip>
+                </div>
+
+                <p class="text-h4 font-weight-black mb-0">
+                  {{ plan.priceLabel }}
                 </p>
-                <v-chip
-                  v-if="plan.badge && plan.badgeColor"
-                  :color="plan.badgeColor"
-                  size="x-small"
-                >
-                  {{ plan.badge }}
-                </v-chip>
-              </div>
+                <p class="text-caption text-medium-emphasis mb-4">
+                  {{ plan.period }}
+                </p>
 
-              <p class="text-h4 font-weight-bold">
-                {{ plan.priceLabel }}
-              </p>
-              <p class="text-caption text-medium-emphasis mb-4">
-                {{ plan.period }}
-              </p>
+                <v-divider class="mb-4" />
 
-              <v-divider class="mb-4" />
-
-              <ul style="list-style: none; padding: 0; margin: 0">
-                <li
+                <div
                   v-for="f in plan.features"
                   :key="f.text"
-                  class="d-flex align-center ga-2 mb-2 text-body-2"
+                  class="d-flex align-center gap-2 mb-2"
                 >
                   <v-icon
-                    :icon="f.included ? 'mdi-check-circle' : 'mdi-close-circle'"
-                    :color="f.included ? 'success' : 'medium-emphasis'"
+                    :icon="f.included ? 'mdi-check-circle' : 'mdi-minus-circle-outline'"
+                    :color="f.included ? 'success' : 'disabled'"
                     size="16"
                   />
-                  <span :class="f.included ? '' : 'text-medium-emphasis'">{{ f.text }}</span>
-                </li>
-              </ul>
+                  <span
+                    class="text-body-2"
+                    :style="f.included ? '' : 'opacity: 0.45'"
+                  >{{ f.text }}</span>
+                </div>
+              </div>
 
-              <v-btn
-                :color="plan.id === 'ANNUAL' ? 'primary' : undefined"
-                :variant="plan.id === 'ANNUAL' ? 'flat' : 'outlined'"
-                block
-                rounded="pill"
-                class="mt-6"
-                @click="navigateTo('/register')"
-              >
-                {{ plan.cta }}
-              </v-btn>
+              <div class="mt-auto pt-5">
+                <v-btn
+                  :color="plan.id === 'ANNUAL' ? 'primary' : 'default'"
+                  :variant="plan.id === 'ANNUAL' ? 'flat' : 'outlined'"
+                  block
+                  rounded="pill"
+                  @click="navigateTo('/register')"
+                >
+                  {{ plan.cta }}
+                </v-btn>
+              </div>
             </v-card-text>
           </v-card>
-          </div>
-        </v-col>
-      </v-row>
+        </div>
+      </div>
     </section>
 
     <section class="landing__section landing__section--alt">
@@ -493,8 +486,6 @@ const previewCategories = [
   { name: 'Transporte', value: 'R$ 890', pct: 30, color: 'warning' },
   { name: 'Lazer', value: 'R$ 1.2k', pct: 40, color: 'error' },
 ]
-
-const balanceHistory = [40, 50, 45, 60, 70, 65, 80, 75, 85, 90, 95, 100]
 
 const previewGoals = [
   { name: 'Viagem Europa', current: 6800, target: 10000 },
@@ -776,5 +767,44 @@ const faqs = [
     text-align: center;
     gap: 12px;
   }
+}
+
+/* Grid de planos */
+.plans-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 0 8px;
+}
+
+@media (min-width: 600px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .plans-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Wrapper do card com espaço para o badge */
+.plan-card-wrapper {
+  position: relative;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Badge "Mais popular" */
+.plan-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
 }
 </style>

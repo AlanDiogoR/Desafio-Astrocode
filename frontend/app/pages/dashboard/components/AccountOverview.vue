@@ -11,7 +11,6 @@ import EditAccountModal from '~/components/modals/EditAccountModal.vue'
 import NewCreditCardModal from '~/components/modals/NewCreditCardModal.vue'
 import EditCreditCardModal from '~/components/modals/EditCreditCardModal.vue'
 import CreditCardBillModal from '~/components/modals/CreditCardBillModal.vue'
-import AppButton from '~/components/ui/AppButton.vue'
 import { useCarousel } from '~/composables/useCarousel'
 
 const { openNewAccountModal, openNewCreditCardModal } = useDashboard()
@@ -47,20 +46,6 @@ function formatCurrency(value: number) {
     currency: 'BRL',
   }).format(value)
 }
-
-const dismissedUpgradeBanner = ref(false)
-
-onMounted(() => {
-  if (import.meta.client) {
-    dismissedUpgradeBanner.value = sessionStorage.getItem('dismissed_upgrade_banner') === 'true'
-  }
-})
-
-watch(dismissedUpgradeBanner, (val) => {
-  if (val && import.meta.client) {
-    sessionStorage.setItem('dismissed_upgrade_banner', 'true')
-  }
-})
 
 const { carouselRef, scroll } = useCarousel()
 const { carouselRef: creditCardsCarouselRef, scroll: creditCardsScroll } = useCarousel()
@@ -135,46 +120,17 @@ function togglePrivacy() {
           </v-chip>
         </div>
         <v-alert
-          v-if="isFree && !dismissedUpgradeBanner"
-          type="info"
-          variant="tonal"
-          rounded="xl"
-          class="mt-4 mb-0"
-          closable
-          @click:close="dismissedUpgradeBanner = true"
-        >
-          <template #prepend>
-            <v-icon icon="mdi-crown" color="primary" />
-          </template>
-          <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
-            <span>
-              <strong>Desbloqueie tudo com o Pro</strong> — cartões de crédito,
-              transações ilimitadas e Open Finance.
-            </span>
-            <AppButton
-              size="small"
-              color="primary"
-              variant="text"
-              :block="false"
-              class="align-self-start"
-              @click="navigateTo('/dashboard/planos')"
-            >
-              Ver planos
-            </AppButton>
-          </div>
-        </v-alert>
-        <v-alert
           v-if="isFree && transactionUsagePercent >= 80"
           type="warning"
           variant="tonal"
           rounded="xl"
-          class="mt-3 mb-0"
+          class="mt-4 mb-0"
         >
           <div class="d-flex flex-column flex-sm-row align-sm-center gap-2">
             <span>
               Você usou {{ transactionCountMonth }}/30 transações este mês.
             </span>
-            <AppButton
+            <v-btn
               size="small"
               variant="text"
               :block="false"
@@ -182,7 +138,7 @@ function togglePrivacy() {
               @click="navigateTo('/dashboard/planos')"
             >
               Fazer upgrade
-            </AppButton>
+            </v-btn>
           </div>
         </v-alert>
       </section>

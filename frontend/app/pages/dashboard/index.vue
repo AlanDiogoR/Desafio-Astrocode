@@ -59,10 +59,10 @@ onMounted(() => {
       <div class="dashboard-col dashboard-col--right">
         <div class="dashboard-transactions-column">
           <MonthlyInsightBanner
-            v-if="!isInsightPending && dominantExpenseShare && dominantExpenseShare.percentage / 100 >= 0.6"
+            v-if="!isInsightPending && dominantExpenseShare && dominantExpenseShare.percentage / 100 >= 0.8"
             :category-name="dominantExpenseShare.categoryName"
             :percentage="dominantExpenseShare.percentage"
-            class="mb-3 flex-shrink-0"
+            class="flex-shrink-0"
           />
           <TransactionList :show-privacy="areValuesVisible" />
         </div>
