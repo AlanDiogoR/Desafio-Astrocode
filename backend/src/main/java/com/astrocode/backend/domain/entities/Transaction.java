@@ -97,6 +97,10 @@ public class Transaction {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Size(max = 32)
+    @Column(name = "source", length = 32)
+    private String source;
+
     @PrePersist
     protected void onCreate() {
         OffsetDateTime now = OffsetDateTime.now();

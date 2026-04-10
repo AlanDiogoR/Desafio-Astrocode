@@ -13,6 +13,10 @@ const plans = ref<Array<{ id: string; name: string; price: number; months: numbe
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
 const isLoading = ref(true)
 
+const waitlistEmail = ref('')
+const waitlistSubmitted = ref(false)
+const waitlistLoading = ref(false)
+
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const currentPlan = computed(() => authStore.user?.plan ?? 'FREE')
 
@@ -49,8 +53,28 @@ onMounted(async () => {
       subscription.value = null
       toast?.error('Erro ao carregar informações da assinatura.')
     }
+    waitlistEmail.value = authStore.user?.email ?? ''
   }
 })
+
+async function handleWaitlist() {
+  const email = waitlistEmail.value.trim() || authStore.user?.email?.trim()
+  if (!email) {
+    toast?.error('Informe um e-mail válido.')
+    return
+  }
+  waitlistLoading.value = true
+  try {
+    const { joinOpenFinanceWaitlist } = await import('~/services/openFinance/joinWaitlist')
+    await joinOpenFinanceWaitlist($api, email)
+    waitlistSubmitted.value = true
+    toast?.success('Você entrou na lista VIP!')
+  } catch {
+    toast?.error('Não foi possível entrar na lista. Tente novamente.')
+  } finally {
+    waitlistLoading.value = false
+  }
+}
 
 const paidPlans = computed(() => plans.value.filter((p) => p.id !== 'FREE'))
 
@@ -233,6 +257,65 @@ function goAssinar(planId: string) {
           </div>
         </article>
       </div>
+
+      <section class="planos-page__open-finance mt-10" aria-labelledby="open-finance-heading">
+        <div
+          class="open-finance-card"
+          :class="{ 'open-finance-card--done': waitlistSubmitted }"
+        >
+          <div class="open-finance-card__badge">
+            👑 Exclusivo — Em breve
+          </div>
+          <div class="open-finance-card__overlay" aria-hidden="true" />
+          <h2 id="open-finance-heading" class="open-finance-card__title">
+            Open Finance
+          </h2>
+          <p class="open-finance-card__desc">
+            Conecte todos os seus bancos automaticamente e tenha uma visão 360° das suas finanças.
+          </p>
+          <div v-if="!waitlistSubmitted" class="d-flex flex-column ga-2">
+            <v-text-field
+              v-model="waitlistEmail"
+              type="email"
+              label="Seu e-mail"
+              variant="outlined"
+              density="comfortable"
+              hide-details="auto"
+              autocomplete="email"
+              :disabled="waitlistLoading"
+            />
+            <v-btn
+              color="primary"
+              size="large"
+              rounded="lg"
+              block
+              :loading="waitlistLoading"
+              @click="handleWaitlist"
+            >
+              👑 Entrar na lista VIP de acesso antecipado
+            </v-btn>
+          </div>
+          <v-btn
+            v-else
+            color="success"
+            variant="tonal"
+            size="large"
+            rounded="lg"
+            block
+            disabled
+          >
+            ✅ Você está na lista de espera!
+          </v-btn>
+          <p class="open-finance-card__hint text-caption mt-3">
+            <template v-if="!waitlistSubmitted">
+              Este recurso é exclusivo para usuários de elite. Cadastre-se agora e seja um dos primeiros a acessar quando lançarmos.
+            </template>
+            <template v-else>
+              Avisaremos por e-mail assim que o Open Finance estiver disponível para você.
+            </template>
+          </p>
+        </div>
+      </section>
 
       <div v-if="!isLoggedIn" class="planos-page__cta mt-8">
         <p class="text-body-1 text-medium-emphasis">
@@ -451,5 +534,62 @@ function goAssinar(planId: string) {
   .planos-page__container {
     max-width: 1200px;
   }
+}
+
+.open-finance-card {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(135deg, #c9a227, #f4e4a6, #b8860b) border-box;
+  opacity: 0.92;
+}
+
+.open-finance-card--done {
+  opacity: 1;
+}
+
+.open-finance-card__overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.04));
+}
+
+.open-finance-card__badge {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.open-finance-card__title {
+  position: relative;
+  z-index: 1;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.open-finance-card__desc {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.open-finance-card__hint {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text-secondary);
 }
 </style>

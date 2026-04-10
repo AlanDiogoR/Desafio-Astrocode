@@ -98,6 +98,32 @@ public class User {
     @Column(name = "refresh_token_hash", length = 64)
     private String refreshTokenHash;
 
+    @Column(name = "last_login_at")
+    private OffsetDateTime lastLoginAt;
+
+    @Column(name = "last_reactivation_email_at")
+    private OffsetDateTime lastReactivationEmailAt;
+
+    @JdbcTypeCode(SqlTypes.BOOLEAN)
+    @Column(name = "marketing_emails_opt_out", nullable = false)
+    @Builder.Default
+    private boolean marketingEmailsOptOut = false;
+
+    @Size(max = 20)
+    @Column(name = "whatsapp_phone", length = 20)
+    private String whatsappPhone;
+
+    @JdbcTypeCode(SqlTypes.BOOLEAN)
+    @Column(name = "whatsapp_verified", nullable = false)
+    @Builder.Default
+    private boolean whatsappVerified = false;
+
+    @Column(name = "whatsapp_verification_code", length = 12)
+    private String whatsappVerificationCode;
+
+    @Column(name = "whatsapp_verification_expires_at")
+    private OffsetDateTime whatsappVerificationExpiresAt;
+
     public boolean isPro() {
         return subscription != null && subscription.hasActivePaidSubscription();
     }

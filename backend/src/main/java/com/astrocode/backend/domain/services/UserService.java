@@ -12,6 +12,7 @@ import com.astrocode.backend.domain.model.enums.TransactionType;
 import com.astrocode.backend.domain.repositories.CategoryRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
+import com.astrocode.backend.infrastructure.whatsapp.WhatsappGraphClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -34,18 +39,26 @@ public class UserService {
     private final SubscriptionRepository subscriptionRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final EmailMarketingService emailMarketingService;
+    private final WhatsappGraphClient whatsappGraphClient;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Value("${app.frontend-url:https://grivy.netlify.app}")
     private String frontendUrl;
 
     public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
                        SubscriptionRepository subscriptionRepository, PasswordEncoder passwordEncoder,
-                       MailService mailService) {
+                       MailService mailService,
+                       EmailMarketingService emailMarketingService,
+                       WhatsappGraphClient whatsappGraphClient) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
+        this.emailMarketingService = emailMarketingService;
+        this.whatsappGraphClient = whatsappGraphClient;
     }
 
     public UserResponse updateProfile(User user, UpdateProfileRequest request) {
@@ -66,6 +79,14 @@ public class UserService {
         }
         if (updatingPassword) {
             user.setPassword(passwordEncoder.encode(request.newPassword()));
+        }
+
+        if (request.marketingEmailsOptOut() != null) {
+            boolean wasOptOut = user.isMarketingEmailsOptOut();
+            user.setMarketingEmailsOptOut(request.marketingEmailsOptOut());
+            if (!wasOptOut && user.isMarketingEmailsOptOut()) {
+                emailMarketingService.cancelPendingOnboarding(user.getId());
+            }
         }
 
         return toResponse(userRepository.save(user));
@@ -139,6 +160,71 @@ public class UserService {
         user.setEmailVerified(true);
         user.setEmailVerificationToken(null);
         userRepository.save(user);
+        User refreshed = userRepository.findByIdWithSubscription(user.getId()).orElse(user);
+        try {
+            emailMarketingService.onEmailVerified(refreshed);
+        } catch (Exception e) {
+            log.warn("[MAIL] Falha ao disparar e-mails pós-verificação: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Solicita vínculo do WhatsApp: gera código de 6 dígitos e envia pela API Meta (se configurada).
+     */
+    @Transactional
+    public void requestWhatsappVerification(User principal, String phoneRaw) {
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+        String digits = normalizeBrazilPhone(phoneRaw);
+        if (digits.length() < 12) {
+            throw new IllegalArgumentException("Informe o número com DDD (ex.: 11999999999).");
+        }
+        Optional<User> other = userRepository.findByWhatsappPhone(digits);
+        if (other.isPresent() && !other.get().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Este número já está vinculado a outra conta.");
+        }
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
+        user.setWhatsappPhone(digits);
+        user.setWhatsappVerified(false);
+        user.setWhatsappVerificationCode(code);
+        user.setWhatsappVerificationExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(15));
+        userRepository.save(user);
+        String msg = "🔐 Seu código Grivy: " + code + "\nVálido por 15 minutos.";
+        whatsappGraphClient.sendTextMessage(digits, msg);
+    }
+
+    /**
+     * Confirma o código recebido por WhatsApp e marca o número como verificado.
+     */
+    @Transactional
+    public void verifyWhatsapp(User principal, String code) {
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+        if (user.getWhatsappVerificationCode() == null || user.getWhatsappVerificationExpiresAt() == null) {
+            throw new IllegalArgumentException("Solicite um novo código primeiro.");
+        }
+        if (OffsetDateTime.now(ZoneOffset.UTC).isAfter(user.getWhatsappVerificationExpiresAt())) {
+            throw new IllegalArgumentException("Código expirado. Solicite novamente.");
+        }
+        if (!user.getWhatsappVerificationCode().equals(code.trim())) {
+            throw new IllegalArgumentException("Código inválido.");
+        }
+        user.setWhatsappVerified(true);
+        user.setWhatsappVerificationCode(null);
+        user.setWhatsappVerificationExpiresAt(null);
+        userRepository.save(user);
+    }
+
+    private static String normalizeBrazilPhone(String raw) {
+        if (raw == null) return "";
+        String d = raw.replaceAll("\\D", "");
+        if (d.startsWith("55") && d.length() >= 12) {
+            return d;
+        }
+        if (d.length() >= 10 && d.length() <= 11) {
+            return "55" + d;
+        }
+        return d;
     }
 
     @Transactional

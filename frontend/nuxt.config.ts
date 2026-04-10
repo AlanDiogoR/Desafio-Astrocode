@@ -53,6 +53,21 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'Grivy - Controle Financeiro',
+      meta: [
+        {
+          name: 'description',
+          content:
+            'Grivy organiza suas finanças em minutos: contas, transações, metas e cartões. Teste grátis, sem cartão. Web app responsivo.',
+        },
+        { property: 'og:title', content: 'Grivy — Controle financeiro pessoal' },
+        {
+          property: 'og:description',
+          content:
+            'Saiba para onde vai seu dinheiro. Painel claro, metas e categorias — sem planilhas complicadas.',
+        },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://grivy.netlify.app' },
+      ],
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

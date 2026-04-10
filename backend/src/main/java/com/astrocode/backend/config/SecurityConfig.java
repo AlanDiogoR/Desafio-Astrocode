@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/subscriptions/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/open-finance/waitlist").permitAll()
                         .requestMatchers("/api/config/public").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/api/subscription/plans").permitAll()

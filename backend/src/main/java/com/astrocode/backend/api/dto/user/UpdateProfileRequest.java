@@ -9,6 +9,9 @@ public record UpdateProfileRequest(
         String currentPassword,
 
         @Size(min = 8, max = 255, message = "Senha deve ter no mínimo 8 caracteres")
-        String newPassword
+        String newPassword,
+
+        /** Se true, cancela sequências de e-mail de marketing pendentes. */
+        Boolean marketingEmailsOptOut
 ) {
 }

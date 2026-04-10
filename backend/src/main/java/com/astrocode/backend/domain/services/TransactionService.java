@@ -82,7 +82,33 @@ public class TransactionService {
             return createCreditCardTransaction(request, userId);
         }
 
-        return createBankAccountTransaction(request, userId);
+        return createBankAccountTransaction(request, userId, null);
+    }
+
+    /**
+     * Cria transação em conta bancária padrão (primeira conta) para mensagens WhatsApp.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Transaction createFromWhatsapp(User user, java.math.BigDecimal amount,
+                                          TransactionType type, UUID categoryId, String name) {
+        planLimitService.checkFreePlanTransactionLimit(user.getId());
+        var accounts = bankAccountRepository.findByUserId(user.getId());
+        if (accounts.isEmpty()) {
+            throw new ResourceNotFoundException("Cadastre uma conta bancária no app antes de usar o WhatsApp.");
+        }
+        var bankAccount = accounts.getFirst();
+        var request = new TransactionRequest(
+                name,
+                amount,
+                LocalDate.now(),
+                type,
+                bankAccount.getId(),
+                categoryId,
+                null,
+                false,
+                null
+        );
+        return createBankAccountTransaction(request, user.getId(), "whatsapp");
     }
 
     private Transaction createCreditCardTransaction(TransactionRequest request, UUID userId) {
@@ -135,7 +161,7 @@ public class TransactionService {
         return savedTransaction;
     }
 
-    private Transaction createBankAccountTransaction(TransactionRequest request, UUID userId) {
+    private Transaction createBankAccountTransaction(TransactionRequest request, UUID userId, String source) {
         var bankAccount = bankAccountRepository.findByIdForUpdate(request.bankAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta bancária não encontrada"));
 
@@ -160,6 +186,7 @@ public class TransactionService {
                 .type(request.type())
                 .isRecurring(isRecurring)
                 .frequency(isRecurring ? frequency : null)
+                .source(source)
                 .build();
 
         var savedTransaction = transactionRepository.save(transaction);

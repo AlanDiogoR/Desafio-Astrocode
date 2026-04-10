@@ -7,6 +7,7 @@ import AppDropdown from '~/components/ui/AppDropdown.vue'
 import { useEditProfileModalController } from '~/composables/useEditProfileModalController'
 import { useLogout } from '~/composables/useLogout'
 import { deleteAccount } from '~/services/user/deleteAccount'
+import { requestWhatsappVerification, verifyWhatsappCode } from '~/services/user/whatsapp'
 
 const { performLogout } = useLogout()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
@@ -51,6 +52,36 @@ const showConfirmPassword = ref(false)
 const deleteDialogOpen = ref(false)
 const deletePassword = ref('')
 const deleteLoading = ref(false)
+
+const { $api } = useNuxtApp()
+const waPhone = ref('')
+const waCode = ref('')
+const waLoading = ref(false)
+
+async function sendWaCode() {
+  waLoading.value = true
+  try {
+    await requestWhatsappVerification($api, waPhone.value.trim())
+    toast.success('Código enviado ao WhatsApp (se a API Meta estiver configurada no servidor).')
+  } catch {
+    toast.error('Não foi possível enviar o código. Verifique o número.')
+  } finally {
+    waLoading.value = false
+  }
+}
+
+async function confirmWaCode() {
+  waLoading.value = true
+  try {
+    await verifyWhatsappCode($api, waCode.value.trim())
+    toast.success('WhatsApp vinculado!')
+    waCode.value = ''
+  } catch {
+    toast.error('Código inválido ou expirado.')
+  } finally {
+    waLoading.value = false
+  }
+}
 
 function togglePasswordVisibility(field: 'current' | 'new' | 'confirm') {
   if (field === 'current') showCurrentPassword.value = !showCurrentPassword.value
@@ -171,6 +202,48 @@ async function confirmDeleteAccount() {
               />
             </template>
           </AppInput>
+        </div>
+
+        <div class="edit-profile-form__section">
+          <p class="edit-profile-form__section-label">
+            WhatsApp
+          </p>
+          <p class="text-caption text-medium-emphasis mb-2">
+            Vincule seu número para registrar transações pelo WhatsApp (número com DDD, ex.: 11999999999).
+          </p>
+          <div class="d-flex flex-column ga-2">
+            <AppInput
+              v-model="waPhone"
+              label="Telefone"
+              autocomplete="tel"
+              :disabled="waLoading"
+            />
+            <v-btn
+              type="button"
+              variant="outlined"
+              block
+              rounded="lg"
+              height="48"
+              :loading="waLoading"
+              @click="sendWaCode"
+            >
+              Enviar código por WhatsApp
+            </v-btn>
+            <AppInput
+              v-model="waCode"
+              label="Código de verificação"
+              inputmode="numeric"
+              :disabled="waLoading"
+            />
+            <AppButton
+              type="button"
+              color="primary"
+              :loading="waLoading"
+              @click="confirmWaCode"
+            >
+              Confirmar código
+            </AppButton>
+          </div>
         </div>
       </div>
       <AppButton

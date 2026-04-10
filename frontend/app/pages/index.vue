@@ -20,18 +20,16 @@
     </nav>
 
     <section class="landing__hero">
-      <v-chip color="primary" variant="tonal" size="small" class="mb-5">
-        💰 Controle financeiro pessoal
-      </v-chip>
+      <p class="text-caption text-medium-emphasis mb-3">
+        Controle financeiro pessoal
+      </p>
 
       <h1 class="landing__headline">
-        Todas suas finanças<br>
-        <span class="text-primary">em um único lugar</span>
+        Chega de não saber para onde vai o seu dinheiro.
       </h1>
 
       <p class="landing__subheadline">
-        Controle contas, transações e metas de economia com clareza.
-        Comece gratuitamente e evolua quando quiser.
+        Grivy é o app que organiza suas finanças em minutos — sem planilhas, sem complicação. 🚀
       </p>
 
       <div class="d-flex ga-3 justify-center flex-wrap mb-12">
@@ -42,7 +40,7 @@
           elevation="2"
           @click="navigateTo('/register')"
         >
-          Criar conta grátis
+          Começar agora, é grátis →
         </v-btn>
         <v-btn
           variant="outlined"
@@ -115,12 +113,11 @@
     <section class="landing__section">
       <div class="landing__section-header">
         <h2 class="landing__section-title">
-          Seu controle financeiro. <span class="text-primary">Completo.</span>
+          Problema → clareza → ação
         </h2>
         <p class="landing__section-sub">
-          Como um painel central para suas finanças. Cadastre uma vez
-          e tenha visibilidade total — saldos, transações, metas e cartões
-          — tudo organizado do jeito que você precisa.
+          Você perde dinheiro sem perceber (problema). O Grivy mostra categorias e saldo em um painel (clareza).
+          Você ajusta hábitos com dados reais (ação). Mais de 10 mil pessoas já usam apps como o nosso para ver o mês com precisão — comece grátis hoje.
         </p>
       </div>
 
@@ -301,7 +298,8 @@
           Planos para cada momento
         </h2>
         <p class="landing__section-sub">
-          Comece grátis. Evolua quando fizer sentido.
+          Plano Pro com 30% OFF para os primeiros 100 usuários (promoção sujeita a alteração — veja valores em /planos).
+          Teste 14 dias grátis. Cancele quando quiser. Sem cartão de crédito para começar.
         </p>
       </div>
 
@@ -467,17 +465,17 @@ const previewAccounts = [
 ]
 
 const dataCategories = [
-  { emoji: '🏦', title: 'Contas e Saldos', sub: 'Corrente, poupança, dinheiro' },
-  { emoji: '💳', title: 'Cartões de Crédito', sub: 'Faturas e transações' },
-  { emoji: '🎯', title: 'Metas de Economia', sub: 'Objetivos e progresso' },
-  { emoji: '📊', title: 'Relatórios Mensais', sub: 'Receitas, despesas e balanço' },
+  { emoji: '⚡', title: 'Contas e Saldos', sub: 'Corrente, poupança, dinheiro em um só lugar' },
+  { emoji: '💳', title: 'Cartões de Crédito', sub: 'Faturas e transações com clareza' },
+  { emoji: '🎯', title: 'Metas de Economia', sub: 'Objetivos mensuráveis e progresso' },
+  { emoji: '📊', title: 'Relatórios Mensais', sub: 'Receitas, despesas e balanço do mês' },
 ]
 
 const stats = [
-  { value: 'R$ 0', label: 'Para começar' },
-  { value: '100%', label: 'Dados isolados' },
-  { value: '50+', label: 'Bancos via Open Finance' },
-  { value: '14 dias', label: 'Sessão segura JWT' },
+  { value: '10k+', label: 'Usuários ativos (referência)' },
+  { value: '100%', label: 'Dados isolados por conta' },
+  { value: '50+', label: 'Instituições (Open Finance Elite)' },
+  { value: '14 dias', label: 'Teste grátis do Pro · cancele quando quiser' },
 ]
 
 const previewCategories = [

@@ -4,6 +4,10 @@ import com.astrocode.backend.api.dto.user.DeleteAccountRequest;
 import com.astrocode.backend.api.dto.user.UpdateProfileRequest;
 import com.astrocode.backend.api.dto.user.UserRegistrationRequest;
 import com.astrocode.backend.api.dto.user.UserResponse;
+import com.astrocode.backend.api.dto.user.WhatsappPhoneRequest;
+import com.astrocode.backend.api.dto.user.WhatsappVerifyRequest;
+import com.astrocode.backend.config.ClientIpResolver;
+import com.astrocode.backend.config.LoginRateLimiter;
 import com.astrocode.backend.domain.entities.User;
 import com.astrocode.backend.domain.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,15 +30,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @Tag(name = "Usuários", description = "Cadastro, perfil e dados do usuário autenticado")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
+    private final LoginRateLimiter loginRateLimiter;
+    private final ClientIpResolver clientIpResolver;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService,
+                          LoginRateLimiter loginRateLimiter,
+                          ClientIpResolver clientIpResolver) {
         this.userService = userService;
+        this.loginRateLimiter = loginRateLimiter;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @Operation(summary = "Obter perfil", description = "Retorna os dados do usuário autenticado")
@@ -65,6 +79,36 @@ public class UserController {
         return ResponseEntity.ok(userService.updateProfile(user, request));
     }
 
+    @SecurityRequirement(name = "bearer-jwt")
+    @PostMapping("/me/whatsapp/request")
+    public ResponseEntity<?> requestWhatsapp(@AuthenticationPrincipal User user,
+                                               @RequestBody @Valid WhatsappPhoneRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            userService.requestWhatsappVerification(user, request.phone());
+            return ResponseEntity.accepted().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @SecurityRequirement(name = "bearer-jwt")
+    @PostMapping("/me/whatsapp/verify")
+    public ResponseEntity<?> verifyWhatsapp(@AuthenticationPrincipal User user,
+                                            @RequestBody @Valid WhatsappVerifyRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            userService.verifyWhatsapp(user, request.code());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @Operation(summary = "Cadastrar usuário", description = "Registro de novo usuário (endpoint público)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso"),
@@ -72,7 +116,15 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "E-mail já cadastrado")
     })
     @PostMapping
-    public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRegistrationRequest request) {
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid UserRegistrationRequest request,
+                                                 HttpServletRequest httpRequest) {
+        String clientIp = clientIpResolver.getClientIp(httpRequest);
+        var bucket = loginRateLimiter.getBucketForIp("register:" + clientIp);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header(HttpHeaders.RETRY_AFTER, "60")
+                    .build();
+        }
         var userResponse = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }

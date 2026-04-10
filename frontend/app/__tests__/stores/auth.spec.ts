@@ -68,6 +68,6 @@ describe('useAuthStore', () => {
       isElite: false,
       planExpiresAt: null,
     })
-    expect(store.planLabel).toBe('Premium Mensal')
+    expect(store.planLabel).toBe('Pro Mensal')
   })
 })

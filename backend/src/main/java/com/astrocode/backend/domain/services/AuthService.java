@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -85,6 +86,9 @@ public class AuthService {
             if (requireEmailVerification && !user.isEmailVerified()) {
                 throw new EmailNotVerifiedException();
             }
+
+            user.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+            userRepository.save(user);
 
             return buildLoginResponse(user);
         } catch (InvalidCredentialsException | EmailNotVerifiedException e) {

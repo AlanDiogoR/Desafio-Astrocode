@@ -4,6 +4,7 @@ interface UpdateProfilePayload {
   name?: string
   currentPassword?: string
   newPassword?: string
+  marketingEmailsOptOut?: boolean
 }
 
 export async function updateProfile(payload: UpdateProfilePayload): Promise<User> {
