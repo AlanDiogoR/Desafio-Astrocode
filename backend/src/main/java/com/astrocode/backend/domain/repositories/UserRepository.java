@@ -30,6 +30,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByWhatsappPhone(String whatsappPhone);
 
+    Optional<User> findByMetaUserId(String metaUserId);
+
     @Query("""
             SELECT u FROM User u
             WHERE u.marketingEmailsOptOut = false

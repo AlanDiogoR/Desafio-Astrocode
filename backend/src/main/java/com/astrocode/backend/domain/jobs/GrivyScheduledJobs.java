@@ -1,7 +1,9 @@
 package com.astrocode.backend.domain.jobs;
 
+import com.astrocode.backend.domain.entities.DataDeletionRequest;
 import com.astrocode.backend.domain.entities.ScheduledMarketingEmail;
 import com.astrocode.backend.domain.entities.User;
+import com.astrocode.backend.domain.repositories.DataDeletionRequestRepository;
 import com.astrocode.backend.domain.repositories.ScheduledMarketingEmailRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
 import com.astrocode.backend.domain.services.EmailMarketingService;
@@ -11,12 +13,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Processa e-mails de marketing agendados e campanha de reativação.
+ * Processa e-mails de marketing agendados, campanha de reativação e exclusão de dados.
  */
 @Component
 public class GrivyScheduledJobs {
@@ -26,14 +29,17 @@ public class GrivyScheduledJobs {
     private final ScheduledMarketingEmailRepository scheduledMarketingEmailRepository;
     private final EmailMarketingService emailMarketingService;
     private final UserRepository userRepository;
+    private final DataDeletionRequestRepository deletionRequestRepository;
 
     public GrivyScheduledJobs(
             ScheduledMarketingEmailRepository scheduledMarketingEmailRepository,
             EmailMarketingService emailMarketingService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            DataDeletionRequestRepository deletionRequestRepository) {
         this.scheduledMarketingEmailRepository = scheduledMarketingEmailRepository;
         this.emailMarketingService = emailMarketingService;
         this.userRepository = userRepository;
+        this.deletionRequestRepository = deletionRequestRepository;
     }
 
     @Scheduled(cron = "0 */15 * * * *")
@@ -46,6 +52,32 @@ public class GrivyScheduledJobs {
                 emailMarketingService.processScheduledJob(job);
             } catch (Exception e) {
                 log.warn("[MAIL] Job {} falhou: {}", job.getId(), e.getMessage());
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void processPendingDeletions() {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        List<DataDeletionRequest> pending = deletionRequestRepository
+                .findByStatusAndScheduledForBefore("pending", now);
+
+        for (DataDeletionRequest req : pending) {
+            try {
+                userRepository.findByMetaUserId(req.getMetaUserId())
+                        .ifPresent(user -> {
+                            user.setScheduledForDeletion(true);
+                            userRepository.save(user);
+                        });
+
+                req.setStatus("completed");
+                req.setCompletedAt(now);
+                deletionRequestRepository.save(req);
+
+                log.info("Data deletion completed for request {}", req.getConfirmationCode());
+            } catch (Exception e) {
+                log.error("Failed to process deletion for {}", req.getConfirmationCode(), e);
             }
         }
     }

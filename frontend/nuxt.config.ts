@@ -48,6 +48,7 @@ export default defineNuxtConfig({
   css: [
     '~/assets/design-tokens.scss',
     '~/assets/main.scss',
+    '~/assets/legal.scss',
   ],
 
   app: {

@@ -124,6 +124,18 @@ public class User {
     @Column(name = "whatsapp_verification_expires_at")
     private OffsetDateTime whatsappVerificationExpiresAt;
 
+    @Size(max = 100)
+    @Column(name = "meta_user_id", length = 100)
+    private String metaUserId;
+
+    @JdbcTypeCode(SqlTypes.BOOLEAN)
+    @Column(name = "scheduled_for_deletion")
+    @Builder.Default
+    private boolean scheduledForDeletion = false;
+
+    @Column(name = "deletion_scheduled_at")
+    private OffsetDateTime deletionScheduledAt;
+
     public boolean isPro() {
         return subscription != null && subscription.hasActivePaidSubscription();
     }
