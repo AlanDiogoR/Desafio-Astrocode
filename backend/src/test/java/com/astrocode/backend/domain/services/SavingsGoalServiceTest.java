@@ -96,7 +96,7 @@ class SavingsGoalServiceTest {
                 .status(GoalStatus.ACTIVE)
                 .startDate(LocalDate.now())
                 .build();
-        var request = new SavingsGoalContributeRequest(UUID.randomUUID(), BigDecimal.valueOf(600)); // 500+600 > 1000
+        var request = new SavingsGoalContributeRequest(BigDecimal.valueOf(600), UUID.randomUUID()); // 500+600 > 1000
 
         when(savingsGoalRepository.findById(goalId)).thenReturn(Optional.of(goal));
 
@@ -119,7 +119,7 @@ class SavingsGoalServiceTest {
                 .startDate(LocalDate.now())
                 .build();
         var bankAccountId = UUID.randomUUID();
-        var request = new SavingsGoalWithdrawRequest(bankAccountId, BigDecimal.valueOf(300)); // 300 > 200
+        var request = new SavingsGoalWithdrawRequest(BigDecimal.valueOf(300), bankAccountId); // 300 > 200
 
         when(savingsGoalRepository.findById(goalId)).thenReturn(Optional.of(goal));
 

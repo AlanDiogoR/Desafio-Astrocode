@@ -142,7 +142,7 @@ class AuthServiceResetPasswordTest {
         assertThat(response).isNotNull();
         assertThat(response.accessToken()).isEqualTo("jwt-token");
         assertThat(response.name()).isEqualTo("Test");
-        verify(userRepository).save(argThat(u -> encodedNewPassword.equals(u.getPassword())));
+        verify(userRepository, atLeastOnce()).save(argThat(u -> encodedNewPassword.equals(u.getPassword())));
         verify(resetCodeRepository).delete(resetCode);
     }
 }

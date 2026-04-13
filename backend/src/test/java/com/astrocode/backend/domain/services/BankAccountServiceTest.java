@@ -188,16 +188,19 @@ class BankAccountServiceTest {
         account.setTransactions(new java.util.ArrayList<>(List.of(transaction)));
 
         when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(transactionRepository.findGoalImpactRowsByBankAccountId(accountId)).thenReturn(List.of(
+        when(transactionRepository.findGoalImpactRowsByBankAccountId(accountId)).thenReturn(List.<Object[]>of(
                 new Object[]{goalId, com.astrocode.backend.domain.model.enums.TransactionType.EXPENSE, BigDecimal.valueOf(100)}
         ));
         when(savingsGoalRepository.findAllById(List.of(goalId))).thenReturn(List.of(goal));
-        when(savingsGoalRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+        when(savingsGoalRepository.saveAll(any(Iterable.class))).thenAnswer(inv -> {
+            Iterable<?> arg = inv.getArgument(0);
+            return java.util.stream.StreamSupport.stream(arg.spliterator(), false).toList();
+        });
 
         bankAccountService.delete(accountId, user);
 
         verify(transactionService).revertGoalAmount(eq(goal), eq(BigDecimal.valueOf(100)), eq(com.astrocode.backend.domain.model.enums.TransactionType.EXPENSE));
-        verify(savingsGoalRepository).saveAll(anyList());
+        verify(savingsGoalRepository).saveAll(any(Iterable.class));
         verify(bankAccountRepository).delete(account);
     }
 }

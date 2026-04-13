@@ -25,6 +25,26 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: grivy_test
+          POSTGRES_USER: grivy
+          POSTGRES_PASSWORD: grivy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U grivy"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: grivy_test
+      DB_USERNAME: grivy
+      DB_PASSWORD: grivy
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

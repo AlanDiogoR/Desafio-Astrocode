@@ -48,7 +48,7 @@ public class WhatsappInboundService {
             DashboardService dashboardService,
             CategoryRepository categoryRepository,
             WhatsappGraphClient graphClient,
-            OpenAiFinancialExtractor openAiFinancialExtractor) {
+            Optional<OpenAiFinancialExtractor> openAiFinancialExtractor) {
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.whatsappMessageRepository = whatsappMessageRepository;
@@ -56,7 +56,7 @@ public class WhatsappInboundService {
         this.dashboardService = dashboardService;
         this.categoryRepository = categoryRepository;
         this.graphClient = graphClient;
-        this.openAiFinancialExtractor = openAiFinancialExtractor;
+        this.openAiFinancialExtractor = openAiFinancialExtractor.orElse(null);
     }
 
     @Transactional
@@ -91,7 +91,7 @@ public class WhatsappInboundService {
                 .filter(User::isWhatsappVerified);
 
         FinancialMessageExtractor.Extracted ext = FinancialMessageExtractor.parseManually(text);
-        if (ext.confidence() < 0.8 && openAiFinancialExtractor.isConfigured()) {
+        if (ext.confidence() < 0.8 && openAiFinancialExtractor != null && openAiFinancialExtractor.isConfigured()) {
             FinancialMessageExtractor.Extracted ai = openAiFinancialExtractor.extract(text);
             if (ai != null) {
                 ext = ai;

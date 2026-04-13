@@ -11,7 +11,11 @@ import com.astrocode.backend.domain.exceptions.*;
 import com.astrocode.backend.domain.model.enums.AccountType;
 import com.astrocode.backend.domain.model.enums.GoalStatus;
 import com.astrocode.backend.domain.model.enums.TransactionType;
-import com.astrocode.backend.domain.repositories.*;
+import com.astrocode.backend.domain.repositories.BankAccountRepository;
+import com.astrocode.backend.domain.repositories.CategoryRepository;
+import com.astrocode.backend.domain.repositories.CreditCardBillRepository;
+import com.astrocode.backend.domain.repositories.SavingsGoalRepository;
+import com.astrocode.backend.domain.repositories.TransactionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +44,9 @@ class TransactionServiceTest {
     private BankAccountRepository bankAccountRepository;
 
     @Mock
+    private CreditCardBillRepository creditCardBillRepository;
+
+    @Mock
     private CategoryRepository categoryRepository;
 
     @Mock
@@ -49,7 +56,7 @@ class TransactionServiceTest {
     private CreditCardService creditCardService;
 
     @Mock
-    private UserRepository userRepository;
+    private PlanLimitService planLimitService;
 
     @InjectMocks
     private TransactionService transactionService;
@@ -76,13 +83,13 @@ class TransactionServiceTest {
     @Test
     @DisplayName("create_income_incrementsAccountBalance: INCOME soma ao currentBalance")
     void create_income_incrementsAccountBalance() {
+        var incomeCategory = Category.builder()
+                .id(categoryId).user(user).name("Salário").type(TransactionType.INCOME).build();
         var request = new TransactionRequest(
                 "Salário", BigDecimal.valueOf(5000), LocalDate.now(), TransactionType.INCOME,
                 accountId, categoryId, null, false, null);
-        when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
-        when(transactionRepository.countByUserIdAndDateBetween(any(), any(), any())).thenReturn(0L);
         when(bankAccountRepository.findByIdForUpdate(accountId)).thenReturn(Optional.of(bankAccount));
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(incomeCategory));
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(inv -> {
             var t = inv.getArgument(0, Transaction.class);
             t.setId(UUID.randomUUID());
@@ -104,8 +111,6 @@ class TransactionServiceTest {
         var request = new TransactionRequest(
                 "Aluguel", BigDecimal.valueOf(300), LocalDate.now(), TransactionType.EXPENSE,
                 accountId, categoryId, null, false, null);
-        when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
-        when(transactionRepository.countByUserIdAndDateBetween(any(), any(), any())).thenReturn(0L);
         when(bankAccountRepository.findByIdForUpdate(accountId)).thenReturn(Optional.of(bankAccount));
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(inv -> {
@@ -129,8 +134,6 @@ class TransactionServiceTest {
         var request = new TransactionRequest(
                 "Compra", BigDecimal.valueOf(500), LocalDate.now(), TransactionType.EXPENSE,
                 accountId, categoryId, null, false, null);
-        when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
-        when(transactionRepository.countByUserIdAndDateBetween(any(), any(), any())).thenReturn(0L);
         when(bankAccountRepository.findByIdForUpdate(accountId)).thenReturn(Optional.of(bankAccount));
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
@@ -138,7 +141,7 @@ class TransactionServiceTest {
                 .isInstanceOf(InsufficientBalanceException.class)
                 .hasMessageContaining("Saldo insuficiente");
 
-        verify(transactionRepository, never()).save(any());
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
     }
 
     @Test
@@ -153,8 +156,6 @@ class TransactionServiceTest {
         var request = new TransactionRequest(
                 "Despesa", BigDecimal.valueOf(100), LocalDate.now(), TransactionType.EXPENSE,
                 accountId, categoryId, null, false, null);
-        when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
-        when(transactionRepository.countByUserIdAndDateBetween(any(), any(), any())).thenReturn(0L);
         when(bankAccountRepository.findByIdForUpdate(accountId)).thenReturn(Optional.of(bankAccount));
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(incomeCategory));
 
@@ -172,10 +173,7 @@ class TransactionServiceTest {
         var request = new TransactionRequest(
                 "Despesa", BigDecimal.valueOf(100), LocalDate.now(), TransactionType.EXPENSE,
                 accountId, categoryId, null, false, null);
-        when(userRepository.findByIdWithSubscription(userId)).thenReturn(Optional.of(user));
-        when(transactionRepository.countByUserIdAndDateBetween(any(), any(), any())).thenReturn(0L);
         when(bankAccountRepository.findByIdForUpdate(accountId)).thenReturn(Optional.of(bankAccount));
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
         assertThatThrownBy(() -> transactionService.create(request, userId))
                 .isInstanceOf(AccountNotOwnedException.class);

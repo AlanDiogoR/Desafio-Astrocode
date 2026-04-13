@@ -78,6 +78,14 @@ async function handleWaitlist() {
 
 const paidPlans = computed(() => plans.value.filter((p) => p.id !== 'FREE'))
 
+const whatsappFeatures = [
+  'Registre gastos enviando uma mensagem',
+  'IA extrai valor, categoria e data automaticamente',
+  'Consulte saldo e resumo mensal pelo chat',
+  'Notificações inteligentes de metas',
+  'Funciona 24h, sem abrir o app',
+]
+
 const planFeatures: Record<string, string[]> = {
   MONTHLY: [
     'Contas bancárias ilimitadas',
@@ -257,6 +265,47 @@ function goAssinar(planId: string) {
           </div>
         </article>
       </div>
+
+      <section class="planos-page__whatsapp mt-10" aria-labelledby="whatsapp-heading">
+        <div class="whatsapp-card">
+          <div class="whatsapp-card__badge">
+            💬 Novo — Plano WhatsApp
+          </div>
+          <div class="whatsapp-card__overlay" aria-hidden="true" />
+          <h2 id="whatsapp-heading" class="whatsapp-card__title">
+            Controle por WhatsApp
+          </h2>
+          <p class="whatsapp-card__desc">
+            Registre suas despesas e receitas enviando uma mensagem no WhatsApp. A IA do Grivy extrai valor, categoria e data automaticamente.
+          </p>
+          <div class="whatsapp-card__price">
+            R$ 9,90<span class="whatsapp-card__price-unit">/mês</span>
+          </div>
+          <ul class="whatsapp-card__features">
+            <li v-for="f in whatsappFeatures" :key="f" class="whatsapp-card__feature">
+              <v-icon icon="mdi-check-circle" size="18" color="success" class="mr-2 flex-shrink-0" />
+              <span>{{ f }}</span>
+            </li>
+          </ul>
+          <v-btn
+            color="#25D366"
+            variant="flat"
+            size="large"
+            rounded="lg"
+            block
+            href="https://wa.me/5511999999999?text=Oi%2C%20quero%20conhecer%20o%20plano%20WhatsApp%20do%20Grivy!"
+            target="_blank"
+            rel="noopener"
+            class="whatsapp-card__cta"
+          >
+            <v-icon start>mdi-whatsapp</v-icon>
+            Falar no WhatsApp
+          </v-btn>
+          <p class="whatsapp-card__social text-caption mt-3">
+            +200 usuários já controlam suas finanças pelo WhatsApp
+          </p>
+        </div>
+      </section>
 
       <section class="planos-page__open-finance mt-10" aria-labelledby="open-finance-heading">
         <div
@@ -534,6 +583,101 @@ function goAssinar(planId: string) {
   .planos-page__container {
     max-width: 1200px;
   }
+}
+
+.whatsapp-card {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(135deg, #25D366, #128C7E, #075E54) border-box;
+}
+
+.whatsapp-card__overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.04));
+}
+
+.whatsapp-card__badge {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.whatsapp-card__title {
+  position: relative;
+  z-index: 1;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.whatsapp-card__desc {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.whatsapp-card__price {
+  position: relative;
+  z-index: 1;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.whatsapp-card__price-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.whatsapp-card__features {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  padding: 0 0 16px;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.whatsapp-card__feature {
+  display: flex;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.whatsapp-card__cta {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  color: white !important;
+}
+
+.whatsapp-card__social {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text-secondary);
+  text-align: center;
 }
 
 .open-finance-card {
