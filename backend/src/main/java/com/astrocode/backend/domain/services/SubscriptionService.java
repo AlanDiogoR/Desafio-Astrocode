@@ -14,14 +14,17 @@ import com.astrocode.backend.domain.model.enums.SubscriptionStatus;
 import com.astrocode.backend.config.SubscriptionPricingProperties;
 import com.astrocode.backend.domain.repositories.SubscriptionRepository;
 import com.astrocode.backend.domain.repositories.UserRepository;
+import com.mercadopago.client.payment.PaymentAdditionalInfoRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
+import com.mercadopago.client.payment.PaymentItemRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,15 +47,18 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final PaymentClient paymentClient;
     private final SubscriptionPricingProperties pricing;
+    private final String webhookBaseUrl;
 
     public SubscriptionService(SubscriptionRepository subscriptionRepository,
                                UserRepository userRepository,
                                PaymentClient paymentClient,
-                               SubscriptionPricingProperties pricing) {
+                               SubscriptionPricingProperties pricing,
+                               @Value("${app.webhook.base-url:}") String webhookBaseUrl) {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
         this.paymentClient = paymentClient;
         this.pricing = pricing;
+        this.webhookBaseUrl = webhookBaseUrl;
     }
 
     public Optional<Subscription> findByUserId(UUID userId) {
@@ -137,15 +143,31 @@ public class SubscriptionService {
             );
         }
 
+        String planDisplayName = getPlanDisplayName(planType);
+        var item = PaymentItemRequest.builder()
+                .id(MpCheckoutPlanId.fromPlanType(planType))
+                .title("Grivy - Plano " + planDisplayName)
+                .description(getPlanDescription(planType))
+                .categoryId("services")
+                .quantity(1)
+                .unitPrice(request.transactionAmount())
+                .build();
+
         var paymentRequestBuilder = PaymentCreateRequest.builder()
                 .token(request.token())
                 .transactionAmount(request.transactionAmount())
                 .installments(request.installments())
                 .paymentMethodId(request.paymentMethodId())
-                .description("Grivy - Plano " + planType.name())
+                .description("Grivy - Plano " + planDisplayName)
                 .externalReference(externalRef)
                 .payer(payerBuilder.build())
-                .statementDescriptor("GRIVY");
+                .statementDescriptor("GRIVY")
+                .additionalInfo(PaymentAdditionalInfoRequest.builder()
+                        .items(List.of(item))
+                        .build());
+        if (webhookBaseUrl != null && !webhookBaseUrl.isBlank()) {
+            paymentRequestBuilder.notificationUrl(webhookBaseUrl + "/api/webhooks/mercadopago");
+        }
         if (request.issuerId() != null && !request.issuerId().isBlank()) {
             paymentRequestBuilder.issuerId(request.issuerId());
         }
@@ -338,6 +360,24 @@ public class SubscriptionService {
                 subscription.getAmountPaid(),
                 subscription.getCreatedAt()
         );
+    }
+
+    private String getPlanDisplayName(PlanType planType) {
+        return switch (planType) {
+            case MONTHLY -> "Pro Mensal";
+            case SEMIANNUAL -> "Pro Semestral";
+            case ANNUAL -> "Elite Anual";
+            case FREE -> "Grátis";
+        };
+    }
+
+    private String getPlanDescription(PlanType planType) {
+        return switch (planType) {
+            case MONTHLY -> "Tudo ilimitado + cartões de crédito";
+            case SEMIANNUAL -> "Tudo ilimitado + cartões de crédito (16% OFF)";
+            case ANNUAL -> "Tudo ilimitado + cartões + Open Finance (24% OFF)";
+            case FREE -> "2 contas, 30 transações/mês, 2 metas";
+        };
     }
 
     private String translateStatusDetail(String detail) {

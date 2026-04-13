@@ -26,4 +26,13 @@ public final class MpCheckoutPlanId {
             default -> throw new IllegalArgumentException("Plano inválido: " + planId);
         };
     }
+
+    public static String fromPlanType(PlanType planType) {
+        return switch (planType) {
+            case MONTHLY -> PRO_MONTHLY;
+            case SEMIANNUAL -> PRO_SEMIANNUAL;
+            case ANNUAL -> PRO_ANNUAL;
+            case FREE -> throw new IllegalArgumentException("FREE não tem ID de checkout");
+        };
+    }
 }
