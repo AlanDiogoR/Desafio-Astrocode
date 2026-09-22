@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { API_UNAVAILABLE_MESSAGE } from '~/utils/apiAvailability'
+
 const route = useRoute()
 const isLoading = useAppLoading()
 const { isValid: hasApiConfig } = useApiConfig()
+const { unavailable: apiUnavailable } = useApiAvailability()
 const { isPending } = useUser()
+const showServiceNotice = computed(() => !hasApiConfig || apiUnavailable.value)
 
 const fallbackTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
@@ -15,13 +19,9 @@ function clearSplash() {
 }
 
 watch(
-  [isPending, hasApiConfig],
-  ([pending, valid]) => {
-    if (!valid) {
-      clearSplash()
-      return
-    }
-    if (!pending) {
+  isPending,
+  (pending) => {
+    if (!hasApiConfig || !pending) {
       clearSplash()
     }
   },
@@ -43,13 +43,14 @@ onUnmounted(() => {
     </ClientOnly>
     <v-app>
       <v-alert
-        v-if="!hasApiConfig && !isLoading"
-        type="error"
-        class="ma-4"
-        closable
-        prominent
+        v-if="showServiceNotice && !isLoading"
+        type="warning"
+        variant="tonal"
+        class="grivy-service-notice"
+        density="comfortable"
+        role="status"
       >
-        Configuração de API ausente em produção. Verifique se NUXT_PUBLIC_API_BASE está definida com a URL absoluta da API (ex: https://api.exemplo.com/api).
+        {{ API_UNAVAILABLE_MESSAGE }}
       </v-alert>
       <NuxtLayout>
         <NuxtPage :key="route.fullPath" />
@@ -70,3 +71,14 @@ onUnmounted(() => {
     </v-app>
   </div>
 </template>
+
+<style scoped>
+.grivy-service-notice {
+  position: fixed;
+  z-index: 250;
+  left: 16px;
+  right: 88px;
+  bottom: 16px;
+  margin: 0;
+}
+</style>

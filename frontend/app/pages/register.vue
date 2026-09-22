@@ -19,6 +19,7 @@ const {
   handleRegister,
   clearFieldError,
   markAsTouched,
+  serviceNotice,
 } = useAuthForm()
 
 const isPending = computed(() => Boolean(unref(registerMutation.isPending)))
@@ -56,6 +57,16 @@ async function onSubmit() {
     <p v-if="isOnboardingGratis" class="text-body-2 text-medium-emphasis text-center mb-8">
       Depois do cadastro você já cai no painel com os primeiros passos.
     </p>
+
+    <v-alert
+      v-if="serviceNotice"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      role="status"
+    >
+      {{ serviceNotice }}
+    </v-alert>
 
     <v-form class="w-100" @submit.prevent="onSubmit">
       <ClientOnly>

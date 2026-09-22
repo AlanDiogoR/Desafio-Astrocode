@@ -1,21 +1,24 @@
 import axios from 'axios'
 import type { LoginResponse } from '~/services/auth/login'
-
-const API_CONFIG_ERROR = 'API_CONFIG_MISSING'
+import {
+  allowsRetryWhileApiDown,
+  createApiConfigError,
+  createApiUnavailableError,
+  isApiUnavailableError,
+} from '~/utils/apiAvailability'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
   const { authToken, refreshToken, setSessionTokens, clearSessionTokens } = useAuthCookies()
   const { showUpgrade } = usePlanUpgradeGate()
+  const { unavailable: apiUnavailable, markUnavailable, markAvailable } = useApiAvailability()
 
   const apiBase = config.public.apiBase as string | undefined
   const hasValidApiBase = typeof apiBase === 'string' && apiBase.trim().length > 0
 
   if (!hasValidApiBase) {
-    if (import.meta.client) {
-      console.error('[Grivy] NUXT_PUBLIC_API_BASE está vazio ou indefinido. Defina a URL absoluta da API (ex: https://api.exemplo.com/api)')
-    }
+    markUnavailable()
   }
 
   const api = axios.create({
@@ -76,15 +79,12 @@ export default defineNuxtPlugin(() => {
 
   api.interceptors.request.use(
     (req) => {
-      if (!hasValidApiBase) {
-        const err = new Error(API_CONFIG_ERROR) as Error & { code?: string }
-        err.code = API_CONFIG_ERROR
-        return Promise.reject(err)
+      if (!hasValidApiBase || !req.baseURL || req.baseURL.startsWith('/')) {
+        markUnavailable()
+        return Promise.reject(createApiConfigError())
       }
-      if (!req.baseURL || req.baseURL.startsWith('/')) {
-        const err = new Error(API_CONFIG_ERROR) as Error & { code?: string }
-        err.code = API_CONFIG_ERROR
-        return Promise.reject(err)
+      if (apiUnavailable.value && !allowsRetryWhileApiDown(req.url, req.method)) {
+        return Promise.reject(createApiUnavailableError())
       }
       const token = authToken.value
       if (token) {
@@ -96,8 +96,17 @@ export default defineNuxtPlugin(() => {
   )
 
   api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      markAvailable()
+      return response
+    },
     async (error) => {
+      if (isApiUnavailableError(error)) {
+        markUnavailable()
+      } else if (error?.response) {
+        markAvailable()
+      }
+
       const originalRequest = error.config as typeof error.config & { _retry?: boolean }
       const status = error.response?.status
       const url = String(originalRequest?.url ?? '')
@@ -114,7 +123,10 @@ export default defineNuxtPlugin(() => {
             originalRequest.headers.Authorization = `Bearer ${t}`
           }
           return api(originalRequest)
-        } catch {
+        } catch (refreshError) {
+          if (isApiUnavailableError(refreshError)) {
+            markUnavailable()
+          }
           clearSessionTokens()
           authStore.clearAuth()
           redirectToLoginWithToast()

@@ -3,17 +3,23 @@
     <nav class="landing__nav">
       <div class="landing__nav-inner">
         <AppLogo style="cursor: pointer" @click="scrollToTop" />
-        <div class="d-flex align-center ga-2">
-          <v-btn variant="text" size="small" @click="navigateTo('/login')">
+        <div class="landing__nav-actions">
+          <v-btn
+            variant="text"
+            size="small"
+            to="/login"
+            aria-label="Entrar na sua conta"
+          >
             Entrar
           </v-btn>
           <v-btn
             color="primary"
             size="small"
             rounded="pill"
-            @click="navigateTo('/register')"
+            to="/register"
+            aria-label="Criar conta grátis"
           >
-            Começar grátis
+            Criar conta
           </v-btn>
         </div>
       </div>
@@ -32,25 +38,32 @@
         Grivy é o app que organiza suas finanças em minutos — sem planilhas, sem complicação. 🚀
       </p>
 
-      <div class="d-flex ga-3 justify-center flex-wrap mb-12">
+      <div class="landing__hero-actions">
         <v-btn
           color="primary"
           size="large"
           rounded="pill"
           elevation="2"
-          @click="navigateTo('/register')"
+          class="landing__cta-btn"
+          aria-label="Criar conta grátis"
+          to="/register"
         >
-          Começar agora, é grátis →
+          Criar conta grátis
         </v-btn>
         <v-btn
           variant="outlined"
           size="large"
           rounded="pill"
-          @click="navigateTo('/login')"
+          class="landing__cta-btn"
+          aria-label="Entrar na sua conta"
+          to="/login"
         >
-          Já tenho conta
+          Entrar
         </v-btn>
       </div>
+      <p class="landing__hero-note">
+        Cadastro gratuito, sem cartão. Já tem conta? Use Entrar.
+      </p>
 
       <v-card class="landing__preview mx-auto" rounded="xl" elevation="12">
         <v-card-text class="pa-5">
@@ -367,7 +380,8 @@
                   :variant="plan.id === 'ANNUAL' ? 'flat' : 'outlined'"
                   block
                   rounded="pill"
-                  @click="navigateTo('/register')"
+                  :aria-label="`${plan.cta} no plano ${plan.name}`"
+                  to="/register"
                 >
                   {{ plan.cta }}
                 </v-btn>
@@ -376,6 +390,11 @@
           </v-card>
         </div>
       </div>
+
+      <p class="landing__plans-login">
+        Já tem conta?
+        <NuxtLink to="/login">Entrar</NuxtLink>
+      </p>
     </section>
 
     <section class="landing__section landing__section--alt">
@@ -407,15 +426,29 @@
       <p class="landing__section-sub mb-8">
         Crie sua conta gratuitamente e organize suas finanças hoje mesmo.
       </p>
-      <v-btn
-        color="primary"
-        size="large"
-        rounded="pill"
-        elevation="2"
-        @click="navigateTo('/register')"
-      >
-        Criar conta grátis
-      </v-btn>
+      <div class="landing__cta-actions">
+        <v-btn
+          color="primary"
+          size="large"
+          rounded="pill"
+          elevation="2"
+          class="landing__cta-btn"
+          aria-label="Criar conta grátis"
+          to="/register"
+        >
+          Criar conta grátis
+        </v-btn>
+        <v-btn
+          variant="outlined"
+          size="large"
+          rounded="pill"
+          class="landing__cta-btn"
+          aria-label="Entrar na sua conta"
+          to="/login"
+        >
+          Entrar
+        </v-btn>
+      </div>
     </section>
 
     <a
@@ -522,7 +555,7 @@ const plans = [
     period: 'Para sempre',
     badge: null as string | null,
     badgeColor: null as string | null,
-    cta: 'Começar grátis',
+    cta: 'Criar conta grátis',
     features: [
       { text: '2 contas bancárias', included: true },
       { text: '30 transações/mês', included: true },
@@ -538,7 +571,7 @@ const plans = [
     period: 'por mês',
     badge: null as string | null,
     badgeColor: null as string | null,
-    cta: 'Assinar',
+    cta: 'Criar conta',
     features: [
       { text: 'Tudo ilimitado', included: true },
       { text: 'Cartões de crédito', included: true },
@@ -554,7 +587,7 @@ const plans = [
     period: 'por 6 meses',
     badge: '16% OFF',
     badgeColor: 'warning',
-    cta: 'Assinar',
+    cta: 'Criar conta',
     features: [
       { text: 'Tudo ilimitado', included: true },
       { text: 'Cartões de crédito', included: true },
@@ -570,7 +603,7 @@ const plans = [
     period: 'por 12 meses',
     badge: '24% OFF',
     badgeColor: 'primary',
-    cta: 'Começar agora',
+    cta: 'Criar conta',
     features: [
       { text: 'Tudo ilimitado', included: true },
       { text: 'Cartões de crédito', included: true },
@@ -631,6 +664,14 @@ const faqs = [
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.landing__nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .landing__hero {
@@ -654,6 +695,47 @@ const faqs = [
   max-width: 500px;
   margin: 0 auto 36px;
   line-height: 1.7;
+}
+
+.landing__hero-actions,
+.landing__cta-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing__hero-actions {
+  margin-bottom: 12px;
+}
+
+.landing__hero-note {
+  font-size: 0.9rem;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+  max-width: 440px;
+  margin: 0 auto 48px;
+  line-height: 1.5;
+}
+
+.landing__cta-btn {
+  min-width: 200px;
+}
+
+.landing__plans-login {
+  text-align: center;
+  margin-top: 28px;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.landing__plans-login a {
+  color: rgb(var(--v-theme-primary));
+  font-weight: 700;
+  margin-left: 4px;
+  text-decoration: none;
+}
+
+.landing__plans-login a:hover {
+  text-decoration: underline;
 }
 
 .landing__preview {
@@ -774,6 +856,17 @@ const faqs = [
 
   .landing__nav-inner {
     padding: 12px 16px;
+  }
+
+  .landing__hero-actions,
+  .landing__cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing__cta-btn {
+    width: 100%;
+    min-width: 0;
   }
 
   .landing__cta {

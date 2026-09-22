@@ -14,6 +14,7 @@ const {
   markAsTouched,
   showResendVerification,
   resendPending,
+  serviceNotice,
   handleResendVerification,
 } = useAuthForm()
 
@@ -32,6 +33,16 @@ async function onSubmit() {
     </div>
     <h1 class="page-title text-h4 font-weight-bold text-center mb-1 mt-0">Entrar na sua conta</h1>
     <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
+
+    <v-alert
+      v-if="serviceNotice"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      role="status"
+    >
+      {{ serviceNotice }}
+    </v-alert>
 
     <v-form class="w-100" @submit.prevent="onSubmit">
       <AppInput
