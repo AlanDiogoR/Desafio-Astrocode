@@ -1,7 +1,6 @@
 import axios from 'axios'
 import type { LoginResponse } from '~/services/auth/login'
 import {
-  allowsRetryWhileApiDown,
   createApiConfigError,
   createApiUnavailableError,
   isApiUnavailableError,
@@ -83,7 +82,7 @@ export default defineNuxtPlugin(() => {
         markUnavailable()
         return Promise.reject(createApiConfigError())
       }
-      if (apiUnavailable.value && !allowsRetryWhileApiDown(req.url, req.method)) {
+      if (apiUnavailable.value) {
         return Promise.reject(createApiUnavailableError())
       }
       const token = authToken.value

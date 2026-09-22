@@ -1,13 +1,8 @@
-/** Mensagem única para o usuário quando a API não responde (offline, CORS ou base ausente). */
+/** Aviso quando a API não responde. Auth fica desabilitado — sem sucesso falso. */
 export const API_UNAVAILABLE_MESSAGE =
-  'Não foi possível conectar ao serviço agora. Você pode continuar no site; criar conta e entrar voltam a funcionar em alguns minutos.'
+  'Cadastro e login em breve. O acesso volta quando o serviço estiver no ar.'
 
-const USER_RETRY_PATHS = [
-  '/auth/login',
-  '/auth/forgot-password',
-  '/auth/reset-password',
-  '/auth/resend-verification',
-] as const
+export const AUTH_PAUSED_MESSAGE = API_UNAVAILABLE_MESSAGE
 
 interface ErrorLike {
   code?: string
@@ -63,16 +58,37 @@ export function createApiConfigError(): Error & { code: string } {
   return err
 }
 
+/** Sessão só existe com token e e-mail reais. Resposta vazia não é login. */
+export function isRealSession(data: { accessToken?: string; email?: string } | null | undefined): boolean {
+  return typeof data?.accessToken === 'string'
+    && data.accessToken.trim().length > 0
+    && typeof data.email === 'string'
+    && data.email.includes('@')
+}
+
 /**
- * Login, cadastro e recuperação tentam a rede mesmo depois de uma falha,
- * para o usuário conseguir de novo quando o serviço voltar.
- * O cadastro usa POST /users (não /users/me).
+ * A API está no ar se o host responde (2xx–4xx). Queda de rede, timeout ou 5xx contam como fora.
  */
-export function allowsRetryWhileApiDown(url: unknown, method: unknown): boolean {
-  const path = String(url ?? '').split('?')[0]
-  const verb = String(method ?? 'get').toLowerCase()
-
-  if (verb === 'post' && (path === '/users' || path.endsWith('/users'))) return true
-
-  return USER_RETRY_PATHS.some((allowed) => path === allowed || path.endsWith(allowed))
+export async function probeApi(
+  apiBase: string,
+  fetchImpl: typeof fetch = fetch,
+  timeoutMs = 4000,
+): Promise<boolean> {
+  const base = apiBase.trim()
+  if (!base) return false
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const url = `${base.replace(/\/$/, '')}/health`
+    const res = await fetchImpl(url, {
+      method: 'GET',
+      signal: controller.signal,
+      credentials: 'omit',
+    })
+    return res.status > 0 && res.status < 500
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
+  }
 }

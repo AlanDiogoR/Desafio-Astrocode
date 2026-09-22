@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
-  allowsRetryWhileApiDown,
   createApiConfigError,
   createApiUnavailableError,
   isApiUnavailableError,
+  isRealSession,
+  probeApi,
 } from '~/utils/apiAvailability'
 
 describe('isApiUnavailableError', () => {
@@ -30,15 +31,28 @@ describe('isApiUnavailableError', () => {
   })
 })
 
-describe('allowsRetryWhileApiDown', () => {
-  it('libera só ações de conta iniciadas pelo usuário', () => {
-    expect(allowsRetryWhileApiDown('/auth/login', 'post')).toBe(true)
-    expect(allowsRetryWhileApiDown('/auth/forgot-password', 'post')).toBe(true)
-    expect(allowsRetryWhileApiDown('/auth/reset-password', 'POST')).toBe(true)
-    expect(allowsRetryWhileApiDown('/auth/resend-verification', 'post')).toBe(true)
-    expect(allowsRetryWhileApiDown('/users', 'post')).toBe(true)
-    expect(allowsRetryWhileApiDown('/users/me', 'get')).toBe(false)
-    expect(allowsRetryWhileApiDown('/auth/refresh', 'post')).toBe(false)
-    expect(allowsRetryWhileApiDown('/dashboard', 'get')).toBe(false)
+describe('isRealSession', () => {
+  it('exige token e e-mail', () => {
+    expect(isRealSession({ accessToken: 'abc', email: 'a@b.co' })).toBe(true)
+    expect(isRealSession({ accessToken: '', email: 'a@b.co' })).toBe(false)
+    expect(isRealSession({ accessToken: 'abc', email: 'sem-arroba' })).toBe(false)
+    expect(isRealSession(undefined)).toBe(false)
+  })
+})
+
+describe('probeApi', () => {
+  it('considera a API no ar quando o host responde abaixo de 500', async () => {
+    const fetchImpl = (async () => new Response(null, { status: 404 })) as typeof fetch
+    await expect(probeApi('https://api.exemplo.com/api', fetchImpl)).resolves.toBe(true)
+  })
+
+  it('considera a API fora em queda de rede ou 5xx', async () => {
+    const down = (async () => {
+      throw new Error('failed to fetch')
+    }) as typeof fetch
+    await expect(probeApi('https://api.exemplo.com/api', down)).resolves.toBe(false)
+    const unavailable = (async () => new Response(null, { status: 503 })) as typeof fetch
+    await expect(probeApi('https://api.exemplo.com/api', unavailable)).resolves.toBe(false)
+    await expect(probeApi('  ', fetch)).resolves.toBe(false)
   })
 })

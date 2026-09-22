@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/vue-query'
 import type { AxiosError } from 'axios'
 import { z } from 'zod'
-import { API_UNAVAILABLE_MESSAGE, isApiUnavailableError } from '~/utils/apiAvailability'
+import { API_UNAVAILABLE_MESSAGE, isApiUnavailableError, isRealSession } from '~/utils/apiAvailability'
 import { getErrorMessage } from '~/utils/errorHandler'
 import { login as loginApi } from '~/services/auth/login'
 import { register as registerApi } from '~/services/auth/register'
@@ -53,6 +53,7 @@ export function useAuthForm() {
   const authStore = useAuthStore()
   const router = useRouter()
   const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+  const { authPaused } = useAuthPaused()
 
   function markAsTouched(field: 'email' | 'password' | 'name') {
     touched[field] = true
@@ -182,6 +183,10 @@ export function useAuthForm() {
   const loginMutation = useMutation({
     mutationFn: (payload: { email: string; password: string }) => loginApi(payload),
     onSuccess: (data) => {
+      if (!isRealSession(data)) {
+        serviceNotice.value = API_UNAVAILABLE_MESSAGE
+        return
+      }
       const nuxtApp = useNuxtApp()
       const apply = nuxtApp.$applySessionFromLoginResponse as undefined | ((d: typeof data) => void)
       if (typeof apply === 'function') {
@@ -213,10 +218,15 @@ export function useAuthForm() {
   })
 
   async function handleLogin() {
+    if (authPaused.value) {
+      serviceNotice.value = API_UNAVAILABLE_MESSAGE
+      return
+    }
     serviceNotice.value = ''
     if (!validateLogin()) return
     try {
-      await loginMutation.mutateAsync({ email: email.value, password: password.value })
+      const data = await loginMutation.mutateAsync({ email: email.value, password: password.value })
+      if (!isRealSession(data)) return
       const route = useRoute()
       const redirect = route.query.redirect as string
       router.replace(redirect && redirect.startsWith('/') ? redirect : '/dashboard')
@@ -226,6 +236,10 @@ export function useAuthForm() {
   }
 
   async function handleRegister() {
+    if (authPaused.value) {
+      serviceNotice.value = API_UNAVAILABLE_MESSAGE
+      return
+    }
     serviceNotice.value = ''
     if (!validateRegister()) return
     try {
@@ -241,6 +255,10 @@ export function useAuthForm() {
   }
 
   async function handleResendVerification() {
+    if (authPaused.value) {
+      serviceNotice.value = API_UNAVAILABLE_MESSAGE
+      return
+    }
     if (!email.value.trim()) {
       toast.error('Informe o e-mail.')
       return
@@ -296,6 +314,8 @@ export function useAuthForm() {
     showResendVerification,
     resendPending,
     serviceNotice,
+    authPaused,
+    authPausedMessage: API_UNAVAILABLE_MESSAGE,
     handleResendVerification,
     emailError,
     passwordError,

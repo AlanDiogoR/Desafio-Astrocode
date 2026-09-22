@@ -9,9 +9,17 @@ const router = useRouter()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
 const { refetch: refetchUser } = useUser()
 
+const FALLBACK_PLANS = [
+  { id: 'MONTHLY', name: 'Pro Mensal', price: 19.9, months: 1, description: 'Para organizar o mês sem limite.' },
+  { id: 'SEMIANNUAL', name: 'Pro Semestral', price: 49.9, months: 6, description: 'O mesmo do mensal, com desconto.' },
+  { id: 'ANNUAL', name: 'Elite Anual', price: 179.9, months: 12, description: 'Visão completa, inclusive Open Finance.' },
+]
+
 const plans = ref<Array<{ id: string; name: string; price: number; months: number; description: string }>>([])
 const subscription = ref<{ planType: string; status: string; expiresAt: string | null } | null>(null)
 const isLoading = ref(true)
+const plansPaused = ref(false)
+const { authPaused } = useAuthPaused()
 
 const waitlistEmail = ref('')
 const waitlistSubmitted = ref(false)
@@ -39,8 +47,13 @@ onMounted(async () => {
   try {
     const { listPlans } = await import('~/services/subscription/listPlans')
     plans.value = await listPlans($api)
-  } catch {
-    toast?.error('Erro ao carregar planos.')
+  } catch (err: unknown) {
+    plansPaused.value = true
+    plans.value = FALLBACK_PLANS
+    const { isApiUnavailableError } = await import('~/utils/apiAvailability')
+    if (!isApiUnavailableError(err)) {
+      toast?.error('Erro ao carregar planos.')
+    }
   } finally {
     isLoading.value = false
   }
@@ -58,6 +71,7 @@ onMounted(async () => {
 })
 
 async function handleWaitlist() {
+  if (authPaused.value || plansPaused.value) return
   const email = waitlistEmail.value.trim() || authStore.user?.email?.trim()
   if (!email) {
     toast?.error('Informe um e-mail válido.')
@@ -152,6 +166,7 @@ function apiPlanToMpPlanId(planId: string): MpPlanId {
 }
 
 function goAssinar(planId: string) {
+  if (plansPaused.value || authPaused.value) return
   const mp = apiPlanToMpPlanId(planId)
   if (!authStore.isLoggedIn) {
     const checkoutUrl = `/subscription/checkout?plan=${mp}`
@@ -257,9 +272,10 @@ function goAssinar(planId: string) {
                 size="large"
                 rounded="lg"
                 class="planos-page__assinar-btn"
+                :disabled="plansPaused || authPaused"
                 @click.stop.prevent="goAssinar(plan.id)"
               >
-                Assinar
+                {{ plansPaused || authPaused ? 'Em breve' : 'Assinar' }}
               </v-btn>
             </div>
           </div>
@@ -293,13 +309,11 @@ function goAssinar(planId: string) {
             size="large"
             rounded="lg"
             block
-            href="https://wa.me/5511999999999?text=Oi%2C%20quero%20conhecer%20o%20plano%20WhatsApp%20do%20Grivy!"
-            target="_blank"
-            rel="noopener"
+            disabled
             class="whatsapp-card__cta"
           >
             <v-icon start>mdi-whatsapp</v-icon>
-            Falar no WhatsApp
+            Em breve
           </v-btn>
           <p class="whatsapp-card__social text-caption mt-3">
             +200 usuários já controlam suas finanças pelo WhatsApp
@@ -339,9 +353,10 @@ function goAssinar(planId: string) {
               rounded="lg"
               block
               :loading="waitlistLoading"
+              :disabled="waitlistLoading || authPaused || plansPaused"
               @click="handleWaitlist"
             >
-              👑 Entrar na lista VIP de acesso antecipado
+              {{ authPaused || plansPaused ? 'Em breve' : '👑 Entrar na lista VIP de acesso antecipado' }}
             </v-btn>
           </div>
           <v-btn
@@ -368,14 +383,14 @@ function goAssinar(planId: string) {
 
       <div v-if="!isLoggedIn" class="planos-page__cta mt-8">
         <p class="text-body-1 text-medium-emphasis">
-          Faça login ou cadastre-se para assinar um plano.
+          {{ plansPaused || authPaused ? 'Assinatura em breve. Enquanto isso, crie sua conta ou entre.' : 'Faça login ou cadastre-se para assinar um plano.' }}
         </p>
-        <div class="d-flex gap-2 mt-2">
-          <v-btn color="primary" variant="flat" :to="'/login?redirect=' + encodeURIComponent('/dashboard/planos')">
-            Entrar
+        <div class="d-flex ga-2 mt-2 justify-center flex-wrap">
+          <v-btn color="primary" variant="flat" to="/register">
+            Criar conta
           </v-btn>
-          <v-btn variant="outlined" to="/register">
-            Cadastrar
+          <v-btn variant="outlined" to="/login">
+            Entrar
           </v-btn>
         </div>
       </div>

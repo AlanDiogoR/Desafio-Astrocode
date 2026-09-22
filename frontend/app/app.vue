@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { API_UNAVAILABLE_MESSAGE } from '~/utils/apiAvailability'
+import { API_UNAVAILABLE_MESSAGE, probeApi } from '~/utils/apiAvailability'
 
 const route = useRoute()
 const isLoading = useAppLoading()
-const { isValid: hasApiConfig } = useApiConfig()
-const { unavailable: apiUnavailable } = useApiAvailability()
+const { isValid: hasApiConfig, apiBase } = useApiConfig()
+const { unavailable: apiUnavailable, markUnavailable, markAvailable } = useApiAvailability()
 const { isPending } = useUser()
 const showServiceNotice = computed(() => !hasApiConfig || apiUnavailable.value)
 
@@ -30,6 +30,14 @@ watch(
 
 onMounted(() => {
   fallbackTimer.value = setTimeout(() => clearSplash(), 1500)
+  if (!hasApiConfig) {
+    markUnavailable()
+    return
+  }
+  void probeApi(apiBase).then((up) => {
+    if (up) markAvailable()
+    else markUnavailable()
+  })
 })
 onUnmounted(() => {
   if (fallbackTimer.value) clearTimeout(fallbackTimer.value)
