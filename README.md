@@ -85,6 +85,8 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura limpa e boas
 2. **Configure `.env`** em `backend/` e `frontend/` (veja `.env.example` em cada pasta).
 3. **Frontend**: O Nuxt consome a API via `NUXT_PUBLIC_API_BASE`. Em dev, use `http://localhost:8080/api`.
 
+Com a API desligada, o checklist do site Netlify está em [`frontend/README.md`](frontend/README.md#checklist-com-a-api-desligada): `/` e `/planos` em 200 com CTA, auth em “em breve” sem sucesso falso, e `/dashboard*` redirecionando para o login.
+
 ---
 
 ## 📐 Convenções do Projeto

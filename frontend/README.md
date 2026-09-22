@@ -49,6 +49,27 @@ NUXT_PUBLIC_API_BASE=http://localhost:8080/api
 
 ---
 
+## Checklist com a API desligada
+
+Use isto quando a API (Railway) estiver fora. Não há sucesso de cadastro ou login nesse estado.
+
+- [ ] `GET /` responde **200** e mostra os CTAs **Criar conta** e **Entrar**
+- [ ] `GET /planos` responde **200** e mostra os CTAs **Criar conta** e **Entrar**
+- [ ] Login, cadastro e recuperação de senha **não** exibem sucesso; o formulário fica desabilitado com **Em breve**
+- [ ] `GET /dashboard` e as rotas `/dashboard/*` **redirecionam** para `/login` (sem sessão)
+- [ ] O hero não tem link morto: sem WhatsApp fictício e sem atalho para `/dashboard` antes do login
+
+Conferir no preview:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://<preview>/ 
+curl -s -o /dev/null -w "%{http_code}\n" https://<preview>/planos
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" https://<preview>/dashboard
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" https://<preview>/dashboard/planos
+```
+
+---
+
 ## 🔄 Fluxo de Dados
 
 - **Pinia** (`stores/auth.ts`): Estado de autenticação (token, user). O cookie `auth_token` persiste o JWT.

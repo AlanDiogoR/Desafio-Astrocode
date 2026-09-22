@@ -14,10 +14,14 @@ const {
   markAsTouched,
   showResendVerification,
   resendPending,
+  serviceNotice,
+  authPaused,
+  authPausedMessage,
   handleResendVerification,
 } = useAuthForm()
 
 const isPending = computed(() => Boolean(unref(loginMutation.isPending)))
+const formLocked = computed(() => isPending.value || authPaused.value)
 const showPassword = ref(false)
 
 async function onSubmit() {
@@ -33,6 +37,16 @@ async function onSubmit() {
     <h1 class="page-title text-h4 font-weight-bold text-center mb-1 mt-0">Entrar na sua conta</h1>
     <p class="auth-subtitle text-body-1 text-center mb-8">Acesse sua plataforma de controle financeiro</p>
 
+    <v-alert
+      v-if="authPaused || serviceNotice"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      role="status"
+    >
+      {{ authPaused ? authPausedMessage : serviceNotice }}
+    </v-alert>
+
     <v-form class="w-100" @submit.prevent="onSubmit">
       <AppInput
         v-model="email"
@@ -40,7 +54,7 @@ async function onSubmit() {
         type="email"
         autocomplete="email"
         :field-error="emailErrorDisplay"
-        :disabled="isPending"
+        :disabled="formLocked"
         class="mb-4"
         @clear-error="clearFieldError('email')"
         @blur="markAsTouched('email')"
@@ -52,7 +66,7 @@ async function onSubmit() {
         :type="showPassword ? 'text' : 'password'"
         autocomplete="current-password"
         :field-error="passwordErrorDisplay"
-        :disabled="isPending"
+        :disabled="formLocked"
         class="mb-2"
         @clear-error="clearFieldError('password')"
         @blur="markAsTouched('password')"
@@ -78,11 +92,11 @@ async function onSubmit() {
       <AppButton
         type="submit"
         :loading="isPending"
-        :disabled="isPending"
+        :disabled="formLocked"
         :class="{ 'app-button--loading': isPending }"
         block
       >
-        Entrar
+        {{ authPaused ? 'Em breve' : 'Entrar' }}
       </AppButton>
 
       <div v-if="showResendVerification" class="mt-4 text-center">
@@ -91,7 +105,7 @@ async function onSubmit() {
           color="primary"
           :block="false"
           :loading="resendPending"
-          :disabled="resendPending"
+          :disabled="resendPending || authPaused"
           @click="handleResendVerification"
         >
           Reenviar e-mail de verificação

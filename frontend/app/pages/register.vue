@@ -19,9 +19,13 @@ const {
   handleRegister,
   clearFieldError,
   markAsTouched,
+  serviceNotice,
+  authPaused,
+  authPausedMessage,
 } = useAuthForm()
 
 const isPending = computed(() => Boolean(unref(registerMutation.isPending)))
+const formLocked = computed(() => isPending.value || authPaused.value)
 const showPassword = ref(false)
 
 const passwordStrength = computed(() => {
@@ -57,6 +61,16 @@ async function onSubmit() {
       Depois do cadastro você já cai no painel com os primeiros passos.
     </p>
 
+    <v-alert
+      v-if="authPaused || serviceNotice"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      role="status"
+    >
+      {{ authPaused ? authPausedMessage : serviceNotice }}
+    </v-alert>
+
     <v-form class="w-100" @submit.prevent="onSubmit">
       <ClientOnly>
         <AppInput
@@ -65,7 +79,7 @@ async function onSubmit() {
           type="text"
           autocomplete="name"
           :field-error="nameErrorDisplay"
-          :disabled="isPending"
+          :disabled="formLocked"
           class="mb-4"
           @clear-error="clearFieldError('name')"
           @blur="markAsTouched('name')"
@@ -77,7 +91,7 @@ async function onSubmit() {
           type="email"
           autocomplete="email"
           :field-error="emailErrorDisplay"
-          :disabled="isPending"
+          :disabled="formLocked"
           class="mb-4"
           @clear-error="clearFieldError('email')"
           @blur="markAsTouched('email')"
@@ -89,7 +103,7 @@ async function onSubmit() {
           :type="showPassword ? 'text' : 'password'"
           autocomplete="new-password"
           :field-error="passwordErrorDisplay"
-          :disabled="isPending"
+          :disabled="formLocked"
           :class="password.length > 0 ? 'mb-4' : 'mb-6'"
           @clear-error="clearFieldError('password')"
           @blur="markAsTouched('password')"
@@ -126,11 +140,11 @@ async function onSubmit() {
       <AppButton
         type="submit"
         :loading="isPending"
-        :disabled="isPending"
+        :disabled="formLocked"
         :class="{ 'app-button--loading': isPending }"
         block
       >
-        Criar conta
+        {{ authPaused ? 'Em breve' : 'Criar conta' }}
       </AppButton>
     </v-form>
 

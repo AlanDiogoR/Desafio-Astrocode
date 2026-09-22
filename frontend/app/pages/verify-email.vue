@@ -20,9 +20,12 @@ onMounted(async () => {
     await $api.get('/users/verify-email', { params: { token } })
     status.value = 'ok'
     message.value = 'E-mail confirmado com sucesso. Você já pode entrar na sua conta.'
-  } catch {
+  } catch (err: unknown) {
     status.value = 'err'
-    message.value = 'Não foi possível confirmar o e-mail. O link pode ter expirado ou ser inválido.'
+    const { API_UNAVAILABLE_MESSAGE, isApiUnavailableError } = await import('~/utils/apiAvailability')
+    message.value = isApiUnavailableError(err)
+      ? API_UNAVAILABLE_MESSAGE
+      : 'Não foi possível confirmar o e-mail. O link pode ter expirado ou ser inválido.'
   }
 })
 </script>

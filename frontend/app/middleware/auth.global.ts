@@ -31,11 +31,17 @@ function safeRedirectTarget(query: unknown): string | null {
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const { isValid: hasApiConfig } = useApiConfig()
+  const { unavailable: apiUnavailable } = useApiAvailability()
   const { authToken } = useAuthCookies()
 
-  if (!hasApiConfig) return
-
   const isPublic = isPublicRoute(to.path)
+
+  if (!hasApiConfig || apiUnavailable.value) {
+    if (!isPublic) {
+      return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
+    }
+    return
+  }
 
   if (import.meta.server) {
     if (!isPublic && !authToken.value) {

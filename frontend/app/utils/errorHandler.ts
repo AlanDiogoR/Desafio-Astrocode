@@ -1,4 +1,5 @@
 import type { AxiosError } from 'axios'
+import { API_UNAVAILABLE_MESSAGE, isApiUnavailableError } from '~/utils/apiAvailability'
 
 const DEFAULT_MESSAGE = 'Algo deu errado. Tente novamente.'
 
@@ -32,6 +33,10 @@ export function getErrorMessage(error: unknown, fallback = DEFAULT_MESSAGE): str
     return ''
   }
 
+  if (!status && isApiUnavailableError(error)) {
+    return API_UNAVAILABLE_MESSAGE
+  }
+
   if (data?.message) {
     const msg = data.message.trim()
     const override = Object.entries(MESSAGE_OVERRIDES).find(([key]) => msg.startsWith(key))
@@ -40,10 +45,7 @@ export function getErrorMessage(error: unknown, fallback = DEFAULT_MESSAGE): str
   }
 
   if (status && STATUS_MESSAGES[status]) return STATUS_MESSAGES[status]
-  if (axiosError.code === 'ERR_NETWORK') return 'Falha ao conectar com o servidor.'
-  if (axiosError.code === 'ECONNABORTED' || axiosError.message?.toLowerCase().includes('timeout')) {
-    return 'Tempo limite excedido. Tente novamente.'
-  }
+  if (isApiUnavailableError(error)) return API_UNAVAILABLE_MESSAGE
 
   return fallback
 }

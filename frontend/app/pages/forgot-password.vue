@@ -28,11 +28,13 @@ const isResetting = ref(false)
 
 const authStore = useAuthStore()
 const toast = useNuxtApp().$toast as typeof import('vue3-hot-toast').default
+const { authPaused, authPausedMessage } = useAuthPaused()
 
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 async function handleRequestCode() {
+  if (authPaused.value) return
   emailError.value = ''
   const result = emailSchema.safeParse(email.value.trim())
   if (!result.success) {
@@ -76,6 +78,7 @@ function validateStep2(): boolean {
 }
 
 async function handleResetPassword() {
+  if (authPaused.value) return
   if (!validateStep2()) return
   isResetting.value = true
   try {
@@ -125,6 +128,16 @@ function goBack() {
       {{ step === 1 ? 'Informe seu e-mail para receber o código de recuperação' : 'Digite o código e defina uma nova senha' }}
     </p>
 
+    <v-alert
+      v-if="authPaused"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      role="status"
+    >
+      {{ authPausedMessage }}
+    </v-alert>
+
     <template v-if="step === 1">
       <v-form
         class="w-100"
@@ -136,17 +149,17 @@ function goBack() {
             label="E-mail"
             type="email"
             :field-error="emailError"
-            :disabled="isRequestingCode"
+            :disabled="isRequestingCode || authPaused"
             class="mb-4"
           />
         </ClientOnly>
         <AppButton
           type="submit"
           :loading="isRequestingCode"
-          :disabled="isRequestingCode"
+          :disabled="isRequestingCode || authPaused"
           block
         >
-          Enviar código
+          {{ authPaused ? 'Em breve' : 'Enviar código' }}
         </AppButton>
       </v-form>
     </template>
@@ -164,7 +177,7 @@ function goBack() {
             inputmode="text"
             autocomplete="one-time-code"
             :field-error="codeError"
-            :disabled="isResetting"
+            :disabled="isResetting || authPaused"
             class="mb-4"
             maxlength="6"
             placeholder="Ex: A1B2C3"
@@ -174,7 +187,7 @@ function goBack() {
             label="Nova senha"
             :type="showNewPassword ? 'text' : 'password'"
             :field-error="newPasswordError"
-            :disabled="isResetting"
+            :disabled="isResetting || authPaused"
             class="mb-4"
           >
             <template #append-inner>
@@ -190,7 +203,7 @@ function goBack() {
             label="Confirmar senha"
             :type="showConfirmPassword ? 'text' : 'password'"
             :field-error="confirmPasswordError"
-            :disabled="isResetting"
+            :disabled="isResetting || authPaused"
             class="mb-6"
           >
             <template #append-inner>
@@ -205,10 +218,10 @@ function goBack() {
         <AppButton
           type="submit"
           :loading="isResetting"
-          :disabled="isResetting"
+          :disabled="isResetting || authPaused"
           block
         >
-          Redefinir senha
+          {{ authPaused ? 'Em breve' : 'Redefinir senha' }}
         </AppButton>
       </v-form>
     </template>
